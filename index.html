@@ -6,7 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>COBOL Dev Studio</title>
+  <title>CB · COBOL Dev Studio</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%234ade80'/%3E%3Ctext x='16' y='22' font-family='Arial,sans-serif' font-size='14' font-weight='700' fill='%231a1a2e' text-anchor='middle'%3ECB%3C/text%3E%3C/svg%3E" />
   <!-- Design tokens & reset -->
   <link rel="stylesheet" href="css/tokens.css" />
   <!-- Layout shell -->
@@ -585,6 +586,32 @@
       font-size: 11px;
       cursor: pointer;
     }
+    .node-card-remove-btn {
+      padding: 2px 7px;
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      border-radius: 2px;
+      font-size: 12px;
+      cursor: pointer;
+      color: #b91c1c;
+      user-select: none;
+      line-height: 1;
+      margin-left: 2px;
+    }
+    .node-card-remove-btn:hover { background: #fecaca; border-color: #f87171; }
+    /* Feedback visual de role no header do card */
+    .node-card-header.code-role-comment {
+      background: repeating-linear-gradient(
+        135deg, transparent, transparent 6px, rgba(0,0,0,0.04) 6px, rgba(0,0,0,0.04) 12px
+      ) !important;
+      opacity: 0.75;
+    }
+    .node-card-header.code-role-comment::after {
+      content: ' 💬'; font-size: 11px;
+    }
+    .node-card-header.code-role-inline::after {
+      content: ' ↳'; font-size: 12px; font-weight: 900; color: #555;
+    }
     /* ── Blocos aninhados nos campos do nó ─────────────────────────── */
     .node-field.nf-depth-0 { border-left: 3px solid #3b82f6; border-radius: 0 3px 3px 0; }
     .node-field.nf-depth-1 { border-left: 3px solid #f59e0b; border-radius: 0 3px 3px 0; }
@@ -612,7 +639,7 @@
       flex-shrink: 0;
     }
     .node-field-drag:active { cursor: grabbing; }
-    .node-field-drag:hover  { color: #555; }
+    .node-field-drag:hover  { color: #4f8ef7; background: #eef4ff; border-radius: 3px; }
     /* Linha sendo arrastada */
     .node-field.dragging-row {
       opacity: 0.4;
@@ -908,6 +935,18 @@
       background: transparent; color: var(--accent); padding: 2px 0;
     }
     #pg-edicao .prop-edit-add-btn:hover { background: #eef3ff; }
+    #pg-edicao .prop-edit-role {
+      display: flex; align-items: center; gap: 6px; margin: 4px 0 6px 0;
+    }
+    #pg-edicao .prop-edit-role label {
+      font-size: 11px; color: #555; white-space: nowrap;
+    }
+    #pg-edicao .prop-edit-role select {
+      flex: 1; font-size: 11px; padding: 2px 4px;
+      border: 1px solid var(--panel-border); border-radius: 2px;
+      background: var(--prop-value-bg); color: var(--text); outline: none;
+    }
+    #pg-edicao .prop-edit-role select:focus { border-color: var(--accent); }
 
     /* Code View */
     #code-view { display: none; }
@@ -2035,12 +2074,65 @@ function _renderPropEdit(fullId) {
   hdrInp.placeholder = 'Nome do bloco';
   hdrInp.title = 'Editar nome exibido no cabeçalho do card';
   hdrInp.addEventListener('input', () => {
-    if (nodeLblEl) nodeLblEl.textContent = hdrInp.value;
+    const newVal = hdrInp.value;
+    const oldVal = nodeLblEl ? nodeLblEl.textContent : '';
+    if (nodeLblEl) nodeLblEl.textContent = newVal;
     const nameInp = document.getElementById('prop-sel-name');
-    if (nameInp) nameInp.value = hdrInp.value;
+    if (nameInp) nameInp.value = newVal;
+    // Propaga renomeação para todos os campos do canvas que referenciam o nome antigo
+    if (oldVal && newVal && oldVal !== newVal) {
+      document.querySelectorAll('#canvas .node-field input').forEach(cardInp => {
+        if (cardInp.value.includes(oldVal)) {
+          cardInp.value = cardInp.value.split(oldVal).join(newVal);
+          const ownerCard = cardInp.closest('.node-card');
+          if (ownerCard) _styleNodeFields(ownerCard);
+        }
+      });
+      // Re-sincroniza os mirrors do painel (campos do nó atual que possam ter mudado)
+      const cardInputs = Array.from(el.querySelectorAll('.node-card-body .node-field input'));
+      wrap.querySelectorAll('.prop-edit-row').forEach((row, i) => {
+        if (cardInputs[i]) {
+          const mirror = row.querySelector('input');
+          if (mirror) mirror.value = cardInputs[i].value;
+        }
+      });
+    }
   });
   hdrRow.appendChild(hdrInp);
   wrap.appendChild(hdrRow);
+
+  // ── Tipo de renderização no código ────────────────────────────
+  const roleRow = document.createElement('div');
+  roleRow.className = 'prop-edit-role';
+  const roleLbl = document.createElement('label');
+  roleLbl.textContent = 'No código:';
+  const roleSel = document.createElement('select');
+  roleSel.title = 'Como este bloco aparece no código COBOL gerado';
+  [['paragraph', '📌 Parágrafo COBOL'], ['comment', '💬 Comentário (*>)'], ['inline', '➡️ Inline (sem cabeçalho)']]
+    .forEach(([val, txt]) => {
+      const opt = document.createElement('option');
+      opt.value = val; opt.textContent = txt;
+      if ((el.dataset.codeRole || 'comment') === val) opt.selected = true;
+      roleSel.appendChild(opt);
+    });
+  roleSel.addEventListener('change', () => {
+    el.dataset.codeRole = roleSel.value;
+    // Visual feedback no header do card
+    const hdr = el.querySelector('.node-card-header');
+    if (hdr) {
+      hdr.classList.toggle('code-role-comment', roleSel.value === 'comment');
+      hdr.classList.toggle('code-role-inline',  roleSel.value === 'inline');
+    }
+  });
+  // Aplica estilo visual inicial
+  const _hdr = el.querySelector('.node-card-header');
+  if (_hdr) {
+    _hdr.classList.toggle('code-role-comment', (el.dataset.codeRole || 'comment') === 'comment');
+    _hdr.classList.toggle('code-role-inline',  (el.dataset.codeRole || 'comment') === 'inline');
+  }
+  roleRow.appendChild(roleLbl);
+  roleRow.appendChild(roleSel);
+  wrap.appendChild(roleRow);
 
   // ── Separador ─────────────────────────────────────────────────
   const sep = document.createElement('div');
@@ -2080,6 +2172,8 @@ function _renderPropEdit(fullId) {
       if (body && body.querySelectorAll('.node-field').length <= 1) {
         showToast('O card precisa ter ao menos uma linha.', 'error'); return;
       }
+      // Cascade: se a linha referencia um bloco, remove o bloco também
+      _cascadeDeleteReferencedCard(cardInp.value);
       cardInp.closest('.node-field').remove();
       row.remove();
       _styleNodeFields(nodeEl);
@@ -2245,6 +2339,8 @@ function onCanvasDrop(event) {
   const { x, y } = _canvasXY(event);
   if (draggingType === 'IPT_SET') {
     _createIPTSet(Math.round(x - 110), Math.round(y - 20));
+  } else if (draggingType === 'PERFORM' || draggingType === 'PERFORM_UNTIL' || draggingType === 'PERFORM_VARYING') {
+    _createPerformWithPara(draggingType, Math.round(x - 110), Math.round(y - 20));
   } else {
     createNodeAt(draggingType, Math.round(x - 110), Math.round(y - 20));
   }
@@ -2334,7 +2430,7 @@ function createNodeAt(type, x, y) {
     <div ${headerColor}>
       <span>${meta.icon}</span> <span class="node-label">${meta.label}</span>
       <span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'${nodeId}')" title="Conectar saída">→</span>
-      <span class="node-field-more" onclick="event.stopPropagation();this.closest('.node-card').remove();updateNodeCount();drawArrows();" title="Remover">✕</span>
+      <span class="node-card-remove-btn" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();_removeNodeCard(this)" title="Remover">✕</span>
     </div>
     <div class="node-card-body">${fieldsHtml}</div>
     <button class="node-add-field-btn" onclick="event.stopPropagation();_addFieldToCard(this)" title="Adicionar linha">＋ linha</button>`;
@@ -2382,6 +2478,89 @@ function updateNodeCount() {
   document.getElementById('node-count').textContent = nodeCounter + ' nós';
 }
 
+function _removeNodeCard(btn) {
+  const card = btn.closest('.node-card');
+  if (!card) return;
+  const id = card.id;
+
+  // Pega o nome do bloco antes de remover
+  const nodeLblEl = card.querySelector('.node-label');
+  const nodeName  = nodeLblEl ? nodeLblEl.textContent.trim() : '';
+
+  // Limpa as setas que envolvem este nó
+  connections = connections.filter(c => c.from !== id && c.to !== id);
+
+  // Remove linhas de outros cards que referenciam este bloco (PERFORM, GO TO, etc.)
+  if (nodeName) {
+    document.querySelectorAll('#canvas .node-card').forEach(otherCard => {
+      if (otherCard === card) return;
+      otherCard.querySelectorAll('.node-card-body .node-field').forEach(row => {
+        const inp = row.querySelector('input');
+        if (inp && inp.value.includes(nodeName)) {
+          // Se o card ficaria vazio, não remove (mantém ao menos 1 linha)
+          const body = row.parentElement;
+          if (body && body.querySelectorAll('.node-field').length > 1) {
+            row.remove();
+            _styleNodeFields(otherCard);
+          } else {
+            // Apenas limpa o conteúdo da linha se for a única
+            inp.value = '';
+            _styleNodeFields(otherCard);
+          }
+        }
+      });
+    });
+  }
+
+  // Limpa seleção se era o nó selecionado
+  if (selectedNode && ('node-' + selectedNode) === id) {
+    selectedNode = null;
+    const ni = document.getElementById('prop-sel-name');
+    if (ni) ni.value = '(nenhum)';
+    const wrap = document.getElementById('pg-edicao');
+    if (wrap) wrap.innerHTML = '<div class="prop-edit-empty">Selecione um elemento no canvas</div>';
+  }
+  card.remove();
+  updateNodeCount();
+  drawArrows();
+}
+
+// Ao deletar uma linha que referencia outro card (ex: PERFORM INI-RTN-1),
+// remove também o card referenciado do canvas.
+function _cascadeDeleteReferencedCard(fieldValue) {
+  if (!fieldValue) return;
+  // Extrai o nome do parágrafo/seção referenciado
+  const m = fieldValue.match(
+    /\bPERFORM\s+([A-Z][A-Z0-9#-]+)|\bGO\s+TO\s+([A-Z][A-Z0-9#-]+)/i
+  );
+  const refName = m ? (m[1] || m[2] || '').trim() : '';
+  if (!refName) return;
+  // Procura card cujo label seja exatamente esse nome
+  document.querySelectorAll('#canvas .node-card').forEach(card => {
+    const lbl = card.querySelector('.node-label');
+    if (lbl && lbl.textContent.trim() === refName) {
+      const removeBtn = card.querySelector('.node-card-remove-btn');
+      if (removeBtn) {
+        _removeNodeCard(removeBtn);
+      } else {
+        // Card antigo sem o botão novo — faz a limpeza diretamente
+        const cid = card.id;
+        connections = connections.filter(c => c.from !== cid && c.to !== cid);
+        if (selectedNode && ('node-' + selectedNode) === cid) {
+          selectedNode = null;
+          const ni = document.getElementById('prop-sel-name');
+          if (ni) ni.value = '(nenhum)';
+          const wrap = document.getElementById('pg-edicao');
+          if (wrap) wrap.innerHTML = '<div class="prop-edit-empty">Selecione um elemento no canvas</div>';
+        }
+        card.remove();
+        updateNodeCount();
+      }
+    }
+  });
+  drawArrows();
+}
+
 // ── Conjunto INI/PRO/TER: cria bloco PERFORM + 3 parágrafos + setas ──────────
 function _createIPTSet(x, y) {
   const canvas = document.getElementById('canvas');
@@ -2409,7 +2588,7 @@ function _createIPTSet(x, y) {
     div.innerHTML =
       `<div ${hdrCls}><span>${icon}</span> <span class="node-label">${customLabel}</span>` +
       `<span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'${nodeId}')" title="Conectar saída">&rarr;</span>` +
-      `<span class="node-field-more" onclick="event.stopPropagation();this.closest('.node-card').remove();updateNodeCount();drawArrows();" title="Remover">&times;</span></div>` +
+      `<span class="node-card-remove-btn" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();_removeNodeCard(this)" title="Remover">&times;</span></div>` +
       `<div class="node-card-body">${fieldsHtml}</div>` +
       `<button class="node-add-field-btn" onclick="event.stopPropagation();_addFieldToCard(this)" title="Adicionar linha">&#xFF0B; linha</button>`;
     makeDraggable(div);
@@ -2447,23 +2626,144 @@ function _createIPTSet(x, y) {
   drawArrows();
 }
 
+// ── PERFORM com parágrafo automático ───────────────────────────────
+function _createPerformWithPara(type, x, y) {
+  const canvas = document.getElementById('canvas');
+  const meta   = activityMeta[type];
+  const _prevSel = selectedNode;
+  nodeSeqCounter[type] = (nodeSeqCounter[type] || 0) + 1;
+  const n = nodeSeqCounter[type];
+  const paraName = 'PARA-' + n;
+
+  function _mk(tp, lbl, icon, color, fields, nx, ny) {
+    nodeSeqCounter[tp] = (nodeSeqCounter[tp] || 0) + 1;
+    const uid = tp.toLowerCase().replace(/_/g,'-') + '-' + nodeSeqCounter[tp];
+    const nid = 'node-dyn-' + uid;
+    const div = document.createElement('div');
+    div.className = 'cf-node node-card';
+    div.id = nid;
+    div.style.left = Math.max(10, nx) + 'px';
+    div.style.top  = Math.max(10, ny) + 'px';
+    div.setAttribute('onclick', `selectNode('dyn-${uid}','${lbl}')`);
+    const hc = color ? `class="node-card-header ${color}"` : `class="node-card-header"`;
+    const fh = fields.map((f, i) =>
+      `<div class="node-field"><span class="node-field-drag" title="Arrastar para reordenar">&#8597;</span>` +
+      `<input id="field-${uid}-${i}" value="${f.replace(/"/g,'&quot;')}" />` +
+      `<span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">&#xB7;&#xB7;&#xB7;</span>` +
+      `<span class="node-field-help">?</span></div>`
+    ).join('');
+    div.innerHTML =
+      `<div ${hc}><span>${icon}</span> <span class="node-label">${lbl}</span>` +
+      `<span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'${nid}')" title="Conectar saída">&rarr;</span>` +
+      `<span class="node-card-remove-btn" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();_removeNodeCard(this)" title="Remover">&times;</span></div>` +
+      `<div class="node-card-body">${fh}</div>` +
+      `<button class="node-add-field-btn" onclick="event.stopPropagation();_addFieldToCard(this)" title="Adicionar linha">&#xFF0B; linha</button>`;
+    makeDraggable(div);
+    canvas.appendChild(div);
+    nodeCounter++;
+    requestAnimationFrame(() => {
+      _styleNodeFields(div);
+      div.querySelectorAll('.node-field input').forEach(inp =>
+        inp.addEventListener('input', () => _styleNodeFields(div)));
+    });
+    return nid;
+  }
+
+  // Campos do PERFORM com nome real do parágrafo
+  let performFields;
+  if (type === 'PERFORM') {
+    performFields = [`PERFORM ${paraName}`];
+  } else if (type === 'PERFORM_UNTIL') {
+    performFields = [`PERFORM ${paraName}`, `  UNTIL WS-FIM = "S"`];
+  } else {
+    performFields = [
+      `PERFORM VARYING WS-CTR FROM 1 BY 1`,
+      `  UNTIL WS-CTR > WS-TOTAL`,
+      `    PERFORM ${paraName}`,
+      `END-PERFORM`
+    ];
+  }
+
+  const performId = _mk(type, `${meta.label} #${n}`, meta.icon, meta.color, performFields, x, y);
+  const paraId    = _mk('SECTION', paraName, '📂', 'gray',
+    [`${paraName} SECTION.`, `*> Lógica do parágrafo`], x + 360, y);
+
+  // Seta PERFORM → parágrafo
+  connections.push({ from: performId, to: paraId });
+
+  // Auto-PERFORM no nó previamente selecionado
+  if (_prevSel) {
+    const _prevEl = document.getElementById('node-' + _prevSel);
+    if (_prevEl) {
+      const _prevBody = _prevEl.querySelector('.node-card-body');
+      if (_prevBody) {
+        const _perfRow = document.createElement('div');
+        _perfRow.className = 'node-field';
+        _perfRow.innerHTML =
+          `<span class="node-field-drag" title="Arrastar para reordenar">&#8597;</span>` +
+          `<input value="PERFORM ${paraName}" />` +
+          `<span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">&#xB7;&#xB7;&#xB7;</span>` +
+          `<span class="node-field-help">?</span>`;
+        _prevBody.appendChild(_perfRow);
+        _perfRow.querySelector('input').addEventListener('input', () => _styleNodeFields(_prevEl));
+        _styleNodeFields(_prevEl);
+      }
+    }
+  }
+
+  updateNodeCount();
+  selectNode(performId.replace('node-', ''), `${meta.label} #${n}`);
+  showToast(`${meta.label} com parágrafo criados.`, 'success');
+  drawArrows();
+}
+
 /* ─ Drag reposition nodes + drop-to-nest + reorder between ──────── */
 function makeDraggable(el) {
   let startX, startY, startLeft, startTop;
-  let _dropTarget     = null;   // card sob o cursor (nest)
-  let _insertAfter    = undefined; // null = antes do 1º; nodeEl = depois dele; undefined = sem zona
+  let _dragging = false;
+  let _rafId = null;
+  let _dropTarget  = null;
+  let _insertAfter = undefined;
+  const DRAG_THRESHOLD = 6; // px mínimo antes de iniciar o arraste
   const dropLine = () => document.getElementById('card-drop-line');
-  const header = el.querySelector('.node-card-header') || el;
-  header.addEventListener('mousedown', (e) => {
-    if (e.target.classList.contains('node-field-more') || e.target.classList.contains('node-connect-btn') || e.target.tagName === 'INPUT') return;
+
+  // Área de arraste = header + body inteiro (exceto inputs/botões)
+  el.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    if (e.target.classList.contains('node-field-more') ||
+        e.target.classList.contains('node-connect-btn') ||
+        e.target.classList.contains('node-add-field-btn') ||
+        e.target.classList.contains('node-card-remove-btn') ||
+        e.target.classList.contains('node-field-drag') ||
+        e.target.classList.contains('node-sub-block-drag') ||
+        e.target.tagName === 'INPUT' ||
+        e.target.tagName === 'BUTTON' ||
+        e.target.tagName === 'SELECT' ||
+        e.target.tagName === 'TEXTAREA') return;
     startX = e.clientX; startY = e.clientY;
     startLeft = parseInt(el.style.left) || 0;
     startTop  = parseInt(el.style.top)  || 0;
+    _dragging = false;
+
     const onMove = (ev) => {
-      el.style.left = (startLeft + ev.clientX - startX) + 'px';
-      el.style.top  = (startTop  + ev.clientY - startY) + 'px';
-      drawArrows();
-      // Detecta card-alvo sob o cursor
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      // Só inicia após ultrapassar threshold
+      if (!_dragging) {
+        if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+        _dragging = true;
+        el.style.zIndex = '100';
+        el.style.opacity = '0.92';
+        el.style.cursor = 'grabbing';
+      }
+      el.style.left = (startLeft + dx) + 'px';
+      el.style.top  = (startTop  + dy)  + 'px';
+
+      // throttle drawArrows via rAF
+      if (_rafId) cancelAnimationFrame(_rafId);
+      _rafId = requestAnimationFrame(() => { drawArrows(); _rafId = null; });
+
+      // Detecta nest (só se cursor está sobre outro card)
       el.style.pointerEvents = 'none';
       const under = document.elementFromPoint(ev.clientX, ev.clientY);
       el.style.pointerEvents = '';
@@ -2474,24 +2774,21 @@ function makeDraggable(el) {
         _dropTarget = nestTarget;
         if (_dropTarget) _dropTarget.classList.add('drop-target');
       }
-      // Linha de inserção entre cards (só quando não está sobre outro card)
+
+      // Linha de inserção (sem nest)
       if (!_dropTarget) {
         const canvas = document.getElementById('canvas');
         const scroll = document.getElementById('canvas-scroll');
         const canvasRect = canvas.getBoundingClientRect();
         const cursorY = ev.clientY - canvasRect.top + scroll.scrollTop;
-        // Nós ordit não-ocultos exceto o arrastado
-        const nodes = Array.from(canvas.querySelectorAll(
-          '.cf-node:not(#node-start):not(#node-end-node)'
-        )).filter(n => n !== el && getComputedStyle(n).display !== 'none')
+        const nodes = Array.from(canvas.querySelectorAll('.cf-node:not(#node-start):not(#node-end-node)'))
+          .filter(n => n !== el && getComputedStyle(n).display !== 'none')
           .sort((a, b) => parseInt(a.style.top) - parseInt(b.style.top));
         let found = false;
-        // Antes do primeiro nó
         if (nodes.length && cursorY < parseInt(nodes[0].style.top)) {
           _insertAfter = null;
           dropLine().style.top = (parseInt(nodes[0].style.top) - 8) + 'px';
-          dropLine().style.display = 'block';
-          found = true;
+          dropLine().style.display = 'block'; found = true;
         }
         if (!found) {
           for (let i = 0; i < nodes.length; i++) {
@@ -2500,9 +2797,7 @@ function makeDraggable(el) {
             if (cursorY >= thisBot && cursorY <= nextTop) {
               _insertAfter = nodes[i];
               dropLine().style.top = Math.round((thisBot + Math.min(nextTop, thisBot + 40)) / 2) + 'px';
-              dropLine().style.display = 'block';
-              found = true;
-              break;
+              dropLine().style.display = 'block'; found = true; break;
             }
           }
         }
@@ -2511,10 +2806,16 @@ function makeDraggable(el) {
         dropLine().style.display = 'none'; _insertAfter = undefined;
       }
     };
-    const onUp = () => {
+
+    const onUp = (ev) => {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
+      if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
+      el.style.zIndex = '';
+      el.style.opacity = '';
+      el.style.cursor = '';
       dropLine().style.display = 'none';
+      if (!_dragging) return; // clique simples — não faz nada
       if (_dropTarget) {
         _dropTarget.classList.remove('drop-target');
         nestCardInto(el, _dropTarget);
@@ -2523,7 +2824,9 @@ function makeDraggable(el) {
         reorderCard(el, _insertAfter);
         _insertAfter = undefined;
       }
+      drawArrows();
     };
+
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     e.preventDefault();
@@ -2599,6 +2902,7 @@ function nestCardInto(srcCard, dstCard) {
   srcCard.remove();
 
   updateNodeCount();
+  showToast(`"${label}" incluído dentro de "${dstCard.querySelector('.node-label')?.textContent?.trim() || 'bloco'}" como sub-bloco.`, 'success');
   requestAnimationFrame(() => reflowCanvas());
 }
 // Init
@@ -3137,18 +3441,32 @@ function generateAllCode() {
   let procLines = '';
   nodes.forEach(n => {
     const hdr   = n.querySelector('.node-card-header');
-    const title = hdr?.querySelector('.node-label')?.textContent?.trim()
-               || hdr?.textContent?.replace('✕','').trim()
-               || 'PARA';
+    // Usa SEMPRE apenas o .node-label — nunca o textContent do header inteiro
+    const title = hdr?.querySelector('.node-label')?.textContent?.trim() || 'PARA';
+    const role  = n.dataset.codeRole || 'comment'; // 'paragraph' | 'comment' | 'inline'
     const fieldLines = [];
     n.querySelectorAll('.node-field input').forEach(inp => {
       if (inp.value.trim()) fieldLines.push(inp.value.trim());
     });
-    procLines += `\n       ${title.toUpperCase()}.\n`;
-    if (fieldLines.length) {
-      procLines += _cobolProcIndent(fieldLines) + '\n';
+    if (role === 'comment') {
+      // Só o nome do bloco vira comentário; as linhas saem como código normal
+      procLines += `\n      *> ── ${title.toUpperCase()} ──\n`;
+      if (fieldLines.length) {
+        procLines += _cobolProcIndent(fieldLines) + '\n';
+      }
+    } else if (role === 'inline') {
+      // Inline: linhas sem cabeçalho de parágrafo
+      if (fieldLines.length) {
+        procLines += _cobolProcIndent(fieldLines) + '\n';
+      }
     } else {
-      procLines += '           CONTINUE.\n';
+      // Padrão: parágrafo COBOL
+      procLines += `\n       ${title.toUpperCase()}.\n`;
+      if (fieldLines.length) {
+        procLines += _cobolProcIndent(fieldLines) + '\n';
+      } else {
+        procLines += '           CONTINUE.\n';
+      }
     }
   });
 
@@ -3768,6 +4086,9 @@ function _deleteFieldRow() {
     _currentFieldMenuRow = null;
     return;
   }
+  // Cascade: se a linha referencia um bloco, remove o bloco também
+  const inp = _currentFieldMenuRow.querySelector('input');
+  if (inp) _cascadeDeleteReferencedCard(inp.value);
   _currentFieldMenuRow.remove();
   _currentFieldMenuRow = null;
   requestAnimationFrame(() => reflowCanvas());
@@ -3802,7 +4123,7 @@ function _addFieldToCard(btn) {
   // Elementos interativos que NÃO devem acionar o drag
   const IGNORE = 'input, button, select, textarea, a, ' +
     '.node-field-more, .node-field-help, .sub-block-remove, ' +
-    '.sub-block-toggle, .node-connect-btn, .node-field-drag';
+    '.sub-block-toggle, .node-connect-btn';
 
   function clearDropIndicators() {
     document.querySelectorAll(
@@ -3819,6 +4140,11 @@ function _addFieldToCard(btn) {
   document.addEventListener('mousedown', e => {
     // Ignora cliques em elementos interativos
     if (e.target.closest(IGNORE)) return;
+
+    // Row-drag só ativa pelo alça ↕ (node-field-drag ou node-sub-block-drag)
+    const isDragHandle = e.target.classList.contains('node-field-drag') ||
+                         e.target.classList.contains('node-sub-block-drag');
+    if (!isDragHandle) return;
 
     const field     = e.target.closest('.node-field');
     const subHeader = e.target.closest('.node-sub-block-header');
