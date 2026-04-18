@@ -379,6 +379,7 @@
       flex-direction: column;
       overflow: hidden;
       background: #e8e8e8;
+      position: relative;
     }
     #canvas-toolbar {
       background: var(--panel-bg);
@@ -390,6 +391,66 @@
       font-size: 12px;
       flex-shrink: 0;
     }
+    /* Breadcrumb */
+    #canvas-breadcrumb {
+      display: flex; align-items: center; gap: 2px;
+      font-size: 12px; flex: 1;
+    }
+    .bc-item {
+      color: #1a6cbe; cursor: pointer; padding: 1px 4px;
+      border-radius: 3px; font-weight: 500;
+    }
+    .bc-item:hover { background: #e0ecff; text-decoration: underline; }
+    .bc-item.bc-current { color: #333; cursor: default; font-weight: 600; }
+    .bc-item.bc-current:hover { background: none; text-decoration: none; }
+    .bc-sep { color: #aaa; font-size: 11px; padding: 0 1px; user-select: none; }
+    /* Drill-down overlay */
+    #node-drill-view {
+      display: none; position: absolute; inset: 0; z-index: 50;
+      background: var(--canvas-bg);
+      background-image:
+        linear-gradient(var(--canvas-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--canvas-grid) 1px, transparent 1px);
+      background-size: 24px 24px;
+      overflow: auto; padding: 32px;
+    }
+    #node-drill-view.visible { display: block; }
+    #node-drill-card {
+      background: #fff; border-radius: 8px; min-width: 420px; max-width: 680px;
+      margin: 0 auto; box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+      border: 2px solid var(--accent);
+    }
+    #node-drill-card .drill-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-radius: 6px 6px 0 0;
+      background: var(--accent); color: #fff; font-weight: 700; font-size: 14px;
+    }
+    #node-drill-card .drill-header span.drill-title { flex: 1; }
+    #node-drill-card .drill-header button {
+      background: rgba(255,255,255,0.25); border: none; color: #fff;
+      border-radius: 3px; padding: 2px 8px; cursor: pointer; font-size: 12px;
+    }
+    #node-drill-card .drill-header button:hover { background: rgba(255,255,255,0.45); }
+    #node-drill-body { padding: 12px 16px 16px; }
+    .drill-field-row {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .drill-field-row:last-child { border-bottom: none; }
+    .drill-field-row input {
+      flex: 1; border: 1px solid #d1d5db; border-radius: 4px;
+      padding: 5px 8px; font-family: 'Consolas','Courier New',monospace;
+      font-size: 12px; background: #fafafa;
+    }
+    .drill-field-row input:focus { outline: none; border-color: var(--accent); background: #fff; }
+    .drill-field-num { color: #aaa; font-size: 11px; min-width: 22px; text-align: right; }
+    .drill-del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; padding: 0 2px; }
+    .drill-del-btn:hover { color: #dc2626; }
+    .drill-add-btn {
+      margin-top: 10px; width: 100%; padding: 5px; border: 1px dashed #bbb;
+      background: none; border-radius: 4px; cursor: pointer; color: #666; font-size: 12px;
+    }
+    .drill-add-btn:hover { background: #f0f7ff; border-color: var(--accent); color: var(--accent); }
     #canvas-toolbar label { color: #555; font-weight: 600; }
     .canvas-btn {
       padding: 2px 10px;
@@ -487,6 +548,7 @@
     .node-card-header.orange { background: #fed7aa; border-bottom-color: #fdba74; } /* Aritmética */
     .node-card-header.red    { background: #fecaca; border-bottom-color: #f87171; } /* STOP RUN / GO TO */
     .node-card-header.yellow { background: #fef9c3; border-bottom-color: #fde047; } /* IF / EVALUATE */
+    .node-card-header.gray   { background: #e2e8f0; border-bottom-color: #94a3b8; } /* SECTION */
     .node-card-header.teal   { background: #99f6e4; border-bottom-color: #2dd4bf; } /* DB2 */
     .node-card-header.sky    { background: #bae6fd; border-bottom-color: #38bdf8; } /* Tabela Interna */
     .node-card-body {
@@ -523,6 +585,21 @@
       font-size: 11px;
       cursor: pointer;
     }
+    /* ── Blocos aninhados nos campos do nó ─────────────────────────── */
+    .node-field.nf-depth-0 { border-left: 3px solid #3b82f6; border-radius: 0 3px 3px 0; }
+    .node-field.nf-depth-1 { border-left: 3px solid #f59e0b; border-radius: 0 3px 3px 0; }
+    .node-field.nf-depth-2 { border-left: 3px solid #10b981; border-radius: 0 3px 3px 0; }
+    .node-field.nf-depth-3 { border-left: 3px solid #8b5cf6; border-radius: 0 3px 3px 0; }
+    /* Cabeçalho de bloco (IF, PERFORM UNTIL…) */
+    .node-field.nf-block-start { font-weight: 600; }
+    .node-field.nf-block-start input { font-weight: 600; }
+    /* Fim de bloco (END-IF, END-PERFORM…) */
+    .node-field.nf-block-end { opacity: 0.65; font-style: italic; }
+    .node-field.nf-block-end input { font-style: italic; }
+    /* ELSE / WHEN */
+    .node-field.nf-block-mid { font-style: italic; }
+    .node-field.nf-block-mid input { font-style: italic; }
+
     /* Handle de arrastar linha */
     .node-field-drag {
       display: inline-flex;
@@ -800,6 +877,37 @@
     .prop-row select.prop-val {
       font-family: var(--font);
     }
+    /* Edição inline do nó selecionado */
+    #pg-edicao { padding-bottom: 4px; }
+    #pg-edicao .prop-edit-empty {
+      font-size: 11px; color: #999; padding: 6px 0; text-align: center;
+    }
+    #pg-edicao .prop-edit-label {
+      font-size: 10px; font-weight: 700; color: #555;
+      padding: 4px 0 2px 0; letter-spacing: 0.3px;
+    }
+    #pg-edicao .prop-edit-row {
+      display: flex; align-items: center; gap: 3px; margin-bottom: 3px;
+    }
+    #pg-edicao .prop-edit-row input {
+      flex: 1; font-size: 11px; font-family: 'Consolas', monospace;
+      border: 1px solid var(--panel-border); border-radius: 2px;
+      padding: 2px 5px; background: var(--prop-value-bg); outline: none;
+      color: var(--text);
+    }
+    #pg-edicao .prop-edit-row input:focus { border-color: var(--accent); }
+    #pg-edicao .prop-edit-row button {
+      padding: 1px 5px; font-size: 11px; cursor: pointer; line-height: 1.4;
+      border: 1px solid #bbb; border-radius: 2px; background: #fff; color: #c00;
+      flex-shrink: 0;
+    }
+    #pg-edicao .prop-edit-row button:hover { background: #fee; }
+    #pg-edicao .prop-edit-add-btn {
+      width: 100%; margin-top: 4px; font-size: 11px; cursor: pointer;
+      border: 1px dashed var(--accent); border-radius: 3px;
+      background: transparent; color: var(--accent); padding: 2px 0;
+    }
+    #pg-edicao .prop-edit-add-btn:hover { background: #eef3ff; }
 
     /* Code View */
     #code-view { display: none; }
@@ -986,6 +1094,46 @@
     #toast.success { background: #16a34a; }
     #toast.error { background: #dc2626; }
 
+    /* ─── Loading overlay ────────────────────────────────────────── */
+    #loading-overlay {
+      display: none; position: fixed; inset: 0; z-index: 99999;
+      background: rgba(15,23,42,0.72); backdrop-filter: blur(3px);
+      align-items: center; justify-content: center; flex-direction: column;
+    }
+    #loading-overlay.visible { display: flex; }
+    #loading-box {
+      background: #1e293b; color: #e2e8f0;
+      border-radius: 12px; padding: 32px 40px;
+      min-width: 340px; max-width: 480px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column; align-items: center; gap: 18px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .loading-spinner {
+      width: 44px; height: 44px;
+      border: 4px solid #334155;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-title {
+      font-size: 15px; font-weight: 700; color: #f1f5f9; text-align: center;
+    }
+    #loading-step {
+      font-size: 12px; color: #94a3b8; text-align: center; min-height: 18px;
+    }
+    #loading-bar-wrap {
+      width: 100%; background: #334155; border-radius: 99px; height: 8px; overflow: hidden;
+    }
+    #loading-bar {
+      height: 100%; width: 0%; background: #3b82f6;
+      border-radius: 99px; transition: width 0.2s ease;
+    }
+    #loading-counter {
+      font-size: 11px; color: #64748b;
+    }
+
     /* ─── Scrollbar styling ──────────────────────────────────────── */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: #ececec; }
@@ -1040,8 +1188,8 @@
             </button>
             <div class="import-mode-row">
               <select id="import-mode" class="import-mode-sel" title="Granularidade da importação COBOL">
-                <option value="por-paragrafo">📄 Por parágrafo</option>
-                <option value="por-instrucao">🔩 Por instrução</option>
+                <option value="por-paragrafo">📄 Por parágrafo (compacto)</option>
+                <option value="por-instrucao" selected>🔩 Por instrução (visual código)</option>
               </select>
             </div>
           </div>
@@ -1304,6 +1452,12 @@
               <span class="act-group-icon">&#9881;</span> COBOL.Sistema
             </div>
             <div class="act-group-body open" id="ag-sistema">
+              <div class="activity-item" draggable="true" data-type="IPT_SET" ondragstart="onDragStart(event,'IPT_SET')">
+                <span class="act-icon">🎯</span> PERFORM INI/PRO/TER
+              </div>
+              <div class="activity-item" draggable="true" data-type="SECTION" ondragstart="onDragStart(event,'SECTION')">
+                <span class="act-icon">📂</span> SECTION
+              </div>
               <div class="activity-item" draggable="true" data-type="PERFORM" ondragstart="onDragStart(event,'PERFORM')">
                 <span class="act-icon">&#128257;</span> PERFORM
               </div>
@@ -1497,7 +1651,13 @@
     <!-- ─── Canvas Area ──────────────────────────────────────────── -->
     <div id="canvas-area">
       <div id="canvas-toolbar">
-        <label>Bot</label>
+        <div id="canvas-breadcrumb">
+          <span class="bc-item" id="bc-bot" onclick="_bcGoRoot()">Bot</span>
+          <span class="bc-sep" id="bc-sep1">&rsaquo;</span>
+          <span class="bc-item" id="bc-flowchart" onclick="_bcGoFlowchart()">Flowchart</span>
+          <span class="bc-sep" id="bc-sep2" style="display:none">&rsaquo;</span>
+          <span class="bc-item bc-current" id="bc-node" style="display:none"></span>
+        </div>
         <div style="flex:1"></div>
         <button class="canvas-btn" onclick="expandAll()">Expandir Tudo</button>
         <button class="canvas-btn" onclick="collapseAll()">Reduzir Tudo</button>
@@ -1545,10 +1705,27 @@
               <span style="font-size:16px;">⏹</span>
               <span>FIM</span>
             </div>
+            <span class="node-connect-btn"
+                  style="position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);z-index:10;"
+                  onclick="event.stopPropagation();startConnect(event,'node-end-node')"
+                  title="Conectar saída">→</span>
           </div>
 
         </div><!-- /canvas -->
       </div><!-- /canvas-scroll -->
+
+      <!-- Drill-down overlay -->
+      <div id="node-drill-view">
+        <div id="node-drill-card">
+          <div class="drill-header">
+            <button onclick="_closeDrill()" title="Voltar ao fluxo">← Voltar</button>
+            <span class="drill-title" id="drill-title">Parágrafo</span>
+            <button onclick="_drillRename()">✎ Renomear</button>
+          </div>
+          <div id="node-drill-body"></div>
+        </div>
+      </div>
+
     </div><!-- /canvas-area -->
 
     <!-- ─── Right Panel ──────────────────────────────────────────── -->
@@ -1638,6 +1815,14 @@
               <input class="prop-val" id="prop-sel-lines" value="—" readonly />
             </div>
           </div>
+
+          <div class="prop-group-header" onclick="togglePropGroup(this,'pg-edicao')">
+            ▼ &nbsp;Edição do Elemento
+          </div>
+          <div id="pg-edicao">
+            <div class="prop-edit-empty" id="prop-edit-empty">Selecione um elemento no canvas</div>
+          </div>
+
         </div><!-- /props-view -->
 
         <!-- Code View -->
@@ -1729,6 +1914,17 @@
 <!-- ═══ TOAST ════════════════════════════════════════════════════════ -->
 <div id="toast"></div>
 
+<!-- Loading overlay -->
+<div id="loading-overlay">
+  <div id="loading-box">
+    <div class="loading-spinner"></div>
+    <div id="loading-title">Importando programa COBOL…</div>
+    <div id="loading-step">Lendo arquivo…</div>
+    <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+    <div id="loading-counter"></div>
+  </div>
+</div>
+
 <!-- ═══ SCRIPT ══════════════════════════════════════════════════════ -->
 <script>
 /* ─ State ─────────────────────────────────────────────────────────── */
@@ -1736,13 +1932,15 @@ let selectedNode   = null;
 let draggingType   = null;
 let nodeCounter    = 7;
 let _codeWasImported = false; // true quando um .CBL foi importado; false = construído pelo fluxo
+let _importedPreamble = null; // IDENTIFICATION+ENVIRONMENT+DATA DIVISION do programa importado
 let argsOpen       = false;
 let connectingFrom = null;
 let connections    = [];
 let nodeSeqCounter = { READ:0, WRITE:0, DISPLAY:0, ACCEPT:0, MOVE:0, INITIALIZE:0,
                        ADD:0, SUBTRACT:0, MULTIPLY:0, DIVIDE:0, COMPUTE:0,
                        IF:0, EVALUATE:0, PERFORM:0, PERFORM_UNTIL:0, PERFORM_VARYING:0,
-                       GO_TO:0, STOP_RUN:0, STRING_OP:0, UNSTRING:0 };
+                       GO_TO:0, STOP_RUN:0, STRING_OP:0, UNSTRING:0, SECTION:0,
+                       IPT_SET:0 };
 
 /* ─ Tree ──────────────────────────────────────────────────────────── */
 function toggleTree(el, childId) {
@@ -1809,7 +2007,114 @@ function selectNode(nodeId, label) {
   const linesMap = { start:'—', end:'~95', main:'30–38', read:'40–48', proc:'50–68', write:'70–78' };
   document.getElementById('prop-sel-lines').value = linesMap[nodeId] || '—';
   setStatus('Selecionado: ' + label);
+  _renderPropEdit('node-' + nodeId);
   drawArrows();
+}
+
+function _renderPropEdit(fullId) {
+  const wrap = document.getElementById('pg-edicao');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  const el = document.getElementById(fullId);
+  if (!el) {
+    wrap.innerHTML = '<div class="prop-edit-empty" id="prop-edit-empty">Selecione um elemento no canvas</div>';
+    return;
+  }
+  // ── Edição do cabeçalho do bloco ──────────────────────────────
+  const nodeLblEl = el.querySelector('.node-label');
+  const hdrSection = document.createElement('div');
+  hdrSection.className = 'prop-edit-label';
+  hdrSection.textContent = 'Nome do bloco';
+  wrap.appendChild(hdrSection);
+
+  const hdrRow = document.createElement('div');
+  hdrRow.className = 'prop-edit-row';
+  const hdrInp = document.createElement('input');
+  hdrInp.style.fontWeight = '700';
+  hdrInp.value = nodeLblEl ? nodeLblEl.textContent : '';
+  hdrInp.placeholder = 'Nome do bloco';
+  hdrInp.title = 'Editar nome exibido no cabeçalho do card';
+  hdrInp.addEventListener('input', () => {
+    if (nodeLblEl) nodeLblEl.textContent = hdrInp.value;
+    const nameInp = document.getElementById('prop-sel-name');
+    if (nameInp) nameInp.value = hdrInp.value;
+  });
+  hdrRow.appendChild(hdrInp);
+  wrap.appendChild(hdrRow);
+
+  // ── Separador ─────────────────────────────────────────────────
+  const sep = document.createElement('div');
+  sep.style.cssText = 'border-top:1px solid var(--panel-border);margin:6px 0 4px 0;';
+  wrap.appendChild(sep);
+
+  const fieldsLbl = document.createElement('div');
+  fieldsLbl.className = 'prop-edit-label';
+  fieldsLbl.textContent = 'Linhas do bloco';
+  wrap.appendChild(fieldsLbl);
+
+  const inputs = Array.from(el.querySelectorAll('.node-card-body .node-field input'));
+  if (!inputs.length) {
+    const empty = document.createElement('div');
+    empty.className = 'prop-edit-empty';
+    empty.textContent = 'Nenhuma linha editável';
+    wrap.appendChild(empty);
+  }
+
+  function _syncRow(propInp, cardInp, nodeEl) {
+    cardInp.value = propInp.value;
+    _styleNodeFields(nodeEl);
+  }
+  function _buildRow(cardInp, nodeEl) {
+    const row = document.createElement('div');
+    row.className = 'prop-edit-row';
+    const inp = document.createElement('input');
+    inp.value = cardInp.value;
+    inp.addEventListener('input', () => _syncRow(inp, cardInp, nodeEl));
+    // ao focar no campo do card, atualiza o prop e vice-versa
+    cardInp.addEventListener('input', () => { inp.value = cardInp.value; });
+    const del = document.createElement('button');
+    del.title = 'Remover linha';
+    del.textContent = '✕';
+    del.addEventListener('click', () => {
+      const body = cardInp.closest('.node-card-body');
+      if (body && body.querySelectorAll('.node-field').length <= 1) {
+        showToast('O card precisa ter ao menos uma linha.', 'error'); return;
+      }
+      cardInp.closest('.node-field').remove();
+      row.remove();
+      _styleNodeFields(nodeEl);
+    });
+    row.appendChild(inp);
+    row.appendChild(del);
+    wrap.appendChild(row);
+  }
+  inputs.forEach(ci => _buildRow(ci, el));
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'prop-edit-add-btn';
+  addBtn.textContent = '＋ nova linha';
+  addBtn.addEventListener('click', () => {
+    const body = el.querySelector('.node-card-body');
+    if (!body) return;
+    const lastInp = body.querySelector('.node-field:last-child input');
+    const suggest = lastInp ? lastInp.value : '...';
+    const newField = document.createElement('div');
+    newField.className = 'node-field';
+    newField.innerHTML = `<span class="node-field-drag" title="Arrastar para reordenar">&#8597;</span>` +
+      `<input value="${suggest.replace(/"/g,'&quot;')}" />` +
+      `<span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>` +
+      `<span class="node-field-help">?</span>`;
+    body.appendChild(newField);
+    const newCardInp = newField.querySelector('input');
+    newCardInp.addEventListener('input', () => _styleNodeFields(el));
+    _buildRow(newCardInp, el);
+    wrap.removeChild(addBtn);
+    wrap.appendChild(addBtn);
+    _styleNodeFields(el);
+    newCardInp.focus(); newCardInp.select();
+    requestAnimationFrame(() => reflowCanvas());
+  });
+  wrap.appendChild(addBtn);
 }
 
 /* ─ Conexão de setas ─────────────────────────────────────────────── */
@@ -1938,7 +2243,11 @@ function onCanvasDrop(event) {
   _removeDropGhost();
   if (!draggingType) return;
   const { x, y } = _canvasXY(event);
-  createNodeAt(draggingType, Math.round(x - 110), Math.round(y - 20));
+  if (draggingType === 'IPT_SET') {
+    _createIPTSet(Math.round(x - 110), Math.round(y - 20));
+  } else {
+    createNodeAt(draggingType, Math.round(x - 110), Math.round(y - 20));
+  }
   draggingType = null;
 }
 
@@ -1961,6 +2270,7 @@ const activityMeta = {
   IF:            { icon:'❓', label:'IF / ELSE',     color:'yellow', fields:['IF WS-COND = "S"','  PERFORM [paragraf]','ELSE','  PERFORM [outro]','END-IF'] },
   EVALUATE:      { icon:'🔀', label:'EVALUATE',      color:'yellow', fields:['EVALUATE WS-TIPO','  WHEN "A" PERFORM [para-A]','  WHEN OTHER PERFORM [outro]','END-EVALUATE'] },
   /* ── Sistema ── */
+  SECTION:       { icon:'📂', label:'SECTION',          color:'gray',   fields:['[NOME-SECTION] SECTION.'] },
   PERFORM:       { icon:'🔁', label:'PERFORM',         color:'blue',   fields:['PERFORM [paragrafo]'] },
   PERFORM_UNTIL: { icon:'🔂', label:'PERFORM UNTIL',   color:'blue',   fields:['PERFORM [paragrafo]','  UNTIL WS-FIM = "S"'] },
   PERFORM_VARYING:{ icon:'🔃', label:'PERFORM VARYING', color:'blue',  fields:['PERFORM VARYING WS-CTR FROM 1 BY 1','  UNTIL WS-CTR > WS-TOTAL','    PERFORM [paragrafo]','END-PERFORM'] },
@@ -1996,6 +2306,8 @@ const activityMeta = {
 function createNodeAt(type, x, y) {
   if (!activityMeta[type]) return;
   const meta = activityMeta[type];
+  // Guarda nó selecionado ANTES de criar o novo (para injetar PERFORM nele)
+  const _prevSelectedId = selectedNode;
   nodeSeqCounter[type] = (nodeSeqCounter[type] || 0) + 1;
   const uid = type.toLowerCase().replace('_','-') + '-' + nodeSeqCounter[type];
   const nodeId = 'node-dyn-' + uid;
@@ -2007,13 +2319,13 @@ function createNodeAt(type, x, y) {
   div.style.left = Math.max(10,x) + 'px';
   div.style.top = Math.max(10,y) + 'px';
   div.setAttribute('onclick', `selectNode('dyn-${uid}','${meta.label} #${nodeSeqCounter[type]}')`);
-  div.setAttribute('ondblclick', `editNodeLabel('dyn-${uid}')`);
+  // dblclick usa delegação global (drillIntoNode) — não precisa de ondblclick aqui
 
   const headerColor = meta.color ? `class="node-card-header ${meta.color}"` : `class="node-card-header"`;
   let fieldsHtml = meta.fields.map((f,i) => `
     <div class="node-field">
       <span class="node-field-drag" title="Arrastar para reordenar">&#8597;</span>
-      <input id="field-${uid}-${i}" placeholder="${f}" />
+      <input id="field-${uid}-${i}" value="${f}" />
       <span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>
       <span class="node-field-help">?</span>
     </div>`).join('');
@@ -2031,14 +2343,108 @@ function createNodeAt(type, x, y) {
   canvas.appendChild(div);
   nodeCounter++;
   updateNodeCount();
+
+  // ── Auto-PERFORM: injeta "PERFORM [NOME]" no nó que estava selecionado ──
+  if (_prevSelectedId) {
+    const _prevEl = document.getElementById('node-' + _prevSelectedId);
+    if (_prevEl) {
+      const _prevBody = _prevEl.querySelector('.node-card-body');
+      if (_prevBody) {
+        // Deriva nome COBOL do novo bloco (ex.: SECTION-1, DB2-SELECT-2)
+        const _performName = meta.label.toUpperCase().replace(/\s+/g, '-') + '-' + nodeSeqCounter[type];
+        const _perfRow = document.createElement('div');
+        _perfRow.className = 'node-field';
+        _perfRow.innerHTML = `<span class="node-field-drag" title="Arrastar para reordenar">&#8597;</span>` +
+          `<input value="PERFORM ${_performName}" />` +
+          `<span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>` +
+          `<span class="node-field-help">?</span>`;
+        _prevBody.appendChild(_perfRow);
+        _perfRow.querySelector('input').addEventListener('input', () => _styleNodeFields(_prevEl));
+        _styleNodeFields(_prevEl);
+      }
+    }
+  }
+
   selectNode('dyn-' + uid, `${meta.label} #${nodeSeqCounter[type]}`);
   showToast(`${meta.label} adicionado ao fluxo.`, 'success');
   drawArrows();
+  // Aplica estilos de bloco aninhado e atualiza quando o usuário digita
+  requestAnimationFrame(() => {
+    _styleNodeFields(div);
+    div.querySelectorAll('.node-field input').forEach(inp => {
+      inp.addEventListener('input', () => _styleNodeFields(div));
+    });
+  });
 }
 
 function updateNodeCount() {
   nodeCounter = document.querySelectorAll('#canvas .cf-node').length;
   document.getElementById('node-count').textContent = nodeCounter + ' nós';
+}
+
+// ── Conjunto INI/PRO/TER: cria bloco PERFORM + 3 parágrafos + setas ──────────
+function _createIPTSet(x, y) {
+  const canvas = document.getElementById('canvas');
+  const n = (nodeSeqCounter['IPT_SET'] = (nodeSeqCounter['IPT_SET'] || 0) + 1);
+  const base = 'RTN-' + n;
+
+  function _makeNode(typeKey, customLabel, icon, color, fields, nx, ny) {
+    nodeSeqCounter[typeKey] = (nodeSeqCounter[typeKey] || 0) + 1;
+    const uid    = typeKey.toLowerCase().replace(/_/g,'-') + '-' + nodeSeqCounter[typeKey];
+    const nodeId = 'node-dyn-' + uid;
+    const div    = document.createElement('div');
+    div.className = 'cf-node node-card';
+    div.id        = nodeId;
+    div.style.left = Math.max(10, nx) + 'px';
+    div.style.top  = Math.max(10, ny) + 'px';
+    div.setAttribute('onclick', `selectNode('dyn-${uid}','${customLabel}')`);
+    const hdrCls   = color ? `class="node-card-header ${color}"` : `class="node-card-header"`;
+    const fieldsHtml = fields.map((f, i) =>
+      `<div class="node-field">` +
+      `<span class="node-field-drag" title="Arrastar para reordenar">&#8597;</span>` +
+      `<input id="field-${uid}-${i}" value="${f.replace(/"/g,'&quot;')}" />` +
+      `<span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">&#xB7;&#xB7;&#xB7;</span>` +
+      `<span class="node-field-help">?</span></div>`
+    ).join('');
+    div.innerHTML =
+      `<div ${hdrCls}><span>${icon}</span> <span class="node-label">${customLabel}</span>` +
+      `<span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'${nodeId}')" title="Conectar saída">&rarr;</span>` +
+      `<span class="node-field-more" onclick="event.stopPropagation();this.closest('.node-card').remove();updateNodeCount();drawArrows();" title="Remover">&times;</span></div>` +
+      `<div class="node-card-body">${fieldsHtml}</div>` +
+      `<button class="node-add-field-btn" onclick="event.stopPropagation();_addFieldToCard(this)" title="Adicionar linha">&#xFF0B; linha</button>`;
+    makeDraggable(div);
+    canvas.appendChild(div);
+    nodeCounter++;
+    requestAnimationFrame(() => {
+      _styleNodeFields(div);
+      div.querySelectorAll('.node-field input').forEach(inp =>
+        inp.addEventListener('input', () => _styleNodeFields(div)));
+    });
+    return nodeId;
+  }
+
+  const mainId = _makeNode('PERFORM', `PERFORM INI/PRO/TER #${n}`, '🎯', 'blue', [
+    `PERFORM INI-${base}`,
+    `PERFORM PRO-${base}`,
+    `PERFORM TER-${base}`
+  ], x, y);
+
+  const iniId  = _makeNode('SECTION', `INI-${base}`, '📂', 'gray',
+    [`INI-${base} SECTION.`, `*> Inicialização`], x + 360, y);
+  const proId  = _makeNode('SECTION', `PRO-${base}`, '📂', 'gray',
+    [`PRO-${base} SECTION.`, `*> Processamento`], x + 360, y + 160);
+  const terId  = _makeNode('SECTION', `TER-${base}`, '📂', 'gray',
+    [`TER-${base} SECTION.`, `*> Encerramento`], x + 360, y + 320);
+
+  // Setas: main → INI → PRO → TER
+  connections.push({ from: mainId, to: iniId });
+  connections.push({ from: iniId,  to: proId });
+  connections.push({ from: proId,  to: terId });
+
+  updateNodeCount();
+  selectNode(mainId.replace('node-', ''), `PERFORM INI/PRO/TER #${n}`);
+  showToast(`Conjunto INI/PRO/TER #${n} criado — 4 nós e setas automáticas.`, 'success');
+  drawArrows();
 }
 
 /* ─ Drag reposition nodes + drop-to-nest + reorder between ──────── */
@@ -2204,7 +2610,7 @@ const _LS_KEY = 'cobolstudio_v2';
 function _saveToStorage() {
   if (!window.localStorage) return;
   try {
-    const data = { imported: _codeWasImported };
+    const data = { imported: _codeWasImported, preamble: _importedPreamble };
     // Propriedades do programa
     ['prop-program-id','prop-author','prop-date','prop-remarks'].forEach(id => {
       const el = document.getElementById(id);
@@ -2255,9 +2661,12 @@ function _loadFromStorage() {
     const ca = document.getElementById('code-editor');
     if (ca && data['code']) ca.value = data['code'];
     if (data['imported'] != null) _codeWasImported = data['imported'];
+    if (data['preamble'] != null) _importedPreamble = data['preamble'];
     return !!(data['code']);
   } catch(e) { return false; }
 }
+
+let _drillNodeId = null; // nó atual no drill-down (declarado aqui pois _doReset usa)
 
 function _doReset() {
   // 1. Remove nós dinâmicos (criados por drag/import)
@@ -2295,6 +2704,12 @@ function _doReset() {
   if (codeArea) codeArea.value = '';
   // 6. Flow sem conexões
   connections = [];
+  // Fecha drill-down se estiver aberto
+  const dv = document.getElementById('node-drill-view');
+  if (dv) dv.classList.remove('visible');
+  _drillNodeId = null;
+  _importedPreamble = null;
+  _codeWasImported = false;
   drawArrows();
   updateNodeCount();
 }
@@ -2309,6 +2724,7 @@ function _resetCanvasState() {
     const hasCode = _loadFromStorage();
     if (hasCode) {
       _renderCodeHighlight();
+      requestAnimationFrame(_styleAllNodes); // aplica estilo aninhado após carregar
     } else {
       // Sem sessão salva: gera código inicial a partir dos nós default
       generateAllCode();
@@ -2418,24 +2834,209 @@ function editNodeLabel(nid) {
   }
 }
 
-// Delegação global: dblclick em qualquer cabeçalho de card abre renomear
+// Delegação global: dblclick em qualquer card abre drill-down
 document.addEventListener('dblclick', e => {
-  const hdr = e.target.closest('.node-card-header');
-  if (!hdr) return;
-  const card = hdr.closest('.cf-node');
+  const card = e.target.closest('.cf-node.node-card');
   if (!card) return;
-  // evita disparar duplamente para nós estáticos que já têm ondblclick no próprio card
-  if (card.getAttribute('ondblclick')) return;
-  const lbl = hdr.querySelector('.node-label');
+  // Não abre drill se clicou em input, button ou span interativo
+  if (e.target.closest('input, button, select, .node-connect-btn, .node-field-more, .node-field-help')) return;
+  drillIntoNode(card.id);
+});
+
+/* ─ Nested-block visual styling ─────────────────────────────────────── */
+// Analisa os inputs de um nó e aplica classes de profundidade/cor para
+// representar visualmente a estrutura IF/PERFORM-UNTIL/EVALUATE aninhada.
+const _NF_BLOCK_START = /^(IF\s|PERFORM\s+\S+\s+(UNTIL|VARYING)|PERFORM\s+UNTIL\s|EVALUATE\s)/i;
+const _NF_BLOCK_END   = /^(END-IF|END-PERFORM|END-EVALUATE|END-READ|END-EXEC)\b/i;
+const _NF_BLOCK_MID   = /^(ELSE\b|WHEN\s|WHEN OTHER|WHEN\s+OTHER|AT END|NOT AT END|INVALID KEY|NOT INVALID)/i;
+const _NF_DEPTH_COLORS = ['nf-depth-0','nf-depth-1','nf-depth-2','nf-depth-3'];
+
+function _styleNodeFields(nodeEl) {
+  const fields = nodeEl.querySelectorAll('.node-card-body .node-field');
+  let depth = 0;
+  fields.forEach(field => {
+    const inp = field.querySelector('input');
+    const val = ((inp ? inp.value : '') || field.textContent || '').trim();
+    const upper = val.toUpperCase();
+
+    // Remove classes antigas
+    field.classList.remove('nf-block-start','nf-block-end','nf-block-mid',
+      'nf-depth-0','nf-depth-1','nf-depth-2','nf-depth-3');
+    field.style.marginLeft = '';
+
+    if (_NF_BLOCK_END.test(upper)) {
+      depth = Math.max(0, depth - 1);
+      const cls = _NF_DEPTH_COLORS[depth % _NF_DEPTH_COLORS.length];
+      field.classList.add('nf-block-end', cls);
+      field.style.marginLeft = (depth * 14) + 'px';
+    } else if (_NF_BLOCK_MID.test(upper)) {
+      const d = Math.max(0, depth - 1);
+      const cls = _NF_DEPTH_COLORS[d % _NF_DEPTH_COLORS.length];
+      field.classList.add('nf-block-mid', cls);
+      field.style.marginLeft = (d * 14) + 'px';
+    } else if (_NF_BLOCK_START.test(upper)) {
+      const cls = _NF_DEPTH_COLORS[depth % _NF_DEPTH_COLORS.length];
+      field.classList.add('nf-block-start', cls);
+      field.style.marginLeft = (depth * 14) + 'px';
+      depth++;
+    } else {
+      if (depth > 0) {
+        const cls = _NF_DEPTH_COLORS[(depth - 1) % _NF_DEPTH_COLORS.length];
+        field.classList.add(cls);
+        field.style.marginLeft = (depth * 14) + 'px';
+      }
+    }
+  });
+}
+
+function _styleAllNodes() {
+  document.querySelectorAll('#canvas .node-card').forEach(_styleNodeFields);
+}
+
+/* ─ Drill-down (abrir nó em tela cheia no canvas) ───────────────────── */
+
+function drillIntoNode(nodeId) {
+  const el = document.getElementById(nodeId);
+  if (!el || !el.classList.contains('node-card')) return;
+
+  _drillNodeId = nodeId;
+
+  // Título: label do nó
+  const lbl = el.querySelector('.node-label');
+  const title = lbl ? lbl.textContent.trim() : nodeId;
+  document.getElementById('drill-title').textContent = title;
+
+  // Monta campos no painel
+  const body = document.getElementById('node-drill-body');
+  body.innerHTML = '';
+
+  const inputs = el.querySelectorAll('.node-field input');
+  inputs.forEach((inp, i) => {
+    const row = document.createElement('div');
+    row.className = 'drill-field-row';
+    row.innerHTML =
+      '<span class="drill-field-num">' + (i + 1) + '</span>' +
+      '<input value="" />' +
+      '<button class="drill-del-btn" title="Remover linha">✕</button>';
+    const di = row.querySelector('input');
+    di.value = inp.value;
+    // Sync bidirecional: digitar no drill atualiza o nó no canvas
+    di.addEventListener('input', () => { inp.value = di.value; });
+    // Remover linha
+    row.querySelector('.drill-del-btn').addEventListener('click', () => {
+      inp.value = '';
+      row.remove();
+      _renumberDrillRows();
+    });
+    body.appendChild(row);
+  });
+
+  // Botão adicionar linha
+  const addBtn = document.createElement('button');
+  addBtn.className = 'drill-add-btn';
+  addBtn.textContent = '+ Adicionar linha';
+  addBtn.onclick = _drillAddRow;
+  body.appendChild(addBtn);
+
+  // Mostra overlay e atualiza breadcrumb
+  document.getElementById('node-drill-view').classList.add('visible');
+  document.getElementById('bc-sep2').style.display = '';
+  const bcNode = document.getElementById('bc-node');
+  bcNode.style.display = '';
+  bcNode.textContent = title;
+
+  // "Flowchart" vira clicável (não-current) e "bc-node" vira current
+  const bcFlow = document.getElementById('bc-flowchart');
+  bcFlow.classList.remove('bc-current');
+
+  // foca no primeiro input
+  const first = body.querySelector('input');
+  if (first) setTimeout(() => first.focus(), 50);
+}
+
+function _drillAddRow() {
+  const body = document.getElementById('node-drill-body');
+  const addBtn = body.querySelector('.drill-add-btn');
+  const el = _drillNodeId ? document.getElementById(_drillNodeId) : null;
+
+  // Cria novo input no card original do canvas
+  let canvasInput = null;
+  if (el) {
+    const cardBody = el.querySelector('.node-card-body');
+    if (cardBody) {
+      const row = document.createElement('div');
+      row.className = 'node-field';
+      const uid = _drillNodeId.replace('node-', '') + '-x' + Date.now();
+      row.innerHTML =
+        '<span class="node-field-drag" title="Arrastar">↕</span>' +
+        '<input id="field-' + uid + '" placeholder="..." />' +
+        '<span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>' +
+        '<span class="node-field-help">?</span>';
+      const insertBefore = cardBody.querySelector('.node-sub-block-add, .node-field-add');
+      if (insertBefore) cardBody.insertBefore(row, insertBefore);
+      else cardBody.appendChild(row);
+      canvasInput = row.querySelector('input');
+    }
+  }
+
+  const idx = body.querySelectorAll('.drill-field-row').length + 1;
+  const newRow = document.createElement('div');
+  newRow.className = 'drill-field-row';
+  newRow.innerHTML =
+    '<span class="drill-field-num">' + idx + '</span>' +
+    '<input placeholder="..." />' +
+    '<button class="drill-del-btn" title="Remover linha">✕</button>';
+  const di = newRow.querySelector('input');
+  if (canvasInput) di.addEventListener('input', () => { canvasInput.value = di.value; });
+  newRow.querySelector('.drill-del-btn').addEventListener('click', () => {
+    if (canvasInput) canvasInput.value = '';
+    newRow.remove();
+    _renumberDrillRows();
+  });
+  body.insertBefore(newRow, addBtn);
+  _renumberDrillRows();
+  di.focus();
+}
+
+function _renumberDrillRows() {
+  document.querySelectorAll('#node-drill-body .drill-field-row').forEach((r, i) => {
+    const n = r.querySelector('.drill-field-num');
+    if (n) n.textContent = i + 1;
+  });
+}
+
+function _drillRename() {
+  if (!_drillNodeId) return;
+  const el = document.getElementById(_drillNodeId);
+  if (!el) return;
+  const lbl = el.querySelector('.node-label');
   if (!lbl) return;
   const old = lbl.textContent.trim();
   const novo = prompt('Renomear parágrafo / seção:', old);
   if (novo && novo.trim() && novo.trim() !== old) {
     lbl.textContent = novo.trim();
-    showToast('Parágrafo renomeado.', 'success');
+    document.getElementById('drill-title').textContent = novo.trim();
+    document.getElementById('bc-node').textContent = novo.trim();
     drawArrows();
+    showToast('Parágrafo renomeado.', 'success');
   }
-});
+}
+
+function _closeDrill() {
+  // Reestiliza o nó que estava aberto (usuário pode ter editado linhas)
+  if (_drillNodeId) {
+    const el = document.getElementById(_drillNodeId);
+    if (el) _styleNodeFields(el);
+  }
+  document.getElementById('node-drill-view').classList.remove('visible');
+  document.getElementById('bc-sep2').style.display = 'none';
+  document.getElementById('bc-node').style.display = 'none';
+  document.getElementById('bc-flowchart').classList.remove('bc-current');
+  _drillNodeId = null;
+}
+
+function _bcGoRoot()      { _closeDrill(); }
+function _bcGoFlowchart() { _closeDrill(); }
 
 /* ─ Arrows ─────────────────────────────────────────────────────────── */
 function getNodeCenter(nodeId) {
@@ -2553,8 +3154,13 @@ function generateAllCode() {
 
   // Se não há nós de procedimento, gera apenas o esqueleto de PROCEDURE DIVISION
   const hasNodes = nodes.length > 0;
-  const code = hasNodes
-? `      *================================================================*
+
+  // Cabeçalho: usa preâmbulo importado original (se disponível) ou template padrão
+  let preamble;
+  if (_importedPreamble) {
+    preamble = _importedPreamble;
+  } else {
+    preamble = `      *================================================================*
       *  PROGRAMA  : ${pid.padEnd(20)}                             *
       *  DIALETO   : ${dialect.padEnd(28)}                 *
       *  GERADO POR: COBOL Dev Studio 1.0                         *
@@ -2600,7 +3206,12 @@ function generateAllCode() {
        01 WS-STATUS-ENT           PIC X(2)  VALUE SPACES.
        01 WS-STATUS-SAI           PIC X(2)  VALUE SPACES.
        01 WS-FIM                  PIC X(1)  VALUE "N".
-${sqlcaBlock}${wsLines}
+${sqlcaBlock}${wsLines}`;
+  }
+
+  const code = hasNodes
+? `${preamble}
+
        PROCEDURE DIVISION.
 ${procLines}
        9999-FIM.
@@ -2623,6 +3234,7 @@ ${hasDB2 ? `\n       DB2-ERRO-RTN.\n           DISPLAY "SQLCODE: " SQLCODE\n    
 function newProgram() {
   if (!confirm('Criar novo programa? O projeto atual não salvo será perdido.')) return;
   _codeWasImported = false;
+  _importedPreamble = null;
   try { localStorage.removeItem(_LS_KEY); } catch(e) {}
   document.querySelectorAll('#canvas .cf-node:not(#node-start):not(#node-end-node)').forEach(n => n.remove());
   document.getElementById('prop-program-id').value = 'NOVOPROG';
@@ -2893,16 +3505,32 @@ function splitIntoInstructions(paragraphName, body) {
 }
 
 function _importCobolSource(text, filename, importMode) {
-  importMode = importMode || 'por-paragrafo';
+  importMode = importMode || 'por-instrucao';
   if (!confirm('Importar "' + filename + '" e reconstruir o flowchart? O canvas atual será substituído.')) return;
 
-  _codeWasImported = true; // preserva o código original no "Ver Código"
+  // Mostra loading imediatamente (antes de qualquer trabalho pesado)
+  _showLoading('Importando ' + filename + '…');
+  _updateLoadingStep('Lendo estrutura do programa…');
 
-  // ── 1. Atualiza editor de código ──────────────────────────────────
+  // Cede o frame para o browser renderizar o overlay, depois processa
+  setTimeout(() => _doImport(text, filename, importMode), 30);
+}
+
+function _doImport(text, filename, importMode) {
+  _codeWasImported = true;
+
+  // ── 0. Extrai preâmbulo original (tudo antes de PROCEDURE DIVISION)
+  _updateLoadingStep('Extraindo divisões do programa…');
+  {
+    const procIdx = text.search(/^\s*PROCEDURE\s+DIVISION/im);
+    _importedPreamble = procIdx > 0 ? text.slice(0, procIdx).trimEnd() : null;
+  }
+
+  // ── 1. Atualiza editor de código
   const codeArea = document.getElementById('code-editor');
   if (codeArea) { codeArea.value = text; codeArea.removeAttribute('readonly'); }
 
-  // ── 2. Extrai metadados ──────────────────────────────────────────
+  // ── 2. Extrai metadados
   const pidMatch    = text.match(/PROGRAM-ID\.?\s+([\w-]+)/i);
   const authorMatch = text.match(/AUTHOR\.?\s+([^\n\r.]+)/i);
   const dateMatch   = text.match(/DATE-WRITTEN\.?\s+([\d-]+)/i);
@@ -2912,15 +3540,16 @@ function _importCobolSource(text, filename, importMode) {
   if (dateMatch)   document.getElementById('prop-date').value       = dateMatch[1].trim();
   if (remMatch)    document.getElementById('prop-remarks').value    = remMatch[1].trim();
 
-  // ── 3. Limpa canvas ────────────────────────────────────────────────
-  // Remove nós dinâmicos de imports anteriores
+  // ── 3. Limpa canvas
+  _updateLoadingStep('Limpando canvas…');
   document.querySelectorAll('#canvas .cf-node:not(#node-start):not(#node-end-node)')
     .forEach(n => n.remove());
   connections = [];
 
-  // ── 4. Isola PROCEDURE DIVISION ──────────────────────────────────
+  // ── 4. Isola PROCEDURE DIVISION
   const procMatch = text.match(/PROCEDURE\s+DIVISION[\s\S]*?(?=(?:\n\s{0,8}END\s+PROGRAM|$))/i);
   if (!procMatch) {
+    _hideLoading();
     updateNodeCount(); drawArrows();
     showToast('PROCEDURE DIVISION não encontrada. Código carregado no editor.', 'success');
     const codeTab = document.querySelector('.rtab[onclick*="code-view"]');
@@ -2929,47 +3558,33 @@ function _importCobolSource(text, filename, importMode) {
   }
   const procText = procMatch[0];
 
-  // ── 5. Detecta parágrafos e seções (Area A: 4-12 cols, nome + opcional SECTION + ponto)
-  //    Suporta tanto espaços quanto TAB, e declarações com SECTION.
-  // Detecta: "       NOME."  ou  "       NOME SECTION."  ou  TAB + "nome section."
+  // ── 5. Detecta parágrafos
+  _updateLoadingStep('Detectando parágrafos e seções…');
   const paraRe = /^[ \t]+([\w-]+)(?:[ \t]+SECTION)?[ \t]*\.[ \t]*$/gim;
-  // Palavras reservadas que NÃO são nomes de parágrafo
   const KEYWORDS = /^(PROCEDURE|DIVISION|SECTION|USING|GIVING|BY|FROM|TO|INTO|END|UNTIL|VARYING|WHEN|AT|ON|NOT|IF|ELSE|PERFORM|STOP|GO|MOVE|ADD|SUBTRACT|CALL|READ|WRITE|OPEN|CLOSE|EXEC|SQL|EVALUATE|COMPUTE|DISPLAY|ACCEPT|COMMIT|ROLLBACK|FETCH|INSERT|UPDATE|DELETE|SELECT|INITIALIZE|RECORD|DATA|FILE|WORKING|STORAGE|COPY|FD|PIC|VALUE|PICTURE)$/;
   const paragraphs = [];
   let m;
   while ((m = paraRe.exec(procText)) !== null) {
-    const name = m[1].toUpperCase();                     // grupo 1 = só o nome
+    const name = m[1].toUpperCase();
     if (KEYWORDS.test(name) || /^END-/.test(name)) continue;
-    // headerStart = início da linha-cabeçalho (para limitar o body do parágrafo anterior)
-    // bodyStart   = logo após a linha-cabeçalho (onde começa o corpo deste parágrafo)
     paragraphs.push({ name, headerStart: m.index, bodyStart: m.index + m[0].length, body: '' });
   }
   for (let i = 0; i < paragraphs.length; i++) {
-    // Usa headerStart do próximo para NÃO incluir a linha-cabeçalho no body atual
     const end = i + 1 < paragraphs.length ? paragraphs[i + 1].headerStart : procText.length;
     paragraphs[i].body = procText.slice(paragraphs[i].bodyStart, end).trim();
   }
 
-  // ── 6. Mapeia corpo → tipo de nó ─────────────────────────────────
-  //    (detectNodeType e splitIntoInstructions são funções globais)
+  const totalParas = paragraphs.length;
+  _updateLoadingProgress(0, totalParas, 0);
+  _updateLoadingStep('Gerando nós no canvas… (0 / ' + totalParas + ')');
 
-  // ── 7. Cria nós no canvas ─────────────────────────────────────────
-  // Layout vertical: coluna única, espaçamento dinâmico por número de campos
-  const NODE_X = 210;      // left dos nós (coluna central)
-  const NODE_START_Y = 180; // top do primeiro nó (abaixo do START)
+  // ── 6-7. Layout
+  const NODE_X = 210, NODE_START_Y = 180;
   const HEADER_H = 36, FIELD_H = 30, BODY_PAD = 20, GAP = 24;
-
-  // Estima altura de um nó pelo número de campos do seu tipo
-  function estimateH(type) {
-    const meta = activityMeta[type];
-    if (!meta) return 160;
-    return HEADER_H + BODY_PAD + meta.fields.length * FIELD_H + GAP;
-  }
 
   const createdIds = [];
   let currentY = NODE_START_Y;
 
-  // Helper: cria um nó importado com nome e linhas do corpo
   function _placeNode(name, bodyLines, type, y) {
     if (!activityMeta[type]) return null;
     createNodeAt(type, NODE_X, y);
@@ -2986,9 +3601,7 @@ function _importCobolSource(text, filename, importMode) {
       for (let i = have; i < need; i++) {
         const row = document.createElement('div');
         row.className = 'node-field';
-        row.innerHTML = `<span class="node-field-drag" title="Arrastar para reordenar">↕</span><input id="field-${uid}-${i}" placeholder="..." />
-            <span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>
-            <span class="node-field-help">?</span>`;
+        row.innerHTML = `<span class="node-field-drag" title="Arrastar">↕</span><input id="field-${uid}-${i}" placeholder="..." /><span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span><span class="node-field-help">?</span>`;
         bodyEl.appendChild(row);
       }
     }
@@ -2997,48 +3610,65 @@ function _importCobolSource(text, filename, importMode) {
     return nodeId;
   }
 
-  if (importMode === 'por-instrucao') {
-    // Modo: um nó por instrução dentro de cada parágrafo
-    paragraphs.forEach((para) => {
-      const instrs = splitIntoInstructions(para.name, para.body);
-      instrs.forEach((instr) => {
-        const fieldCount = (activityMeta[instr.type] ? activityMeta[instr.type].fields.length : 1);
-        const y = currentY;
-        currentY += HEADER_H + BODY_PAD + Math.max(instr.lines.length, fieldCount) * FIELD_H + GAP;
-        const nodeId = _placeNode(instr.name, instr.lines, instr.type, y);
-        if (nodeId) createdIds.push(nodeId);
-      });
-    });
-  } else {
-    // Modo padrão: um nó por parágrafo completo
-    paragraphs.forEach((para) => {
+  // ── 8. Processa em chunks de 5 parágrafos para não travar o browser
+  const CHUNK = 5;
+  let idx = 0;
+
+  function processChunk() {
+    const end = Math.min(idx + CHUNK, totalParas);
+    for (; idx < end; idx++) {
+      const para = paragraphs[idx];
       const type = detectNodeType(para.body);
-      if (!activityMeta[type]) return;
+      if (!activityMeta[type]) continue;
       const bodyLines = para.body.split('\n').map(l => l.trim()).filter(l => l && !/^\*/.test(l));
       const y = currentY;
       currentY += HEADER_H + BODY_PAD + Math.max(bodyLines.length, activityMeta[type].fields.length) * FIELD_H + GAP;
       const nodeId = _placeNode(para.name, bodyLines, type, y);
-      if (nodeId) createdIds.push(nodeId);
-    });
+      if (nodeId) {
+        createdIds.push(nodeId);
+        const el = document.getElementById(nodeId);
+        if (el && importMode === 'por-instrucao') {
+          _styleNodeFields(el);
+          el.querySelectorAll('.node-field input').forEach(inp => {
+            inp.addEventListener('input', () => _styleNodeFields(el));
+          });
+        }
+      }
+    }
+
+    _updateLoadingProgress(idx, totalParas, createdIds.length);
+    _updateLoadingStep('Criando nós… (' + idx + ' / ' + totalParas + ' parágrafos)');
+
+    if (idx < totalParas) {
+      // Mais chunks restantes — cede o frame para atualizar a UI
+      setTimeout(processChunk, 0);
+    } else {
+      // Todos os parágrafos processados → finaliza
+      _finishImport(createdIds, currentY, NODE_X, filename);
+    }
   }
 
-  // Expande o canvas para cobrir todos os nós + margem
+  // Inicia processamento
+  setTimeout(processChunk, 0);
+}
+
+function _finishImport(createdIds, currentY, NODE_X, filename) {
+  _updateLoadingStep('Posicionando nós e desenhando setas…');
+
+  // Expande canvas
   const canvasEl = document.getElementById('canvas');
   if (canvasEl) canvasEl.style.minHeight = (currentY + 200) + 'px';
 
-  // Centraliza nó START na mesma coluna e reposiciona END logo após o último
+  // Reposiciona START e END
   const startNode = document.getElementById('node-start');
-  if (startNode) {
-    startNode.style.left = (NODE_X + 15) + 'px';
-    startNode.style.top  = '20px';
-  }
+  if (startNode) { startNode.style.left = (NODE_X + 15) + 'px'; startNode.style.top = '20px'; }
   const endNode = document.getElementById('node-end-node');
   if (endNode && createdIds.length > 0) {
     endNode.style.left = (NODE_X + 15) + 'px';
-    endNode.style.top  = (currentY) + 'px';
+    endNode.style.top  = currentY + 'px';
   }
 
-  // ── 8. Conecta nós em sequência ──────────────────────────────────
+  // Conecta em sequência
   for (let i = 0; i < createdIds.length - 1; i++) {
     connections.push({ from: createdIds[i], to: createdIds[i + 1] });
   }
@@ -3047,24 +3677,22 @@ function _importCobolSource(text, filename, importMode) {
     connections.push({ from: createdIds[createdIds.length - 1], to: 'node-end-node' });
   }
 
-  // ── 9. Redesenha flowchart e atualiza "Ver Código" ───────────────
   updateNodeCount();
-  // Triplo rAF: 1º → nós inseridos no DOM; 2º → alturas reais calculadas; 3º → setas corretas
+
+  _updateLoadingStep('Finalizando layout e salvando…');
+  _updateLoadingProgress(createdIds.length, createdIds.length, createdIds.length);
+
   requestAnimationFrame(() => {
-    // 2º frame: usa offsetHeight real de cada nó para redistribuir posições
     reflowCanvas();
     requestAnimationFrame(() => {
       drawArrows();
-      // Scroll para o topo do canvas para mostrar o início do programa
       const scroll = document.getElementById('canvas-scroll');
       if (scroll) { scroll.scrollTop = 0; scroll.scrollLeft = 0; }
-      // Preserva o código importado — NÃO regenera do canvas
-      // (o code-editor já contém o fonte original importado)
       _saveToStorage();
-      // Ativa a aba "Ver Código" usando seletor de atributo (sem depender de texto)
+      _hideLoading();
       const codeTab = document.querySelector('.rtab[onclick*="code-view"]');
       if (codeTab) switchRTab(codeTab, 'code-view');
-      showToast('Importado: ' + createdIds.length + ' parágrafos → flowchart e código atualizados!', 'success');
+      showToast('✓ Importado: ' + createdIds.length + ' parágrafos criados!', 'success');
       setStatus('COBOL importado — ' + createdIds.length + ' nós criados');
     });
   });
@@ -3091,7 +3719,7 @@ function reflowCanvas() {
   if (endNode) { endNode.style.top = curY + 'px'; endNode.style.left = (nodeX + 15) + 'px'; }
   const minH = curY + 200;
   if (parseInt(canvas.style.minHeight || 0) < minH) canvas.style.minHeight = minH + 'px';
-  requestAnimationFrame(() => drawArrows());
+  requestAnimationFrame(() => { drawArrows(); _styleAllNodes(); });
 }
 
 // ── Gerenciamento de linhas de campo dentro dos cards ────────────────
@@ -3117,10 +3745,16 @@ function _addFieldBelow() {
   if (!_currentFieldMenuRow) return;
   const newRow = document.createElement('div');
   newRow.className = 'node-field';
-  newRow.innerHTML = `<span class="node-field-drag" title="Arrastar para reordenar">↕</span><input placeholder="..." />
+  // Sugere continuação: pega o valor da linha de referência
+  const _refInput = _currentFieldMenuRow ? _currentFieldMenuRow.querySelector('input') : null;
+  const _refVal = _refInput ? _refInput.value.trim() : '';
+  const _suggest2 = _refVal ? _refVal : '...';
+  newRow.innerHTML = `<span class="node-field-drag" title="Arrastar para reordenar">↕</span><input value="${_suggest2}" />
     <span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>
     <span class="node-field-help">?</span>`;
   _currentFieldMenuRow.insertAdjacentElement('afterend', newRow);
+  const _ni = newRow.querySelector('input');
+  if (_ni) { _ni.focus(); _ni.select(); }
   _currentFieldMenuRow = null;
   requestAnimationFrame(() => reflowCanvas());
 }
@@ -3142,13 +3776,19 @@ function _deleteFieldRow() {
 function _addFieldToCard(btn) {
   const body = btn.closest('.node-card').querySelector('.node-card-body');
   if (!body) return;
+  // Sugere continuação: pega o valor da última linha como referência
+  const lastInput = body.querySelector('.node-field:last-child input');
+  const _lastVal = lastInput ? lastInput.value.trim() : '';
+  const _suggest = _lastVal ? _lastVal : '...';
   const newRow = document.createElement('div');
   newRow.className = 'node-field';
-  newRow.innerHTML = `<span class="node-field-drag" title="Arrastar para reordenar">↕</span><input placeholder="..." />
+  newRow.innerHTML = `<span class="node-field-drag" title="Arrastar para reordenar">↕</span><input value="${_suggest}" />
     <span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>
     <span class="node-field-help">?</span>`;
   body.appendChild(newRow);
-  newRow.querySelector('input').focus();
+  const inp = newRow.querySelector('input');
+  inp.focus();
+  inp.select();
   requestAnimationFrame(() => reflowCanvas());
 }
 
@@ -3248,6 +3888,7 @@ function openCodeView() {
 // Força a regeneração a partir do fluxo, ignorando o import
 function _forceRegerarCodigo() {
   _codeWasImported = false;
+  _importedPreamble = null;
   generateAllCode();
   _renderCodeHighlight();
   const badge = document.getElementById('code-mode-badge');
@@ -3512,6 +4153,35 @@ function showToast(msg, type) {
 function setStatus(msg) {
   const el = document.getElementById('status-msg');
   if (el) el.textContent = msg;
+}
+
+/* ─ Loading overlay ───────────────────────────────────────────────── */
+function _showLoading(title) {
+  const ov = document.getElementById('loading-overlay');
+  if (ov) ov.classList.add('visible');
+  const t = document.getElementById('loading-title');
+  if (t) t.textContent = title || 'Processando…';
+  _updateLoadingStep('Iniciando…');
+  _updateLoadingProgress(0, 0, 0);
+}
+function _hideLoading() {
+  const ov = document.getElementById('loading-overlay');
+  if (ov) ov.classList.remove('visible');
+}
+function _updateLoadingStep(msg) {
+  const el = document.getElementById('loading-step');
+  if (el) el.textContent = msg;
+}
+function _updateLoadingProgress(done, total, nodeCount) {
+  const bar = document.getElementById('loading-bar');
+  const counter = document.getElementById('loading-counter');
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  if (bar) bar.style.width = pct + '%';
+  if (counter) {
+    counter.textContent = total > 0
+      ? `${done} / ${total} parágrafos${nodeCount ? ' — ' + nodeCount + ' nós criados' : ''}`
+      : '';
+  }
 }
 
 /* ─ Bottom Bar ─────────────────────────────────────────────────────── */
