@@ -728,7 +728,9 @@
     .rtab:last-child { border-right: none; }
     .rtab.active { background: var(--panel-bg); font-weight: 600; }
     .rtab:hover:not(.active) { background: #e0e0e0; }
-    #right-panel-content { flex: 1; overflow-y: auto; padding: 8px; }
+    #right-panel-content { flex: 1; overflow: hidden; padding: 0; display: flex; flex-direction: column; }
+    #right-panel-content > div { padding: 8px; overflow-y: auto; }
+    #right-panel-content > #code-view { padding: 0; overflow: hidden; }
 
     /* Properties */
     .prop-title {
@@ -801,21 +803,52 @@
 
     /* Code View */
     #code-view { display: none; }
-    #code-view.visible { display: block; }
-    #code-editor {
-      width: 100%;
-      height: 100%;
-      min-height: 300px;
-      border: none;
-      resize: none;
-      font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 11px;
-      background: #1e1e2e;
-      color: #cdd6f4;
-      padding: 8px;
-      outline: none;
-      line-height: 1.5;
+    #code-view.visible { display: flex; flex-direction: column; height: 100%; }
+    #code-view-toolbar {
+      display: flex; gap: 4px; padding: 3px 6px; background: #f5f5f5;
+      border-bottom: 1px solid #ddd; align-items: center; flex-shrink: 0;
+      min-height: 26px;
     }
+    #code-view-toolbar button {
+      font-size: 11px; padding: 1px 7px; cursor: pointer; white-space: nowrap;
+      border: 1px solid #bbb; border-radius: 3px; background: #fff;
+    }
+    #code-view-toolbar button:hover { background: #e8e8e8; }
+    #code-goto-select {
+      flex: 1; font-size: 11px; padding: 2px 4px; border: 1px solid #bbb;
+      border-radius: 3px; background: #fff; color: #333; max-width: 220px;
+      min-width: 0;
+    }
+    #code-scroll {
+      flex: 1; overflow: auto; background: #1e1e2e; display: flex; min-height: 0;
+    }
+    #code-line-numbers {
+      padding: 6px 8px 6px 4px; text-align: right; background: #181825; color: #6c7086;
+      font-family: 'Consolas','Courier New', monospace; font-size: 12px;
+      line-height: 1.5; user-select: none; min-width: 38px;
+      border-right: 1px solid #313244; flex-shrink: 0;
+      position: sticky; left: 0; z-index: 1;
+    }
+    #code-highlight {
+      flex: 1; padding: 6px 0 6px 10px; margin: 0;
+      font-family: 'Consolas','Courier New', monospace; font-size: 12px;
+      line-height: 1.5; color: #cdd6f4; white-space: pre; tab-size: 4;
+    }
+    /* Syntax colors */
+    .ck-division  { color: #f38ba8; font-weight: bold; }
+    .ck-section   { color: #fab387; font-weight: bold; }
+    .ck-comment   { color: #a6e3a1; font-style: italic; }
+    .ck-keyword   { color: #89b4fa; }
+    .ck-string    { color: #f9e2af; }
+    .ck-number    { color: #94e2d5; }
+    .ck-level     { color: #cba6f7; }
+    .ck-pic       { color: #74c7ec; }
+    .ck-verb      { color: #89dceb; }
+    .ck-copy      { color: #f5c2e7; }
+    .ck-sql       { color: #a6e3a1; font-weight: bold; }
+    .ck-para-name { color: #f5e0dc; text-decoration: underline; }
+    /* Hidden textarea for editing */
+    #code-editor { display: none; }
     #props-view.visible { display: block; }
     #props-view { display: none; }
 
@@ -974,7 +1007,7 @@
   <div id="header">
     <div class="logo">
       <div class="icon-logo">CB</div>
-      COBOL RPA Dev Studio 1.0
+      COBOL Dev Studio 1.0
     </div>
     <div class="project-tab" title="Projeto atual">📁 Project: MeuProgramaCOBOL</div>
     <div class="spacer"></div>
@@ -1470,7 +1503,7 @@
         <button class="canvas-btn" onclick="collapseAll()">Reduzir Tudo</button>
         <button class="canvas-btn" onclick="undoLastConnection()" title="Desfazer última seta criada" style="color:#dc2626;border-color:#fca5a5;">↩ Seta</button>
         <button class="canvas-btn" onclick="clearAllConnections()" title="Remover todas as setas" style="color:#dc2626;border-color:#fca5a5;">× Setas</button>
-        <span style="color:#aaa;font-size:11px;margin-left:8px;" id="node-count">7 nós</span>
+        <span style="color:#aaa;font-size:11px;margin-left:8px;" id="node-count">2 nós</span>
       </div>
       <div id="canvas-scroll">
         <div id="canvas"
@@ -1503,104 +1536,6 @@
                   style="position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);z-index:10;"
                   onclick="event.stopPropagation();startConnect(event,'node-start')"
                   title="Conectar saída">→</span>
-          </div>
-
-          <!-- 0000-MAIN -->
-          <div class="cf-node node-card selected" id="node-main" style="left:190px;top:180px;"
-               onclick="selectNode('main','0000-MAIN')" ondblclick="editNodeLabel('main')">
-            <div class="node-card-header blue">
-              <span>▶️</span> <span class="node-label">0000-MAIN</span>
-              <span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'node-main')" title="Conectar saída">→</span>
-              <span class="node-field-more" onclick="event.stopPropagation();deleteNode('main')" title="Remover">✕</span>
-            </div>
-            <div class="node-card-body">
-              <div class="node-field">
-                <input id="field-main-1" placeholder="ex: PERFORM 1000-LER-DADOS" />
-                <span class="node-field-more" onclick="openFieldPicker('main',1)">···</span>
-                <span class="node-field-help" title="Ajuda">?</span>
-              </div>
-              <div class="node-field">
-                <input id="field-main-2" placeholder="ex: PERFORM 2000-PROCESSAR" />
-                <span class="node-field-more">···</span>
-                <span class="node-field-help">?</span>
-              </div>
-              <div class="node-field">
-                <input id="field-main-3" placeholder="ex: PERFORM 3000-GRAVAR" />
-                <span class="node-field-more">···</span>
-                <span class="node-field-help">?</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 1000-LER-DADOS -->
-          <div class="cf-node node-card" id="node-read" style="left:40px;top:390px;"
-               onclick="selectNode('read','1000-LER-DADOS')" ondblclick="editNodeLabel('read')">
-            <div class="node-card-header green">
-              <span>📖</span> <span class="node-label">1000-LER-DADOS</span>
-              <span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'node-read')" title="Conectar saída">→</span>
-              <span class="node-field-more" onclick="event.stopPropagation();deleteNode('read')" title="Remover">✕</span>
-            </div>
-            <div class="node-card-body">
-              <div class="node-field">
-                <input id="field-read-1" placeholder="ex: OPEN INPUT ARQ-ENTRADA" />
-                <span class="node-field-more">···</span>
-                <span class="node-field-help">?</span>
-              </div>
-              <div class="node-field">
-                <input id="field-read-2" placeholder="ex: READ ARQ-ENTRADA" />
-                <span class="node-field-more">···</span>
-                <span class="node-field-help">?</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 2000-PROCESSAR -->
-          <div class="cf-node node-card" id="node-proc" style="left:190px;top:560px;"
-               onclick="selectNode('proc','2000-PROCESSAR')" ondblclick="editNodeLabel('proc')">
-            <div class="node-card-header orange">
-              <span>⚙️</span> <span class="node-label">2000-PROCESSAR</span>
-              <span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'node-proc')" title="Conectar saída">→</span>
-              <span class="node-field-more" onclick="event.stopPropagation();deleteNode('proc')" title="Remover">✕</span>
-            </div>
-            <div class="node-card-body">
-              <div class="node-field">
-                <input id="field-proc-1" placeholder="ex: EVALUATE WS-TIPO" />
-                <span class="node-field-more">···</span>
-                <span class="node-field-help">?</span>
-              </div>
-              <div class="node-field">
-                <input id="field-proc-2" placeholder='ex: WHEN "A" PERFORM 2100-ACAO-A' />
-                <span class="node-field-more">···</span>
-                <span class="node-field-help">?</span>
-              </div>
-              <div class="node-field">
-                <input id="field-proc-3" placeholder='ex: WHEN OTHER PERFORM 2900-OUTROS' />
-                <span class="node-field-more">···</span>
-                <span class="node-field-help">?</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3000-GRAVAR -->
-          <div class="cf-node node-card" id="node-write" style="left:400px;top:390px;"
-               onclick="selectNode('write','3000-GRAVAR')" ondblclick="editNodeLabel('write')">
-            <div class="node-card-header purple">
-              <span>💾</span> <span class="node-label">3000-GRAVAR</span>
-              <span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'node-write')" title="Conectar saída">→</span>
-              <span class="node-field-more" onclick="event.stopPropagation();deleteNode('write')" title="Remover">✕</span>
-            </div>
-            <div class="node-card-body">
-              <div class="node-field">
-                <input id="field-write-1" placeholder="ex: WRITE REG-SAIDA FROM WS-REG" />
-                <span class="node-field-more">···</span>
-                <span class="node-field-help">?</span>
-              </div>
-              <div class="node-field">
-                <input id="field-write-2" placeholder="ex: CLOSE ARQ-SAIDA" />
-                <span class="node-field-more">···</span>
-                <span class="node-field-help">?</span>
-              </div>
-            </div>
           </div>
 
           <!-- 9999-FIM -->
@@ -1707,9 +1642,16 @@
 
         <!-- Code View -->
         <div id="code-view">
-          <div style="display:flex;gap:6px;padding:4px 6px;background:#f5f5f5;border-bottom:1px solid #ddd;">
-            <button onclick="_forceRegerarCodigo()" title="Regenera o código COBOL a partir do fluxo atual (descarta o importado)" style="font-size:11px;padding:2px 8px;cursor:pointer;">⟳ Regerar do Fluxo</button>
-            <span id="code-mode-badge" style="font-size:10px;color:#888;align-self:center;"></span>
+          <div id="code-view-toolbar">
+            <select id="code-goto-select" onchange="_codeGoto(this.value)" title="Ir para divisão / seção...">
+              <option value="">Ir para divisão / seção...</option>
+            </select>
+            <button onclick="_forceRegerarCodigo()" title="Regenera o código COBOL a partir do fluxo atual">⟳ Regerar</button>
+            <span id="code-mode-badge" style="font-size:10px;color:#888;"></span>
+          </div>
+          <div id="code-scroll">
+            <div id="code-line-numbers"></div>
+            <pre id="code-highlight"></pre>
           </div>
           <textarea id="code-editor" spellcheck="false" readonly></textarea>
         </div>
@@ -1832,15 +1774,15 @@ function switchRTab(tab, contentId) {
     d.style.display = 'none';
   });
   const target = document.getElementById(contentId);
-  if (target) { target.classList.add('visible'); target.style.display = 'block'; }
+  if (target) { target.classList.add('visible'); target.style.display = ''; }
   if (contentId === 'code-view') {
     if (_codeWasImported) {
-      // Código importado: apenas garante que o editor está visível e editável
       const ca = document.getElementById('code-editor');
       if (ca) ca.removeAttribute('readonly');
     } else {
       generateAllCode();
     }
+    _renderCodeHighlight();
   }
 }
 function switchCanvas(tab, name) {
@@ -2254,7 +2196,68 @@ function nestCardInto(srcCard, dstCard) {
   requestAnimationFrame(() => reflowCanvas());
 }
 // Init
-const _STATIC_NODE_IDS = ['node-start','node-end-node','node-main','node-read','node-proc','node-write'];
+const _STATIC_NODE_IDS = ['node-start','node-end-node'];
+
+/* ─ Persistência (localStorage) ──────────────────────────────────── */
+const _LS_KEY = 'cobolstudio_v2';
+
+function _saveToStorage() {
+  if (!window.localStorage) return;
+  try {
+    const data = { imported: _codeWasImported };
+    // Propriedades do programa
+    ['prop-program-id','prop-author','prop-date','prop-remarks'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) data[id] = el.value;
+    });
+    // Inputs dos nós estáticos (por posição dentro de cada nó)
+    _STATIC_NODE_IDS.filter(id => !['node-start','node-end-node'].includes(id)).forEach(nid => {
+      const node = document.getElementById(nid);
+      if (!node) return;
+      const vals = [];
+      node.querySelectorAll('.node-field input').forEach(inp => vals.push(inp.value));
+      data['inputs_' + nid] = vals;
+    });
+    // Working-Storage
+    const tbody = document.getElementById('args-tbody');
+    if (tbody) data['ws_html'] = tbody.innerHTML;
+    // Code editor
+    const ca = document.getElementById('code-editor');
+    if (ca) data['code'] = ca.value;
+    localStorage.setItem(_LS_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+
+function _loadFromStorage() {
+  if (!window.localStorage) return false;
+  try {
+    const raw = localStorage.getItem(_LS_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data) return false;
+    // Propriedades
+    ['prop-program-id','prop-author','prop-date','prop-remarks'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id] != null) el.value = data[id];
+    });
+    // Inputs dos nós estáticos
+    _STATIC_NODE_IDS.filter(id => !['node-start','node-end-node'].includes(id)).forEach(nid => {
+      const node = document.getElementById(nid);
+      if (!node || !data['inputs_' + nid]) return;
+      node.querySelectorAll('.node-field input').forEach((inp, i) => {
+        if (data['inputs_' + nid][i] != null) inp.value = data['inputs_' + nid][i];
+      });
+    });
+    // Working-Storage
+    const tbody = document.getElementById('args-tbody');
+    if (tbody && data['ws_html']) tbody.innerHTML = data['ws_html'];
+    // Code editor + flag
+    const ca = document.getElementById('code-editor');
+    if (ca && data['code']) ca.value = data['code'];
+    if (data['imported'] != null) _codeWasImported = data['imported'];
+    return !!(data['code']);
+  } catch(e) { return false; }
+}
 
 function _doReset() {
   // 1. Remove nós dinâmicos (criados por drag/import)
@@ -2276,10 +2279,16 @@ function _doReset() {
   // 3. Zera tabela Working-Storage
   const tbody = document.getElementById('args-tbody');
   if (tbody) tbody.innerHTML = '';
-  // 4. Zera propriedades do programa
-  ['prop-program-id','prop-author','prop-date','prop-remarks'].forEach(id => {
+  // 4. Restaura propriedades padrão do programa
+  const propDefaults = {
+    'prop-program-id': 'MEUCOBOL',
+    'prop-author':     'AUTOR',
+    'prop-date':       new Date().toISOString().slice(0,10),
+    'prop-remarks':    ''
+  };
+  Object.entries(propDefaults).forEach(([id, val]) => {
     const el = document.getElementById(id);
-    if (el) { el.value = ''; el.setAttribute('autocomplete', 'off'); }
+    if (el) { el.value = val; el.setAttribute('autocomplete', 'off'); }
   });
   // 5. Zera editor de código
   const codeArea = document.getElementById('code-editor');
@@ -2294,7 +2303,17 @@ function _resetCanvasState() {
   _doReset();
   // Executa novamente após o browser tentar restaurar valores de formulário
   setTimeout(_doReset, 0);
-  setTimeout(_doReset, 150);
+  // Após o último reset, restaura sessão salva (se houver)
+  setTimeout(() => {
+    _doReset();
+    const hasCode = _loadFromStorage();
+    if (hasCode) {
+      _renderCodeHighlight();
+    } else {
+      // Sem sessão salva: gera código inicial a partir dos nós default
+      generateAllCode();
+    }
+  }, 150);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -2348,6 +2367,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('resize', drawArrows);
+window.addEventListener('beforeunload', _saveToStorage);
 
 // ── Redimensionamento lateral do painel direito ─────────────────────
 (function() {
@@ -2519,20 +2539,25 @@ function generateAllCode() {
     const title = hdr?.querySelector('.node-label')?.textContent?.trim()
                || hdr?.textContent?.replace('✕','').trim()
                || 'PARA';
-    // Coleta linhas não-vazias dos inputs
     const fieldLines = [];
     n.querySelectorAll('.node-field input').forEach(inp => {
       if (inp.value.trim()) fieldLines.push(inp.value.trim());
     });
     procLines += `\n       ${title.toUpperCase()}.\n`;
-    if (fieldLines.length) procLines += _cobolProcIndent(fieldLines) + '\n';
+    if (fieldLines.length) {
+      procLines += _cobolProcIndent(fieldLines) + '\n';
+    } else {
+      procLines += '           CONTINUE.\n';
+    }
   });
 
-  const code =
-`      *================================================================*
+  // Se não há nós de procedimento, gera apenas o esqueleto de PROCEDURE DIVISION
+  const hasNodes = nodes.length > 0;
+  const code = hasNodes
+? `      *================================================================*
       *  PROGRAMA  : ${pid.padEnd(20)}                             *
       *  DIALETO   : ${dialect.padEnd(28)}                 *
-      *  GERADO POR: COBOL RPA Dev Studio 1.0                         *
+      *  GERADO POR: COBOL Dev Studio 1.0                         *
       *================================================================*
        IDENTIFICATION DIVISION.
        PROGRAM-ID. ${pid}.
@@ -2581,10 +2606,16 @@ ${procLines}
        9999-FIM.
            STOP RUN.
 ${hasDB2 ? `\n       DB2-ERRO-RTN.\n           DISPLAY "SQLCODE: " SQLCODE\n           DISPLAY "SQLERRM: " SQLERRMC\n           PERFORM 9999-FIM.\n` : ''}
+`
+: `       PROCEDURE DIVISION.
+
+       9999-FIM.
+           STOP RUN.
 `;
 
   const codeArea = document.getElementById('code-editor');
   if (codeArea) { codeArea.value = code; codeArea.removeAttribute('readonly'); }
+  _saveToStorage();
   return code;
 }
 
@@ -2592,8 +2623,8 @@ ${hasDB2 ? `\n       DB2-ERRO-RTN.\n           DISPLAY "SQLCODE: " SQLCODE\n    
 function newProgram() {
   if (!confirm('Criar novo programa? O projeto atual não salvo será perdido.')) return;
   _codeWasImported = false;
-  document.querySelectorAll('#canvas .cf-node:not(#node-start):not(#node-end-node):not(#node-main):not(#node-read):not(#node-proc):not(#node-write)').forEach(n => n.remove());
-  document.querySelectorAll('#canvas .node-card .node-field input').forEach(inp => inp.value = '');
+  try { localStorage.removeItem(_LS_KEY); } catch(e) {}
+  document.querySelectorAll('#canvas .cf-node:not(#node-start):not(#node-end-node)').forEach(n => n.remove());
   document.getElementById('prop-program-id').value = 'NOVOPROG';
   updateNodeCount(); drawArrows();
   showToast('Novo programa criado.', 'success');
@@ -2883,15 +2914,8 @@ function _importCobolSource(text, filename, importMode) {
 
   // ── 3. Limpa canvas ────────────────────────────────────────────────
   // Remove nós dinâmicos de imports anteriores
-  document.querySelectorAll('#canvas .cf-node:not(#node-start):not(#node-end-node):not(#node-main):not(#node-read):not(#node-proc):not(#node-write)')
+  document.querySelectorAll('#canvas .cf-node:not(#node-start):not(#node-end-node)')
     .forEach(n => n.remove());
-  document.querySelectorAll('#canvas .node-card .node-field input').forEach(i => i.value = '');
-  // Oculta nós template para não misturar com os importados
-  const _TEMPLATE_IDS = ['node-main','node-read','node-proc','node-write'];
-  _TEMPLATE_IDS.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
   connections = [];
 
   // ── 4. Isola PROCEDURE DIVISION ──────────────────────────────────
@@ -3034,8 +3058,9 @@ function _importCobolSource(text, filename, importMode) {
       // Scroll para o topo do canvas para mostrar o início do programa
       const scroll = document.getElementById('canvas-scroll');
       if (scroll) { scroll.scrollTop = 0; scroll.scrollLeft = 0; }
-      // Atualiza code-editor com o código re-gerado do canvas
-      generateAllCode();
+      // Preserva o código importado — NÃO regenera do canvas
+      // (o code-editor já contém o fonte original importado)
+      _saveToStorage();
       // Ativa a aba "Ver Código" usando seletor de atributo (sem depender de texto)
       const codeTab = document.querySelector('.rtab[onclick*="code-view"]');
       if (codeTab) switchRTab(codeTab, 'code-view');
@@ -3216,7 +3241,7 @@ function openCodeView() {
   const rtabs = document.querySelectorAll('.rtab');
   rtabs.forEach(t => { if (t.textContent.trim()==='Ver Código') switchRTab(t,'code-view'); });
   const badge = document.getElementById('code-mode-badge');
-  if (badge) badge.textContent = _codeWasImported ? '📥 Código importado' : '🔧 Gerado do fluxo';
+  if (badge) badge.textContent = _codeWasImported ? '📥 Importado' : '🔧 Fluxo';
   showToast(_codeWasImported ? 'Exibindo código importado.' : 'Código gerado no painel direito.', 'success');
 }
 
@@ -3224,9 +3249,124 @@ function openCodeView() {
 function _forceRegerarCodigo() {
   _codeWasImported = false;
   generateAllCode();
+  _renderCodeHighlight();
   const badge = document.getElementById('code-mode-badge');
-  if (badge) badge.textContent = '🔧 Gerado do fluxo';
+  if (badge) badge.textContent = '🔧 Fluxo';
   showToast('Código regenerado a partir do fluxo.', 'success');
+}
+
+/* ─ Syntax Highlight COBOL ─────────────────────────────────────────── */
+function _highlightCobolLine(raw) {
+  // Escape HTML
+  const esc = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // Comentário: * na coluna 7 ou linha que começa com *
+  const trimmed = raw.trimStart();
+  if (trimmed.startsWith('*')) return '<span class="ck-comment">' + esc + '</span>';
+  if (raw.length >= 7 && raw[6] === '*') return '<span class="ck-comment">' + esc + '</span>';
+
+  // Usa sistema de tokens para evitar que uma regex capture HTML de outra
+  // IMPORTANTE: placeholder usa letra 'T' antes do índice para que \b\d+\b
+  // não capture os dígitos do índice dentro do placeholder.
+  const slots = [];
+  let res = esc;
+  function tok(rx, cls) {
+    res = res.replace(rx, function(m) {
+      var i = slots.length;
+      slots.push('<span class="' + cls + '">' + m + '</span>');
+      return '\x00T' + i + '\x02';  // 'T' evita word-boundary antes do dígito
+    });
+  }
+
+  // Strings primeiro (protege conteúdo entre aspas)
+  tok(/'[^']*'|&quot;[^&]*&quot;/g, 'ck-string');
+
+  // DIVISION / SECTION de alto nível
+  tok(/\b(?:IDENTIFICATION|ENVIRONMENT|DATA|PROCEDURE)\s+DIVISION\b/gi, 'ck-division');
+  tok(/\b(?:CONFIGURATION|INPUT-OUTPUT)\s+SECTION\b/gi, 'ck-division');
+  tok(/\b(?:WORKING-STORAGE|FILE|LINKAGE|LOCAL-STORAGE|SCREEN|REPORT)\s+SECTION\b/gi, 'ck-section');
+
+  // EXEC SQL / END-EXEC
+  tok(/\bEXEC\s+SQL\b|END-EXEC\b/gi, 'ck-sql');
+
+  // COPY / INCLUDE
+  tok(/\b(?:COPY|INCLUDE)\b/gi, 'ck-copy');
+
+  // FD / SD
+  tok(/\b(?:FD|SD)\b/gi, 'ck-section');
+
+  // PROGRAM-ID, AUTHOR etc.
+  tok(/\b(?:PROGRAM-ID|AUTHOR|DATE-WRITTEN|DATE-COMPILED|REMARKS|INSTALLATION|SECURITY)\b/gi, 'ck-keyword');
+
+  // PIC / VALUE / REDEFINES / OCCURS
+  tok(/\b(?:PIC|PICTURE|VALUE|REDEFINES|OCCURS|INDEXED\s+BY|TIMES)\b/gi, 'ck-pic');
+
+  // Verbos COBOL
+  tok(/\b(?:PERFORM|MOVE|ADD|SUBTRACT|MULTIPLY|DIVIDE|COMPUTE|IF|ELSE|END-IF|EVALUATE|WHEN|END-EVALUATE|READ|WRITE|REWRITE|OPEN|CLOSE|CALL|USING|DISPLAY|ACCEPT|GO\s+TO|STOP\s+RUN|STRING|UNSTRING|SEARCH|INITIALIZE|SET|INSPECT|SORT|MERGE|START|DELETE|RETURN|EXIT|CONTINUE|GOBACK|FETCH|COMMIT|ROLLBACK|AT\s+END|NOT\s+AT\s+END|END-READ|END-PERFORM|END-CALL|END-STRING|END-UNSTRING|END-SEARCH)\b/gi, 'ck-verb');
+
+  // Levels: 01-49, 66, 77, 88  (seguidos de espaço, ponto ou fim de linha)
+  tok(/(?:^|(?<=\s))(?:0[1-9]|[1-4][0-9]|66|77|88)(?=[\s.]|$)/gm, 'ck-level');
+
+  // Números restantes (não dentro de identificadores com hífens como 2026-04-16)
+  tok(/(?<![A-Z0-9-])\b\d+\b(?![-A-Z0-9])/gi, 'ck-number');
+
+  // Restaura todos os tokens para HTML real
+  res = res.replace(/\x00T(\d+)\x02/g, function(_, i) { return slots[parseInt(i)]; });
+
+  return res;
+}
+
+function _renderCodeHighlight() {
+  const codeArea = document.getElementById('code-editor');
+  const nums     = document.getElementById('code-line-numbers');
+  const pre      = document.getElementById('code-highlight');
+  const sel      = document.getElementById('code-goto-select');
+  if (!codeArea || !nums || !pre) return;
+
+  const text  = codeArea.value || '';
+  const lines = text.split('\n');
+
+  // Números de linha
+  nums.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
+
+  // Syntax highlight
+  pre.innerHTML = lines.map(l => _highlightCobolLine(l)).join('\n');
+
+  // Preenche dropdown "Ir para"
+  if (sel) {
+    sel.innerHTML = '<option value="">Ir para divisão / seção...</option>';
+    const divSecRe = /\b(IDENTIFICATION\s+DIVISION|ENVIRONMENT\s+DIVISION|DATA\s+DIVISION|PROCEDURE\s+DIVISION|WORKING-STORAGE\s+SECTION|FILE\s+SECTION|LINKAGE\s+SECTION|INPUT-OUTPUT\s+SECTION|CONFIGURATION\s+SECTION|LOCAL-STORAGE\s+SECTION)/i;
+    const paraRe   = /^[ \t]+([\w-]+)(?:[ \t]+SECTION)?[ \t]*\.[ \t]*$/i;
+    lines.forEach((l, i) => {
+      const dm = l.match(divSecRe);
+      if (dm) {
+        const o = document.createElement('option');
+        o.value = i; o.textContent = `${dm[1].trim().toUpperCase()}`;
+        o.style.fontWeight = 'bold';
+        sel.appendChild(o);
+      }
+      const pm = l.match(paraRe);
+      if (pm && !/^(PROCEDURE|DIVISION|SECTION|USING)$/i.test(pm[1])) {
+        const inProc = lines.slice(0, i).some(ll => /PROCEDURE\s+DIVISION/i.test(ll));
+        if (inProc) {
+          const o = document.createElement('option');
+          o.value = i; o.textContent = `    ${pm[1].toUpperCase()}`;
+          sel.appendChild(o);
+        }
+      }
+    });
+  }
+
+  // code-scroll já sincroniza ambos automaticamente (flex layout)
+}
+
+function _codeGoto(lineIdx) {
+  if (lineIdx === '') return;
+  const scrollEl = document.getElementById('code-scroll');
+  const pre = document.getElementById('code-highlight');
+  if (!scrollEl || !pre) return;
+  const lineH = parseFloat(getComputedStyle(pre).lineHeight) || 18;
+  scrollEl.scrollTop = parseInt(lineIdx) * lineH;
 }
 
 function compileProgram() {
