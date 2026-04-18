@@ -1,0 +1,125 @@
+/* =================================================================
+   layout.css — Shell do app, Header e área Main
+   ================================================================= */
+
+/* ── Shell ───────────────────────────────────────────────────────── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ── Header ──────────────────────────────────────────────────────── */
+#header {
+  background: var(--header-bg);
+  color: var(--header-text);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  height: 38px;
+  gap: 10px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+#header .logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+#header .logo .icon-logo {
+  width: 22px;
+  height: 22px;
+  background: #4ade80;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+#header .project-tab {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px 4px 0 0;
+  padding: 4px 16px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+#header .project-tab:hover { background: rgba(255, 255, 255, 0.20); }
+
+#header .spacer    { flex: 1; }
+#header .user-info { font-size: 11px; color: rgba(255,255,255,0.65); }
+
+/* ── View Tabs (abaixo do ribbon) ────────────────────────────────── */
+#view-tabs {
+  background: var(--ribbon-bg);
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  padding: 0 8px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.vtab {
+  padding: 5px 16px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  background: var(--tab-inactive-bg);
+  color: #444;
+  transition: background 0.12s;
+  user-select: none;
+}
+.vtab.active {
+  background: var(--tab-active-bg);
+  border-color: var(--panel-border);
+  color: #111;
+  font-weight: 600;
+  position: relative;
+  top: 1px;
+}
+.vtab:hover:not(.active) { background: #e4e4e4; }
+
+/* ── Main ────────────────────────────────────────────────────────── */
+#main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Bottom Bar ──────────────────────────────────────────────────── */
+#bottom-bar {
+  background: var(--status-bg);
+  color: var(--status-text);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  height: 28px;
+  font-size: 11px;
+  gap: 16px;
+  flex-shrink: 0;
+  border-top: 1px solid #333;
+}
+
+#bottom-bar .bottom-label {
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+#bottom-bar .bottom-label:hover {
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+}
+#bottom-bar .bsep    { color: rgba(255,255,255,0.25); }
+#bottom-bar .status-msg { color: #86efac; }

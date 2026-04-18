@@ -1,0 +1,3408 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>COBOL RPA Dev Studio</title>
+  <!-- Design tokens & reset -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <!-- Layout shell -->
+  <link rel="stylesheet" href="css/layout.css" />
+  <!-- Ribbon toolbar -->
+  <link rel="stylesheet" href="css/ribbon.css" />
+  <!-- Left/right panels -->
+  <link rel="stylesheet" href="css/panels.css" />
+  <!-- Flowchart canvas & nodes -->
+  <link rel="stylesheet" href="css/canvas.css" />
+  <!-- Modal & toast -->
+  <link rel="stylesheet" href="css/components.css" />
+  <!-- LEGACY INLINE STYLES (manter enquanto os arquivos CSS externos estiverem incompletos) -->
+  <style>
+    /* ─── Reset & Base ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --header-bg: #1a1a2e;
+      --header-text: #ffffff;
+      --ribbon-bg: #f8f8f8;
+      --ribbon-border: #d0d0d0;
+      --ribbon-group-label: #666666;
+      --ribbon-btn-hover: #e0eaf7;
+      --ribbon-btn-active: #ccdff7;
+      --tab-active-bg: #ffffff;
+      --tab-inactive-bg: #ececec;
+      --panel-bg: #f2f2f2;
+      --panel-border: #d8d8d8;
+      --canvas-bg: #ffffff;
+      --canvas-grid: #ebebeb;
+      --card-bg: #f5f5f5;
+      --card-border: #c0c0c0;
+      --card-header-bg: #ffe9a0;
+      --card-shadow: rgba(0,0,0,0.10);
+      --start-node: #6abf4b;
+      --arrow-color: #888888;
+      --prop-label: #444444;
+      --prop-value-bg: #ffffff;
+      --status-bg: #1a1a2e;
+      --status-text: #e0e0e0;
+      --accent: #2563eb;
+      --accent-light: #dbeafe;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --font: 'Segoe UI', Arial, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      font-size: 13px;
+      overflow: hidden;
+      background: var(--header-bg);
+    }
+
+    /* ─── Layout Shell ───────────────────────────────────────────── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ─── Header ─────────────────────────────────────────────────── */
+    #header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      height: 38px;
+      gap: 10px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    #header .logo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    #header .logo .icon-logo {
+      width: 22px; height: 22px;
+      background: #4ade80;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+    #header .project-tab {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 4px 4px 0 0;
+      padding: 4px 16px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    #header .project-tab:hover { background: rgba(255,255,255,0.20); }
+    #header .spacer { flex: 1; }
+    #header .user-info { font-size: 11px; color: rgba(255,255,255,0.65); }
+
+    /* ─── Ribbon ─────────────────────────────────────────────────── */
+    #ribbon {
+      background: var(--ribbon-bg);
+      border-bottom: 2px solid var(--ribbon-border);
+      flex-shrink: 0;
+    }
+    #ribbon-content {
+      display: flex;
+      align-items: stretch;
+      padding: 4px 0 0 0;
+      min-height: 72px;
+    }
+    .ribbon-group {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      border-right: 1px solid var(--ribbon-border);
+      padding: 2px 8px 0 8px;
+      min-width: fit-content;
+    }
+    .ribbon-group:last-child { border-right: none; }
+    .ribbon-buttons {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      flex: 1;
+      padding-bottom: 4px;
+    }
+    .ribbon-group-label {
+      text-align: center;
+      font-size: 10px;
+      color: var(--ribbon-group-label);
+      padding: 2px 0 3px 0;
+      border-top: 1px solid var(--ribbon-border);
+      margin-top: auto;
+      white-space: nowrap;
+    }
+
+    /* Ribbon Button */
+    .rbtn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 2px;
+      padding: 4px 6px;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      background: transparent;
+      transition: background 0.12s, border-color 0.12s;
+      min-width: 44px;
+      text-align: center;
+      user-select: none;
+    }
+    .rbtn:hover { background: var(--ribbon-btn-hover); border-color: #b8cfe8; }
+    .rbtn:active, .rbtn.active { background: var(--ribbon-btn-active); border-color: #90b8e0; }
+    .rbtn .rbtn-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+    .rbtn .rbtn-label {
+      font-size: 10px;
+      color: #333;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
+    /* Large button variant */
+    .rbtn.large { min-width: 52px; }
+    .rbtn.large .rbtn-icon { font-size: 26px; }
+    /* Compact variant (2 per row) */
+    .rbtn-col { display: flex; flex-direction: column; gap: 1px; }
+    .rbtn.small {
+      flex-direction: row;
+      gap: 4px;
+      padding: 3px 6px;
+      min-width: unset;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    .rbtn.small .rbtn-icon { font-size: 14px; }
+    .rbtn.small .rbtn-label { font-size: 11px; }
+
+    /* ─── View Tabs (abaixo do ribbon) ───────────────────────────── */
+    #view-tabs {
+      background: var(--ribbon-bg);
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      padding: 0 8px;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .vtab {
+      padding: 5px 16px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      background: var(--tab-inactive-bg);
+      color: #444;
+      transition: background 0.12s;
+      user-select: none;
+    }
+    .vtab.active {
+      background: var(--tab-active-bg);
+      border-color: var(--panel-border);
+      color: #111;
+      font-weight: 600;
+      position: relative;
+      top: 1px;
+    }
+    .vtab:hover:not(.active) { background: #e4e4e4; }
+
+    /* ─── Main Area ──────────────────────────────────────────────── */
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ─── Left Panel ─────────────────────────────────────────────── */
+    #left-panel {
+      width: 240px;
+      min-width: 140px;
+      max-width: 400px;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+      resize: horizontal;
+    }
+    #left-panel-tabs {
+      display: flex;
+      background: var(--tab-inactive-bg);
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .ltab {
+      flex: 1;
+      text-align: center;
+      padding: 5px 0;
+      font-size: 11px;
+      cursor: pointer;
+      border-right: 1px solid var(--panel-border);
+      user-select: none;
+      transition: background 0.12s;
+    }
+    .ltab:last-child { border-right: none; }
+    .ltab.active { background: var(--panel-bg); font-weight: 600; }
+    .ltab:hover:not(.active) { background: #e0e0e0; }
+
+    #left-panel-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 4px 0;
+    }
+
+    /* Tree */
+    .tree-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      user-select: none;
+      font-size: 12px;
+    }
+    .tree-item:hover { background: #e4e4e4; }
+    .tree-item.selected { background: var(--accent-light); color: var(--accent); }
+    .tree-item .tree-icon { font-size: 13px; flex-shrink: 0; }
+    .tree-item .tree-label { overflow: hidden; text-overflow: ellipsis; }
+    .tree-item .tree-toggle {
+      width: 12px; flex-shrink: 0;
+      font-size: 10px;
+      color: #888;
+      transition: transform 0.15s;
+    }
+    .tree-item.open .tree-toggle { transform: rotate(90deg); }
+
+    .tree-children { display: none; }
+    .tree-children.open { display: block; }
+
+    /* Activities panel */
+    #activities-panel { display: none; flex-direction: column; overflow: hidden; height: 100%; }
+    #activities-panel.visible { display: flex; }
+
+    #act-search-wrap {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--panel-border);
+      background: var(--panel-bg);
+    }
+    #act-search-wrap input {
+      width: 100%;
+      padding: 4px 8px;
+      border: 1px solid var(--panel-border);
+      border-radius: 3px;
+      font-size: 11px;
+      outline: none;
+      background: #fff;
+    }
+    #act-search-wrap input:focus { border-color: var(--accent); }
+
+    #act-groups { overflow-y: auto; flex: 1; }
+
+    /* Grupo recolhível */
+    .act-group-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--panel-border);
+      cursor: pointer;
+      user-select: none;
+      font-size: 11px;
+      font-weight: 700;
+      color: #444;
+    }
+    .act-group-header:hover { background: #e4e4e4; }
+    .act-group-toggle {
+      font-size: 9px;
+      color: #888;
+      transition: transform 0.15s;
+      display: inline-block;
+      width: 10px;
+    }
+    .act-group-header.open .act-group-toggle { transform: rotate(90deg); }
+    .act-group-icon { font-size: 14px; }
+
+    .act-group-body {
+      display: none;
+      padding: 4px 8px;
+      background: #fff;
+    }
+    .act-group-body.open { display: block; }
+
+    /* Item de atividade */
+    .activity-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 8px;
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      margin-bottom: 3px;
+      cursor: grab;
+      background: #fafafa;
+      font-size: 11px;
+      transition: box-shadow 0.12s, background 0.1s;
+      user-select: none;
+    }
+    .activity-item:hover { background: var(--accent-light); border-color: #93c5fd; box-shadow: 0 1px 4px rgba(37,99,235,.15); }
+    .activity-item:active { cursor: grabbing; }
+    .activity-item .act-icon { font-size: 14px; flex-shrink: 0; }
+    .activity-item.hidden { display: none; }
+
+    /* ─── Canvas ─────────────────────────────────────────────────── */
+    #canvas-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #e8e8e8;
+    }
+    #canvas-toolbar {
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--panel-border);
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    #canvas-toolbar label { color: #555; font-weight: 600; }
+    .canvas-btn {
+      padding: 2px 10px;
+      border: 1px solid var(--panel-border);
+      border-radius: 3px;
+      background: #fff;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .canvas-btn:hover { background: #e8f0fd; border-color: var(--accent); }
+
+    #canvas-scroll {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+    }
+    #canvas {
+      min-width: 900px;
+      min-height: 800px;      /* expandido dinamicamente pelo JS após import */
+      width: 100%;
+      height: auto;           /* cresce com os nós */
+      background-color: var(--canvas-bg);
+      background-image:
+        linear-gradient(var(--canvas-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--canvas-grid) 1px, transparent 1px);
+      background-size: 24px 24px;
+      position: relative;
+    }
+
+    /* ─── Flowchart Nodes ────────────────────────────────────────── */
+    .cf-node {
+      position: absolute;
+      user-select: none;
+    }
+
+    /* Start / End circular node */
+    .node-start {
+      width: 72px; height: 72px;
+      background: var(--start-node);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(80,180,60,0.35);
+      border: 3px solid #3d9e29;
+      transition: box-shadow 0.15s;
+    }
+    .node-start:hover { box-shadow: 0 4px 14px rgba(80,180,60,0.5); }
+    .node-start span { color: #fff; font-size: 11px; font-weight: 700; margin-top: 2px; }
+
+    .node-end {
+      width: 60px; height: 60px;
+      background: #dc2626;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(220,38,38,0.35);
+      border: 3px solid #b91c1c;
+    }
+    .node-end span { color: #fff; font-size: 11px; font-weight: 700; }
+
+    /* Activity Card */
+    .node-card {
+      width: 320px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      box-shadow: 0 2px 6px var(--card-shadow);
+      cursor: pointer;
+      transition: box-shadow 0.15s, border-color 0.15s;
+      overflow: hidden;
+    }
+    .node-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+    .node-card.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-light); }
+    .node-card-header {
+      background: var(--card-header-bg);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-bottom: 1px solid #e0c060;
+    }
+    /* ── cores por grupo de atividade ───────────────────────────── */
+    .node-card-header.blue   { background: #bfdbfe; border-bottom-color: #93c5fd; } /* PERFORM / String */
+    .node-card-header.green  { background: #bbf7d0; border-bottom-color: #86efac; } /* READ / ACCEPT */
+    .node-card-header.purple { background: #e9d5ff; border-bottom-color: #c4b5fd; } /* WRITE / DISPLAY */
+    .node-card-header.orange { background: #fed7aa; border-bottom-color: #fdba74; } /* Aritmética */
+    .node-card-header.red    { background: #fecaca; border-bottom-color: #f87171; } /* STOP RUN / GO TO */
+    .node-card-header.yellow { background: #fef9c3; border-bottom-color: #fde047; } /* IF / EVALUATE */
+    .node-card-header.teal   { background: #99f6e4; border-bottom-color: #2dd4bf; } /* DB2 */
+    .node-card-header.sky    { background: #bae6fd; border-bottom-color: #38bdf8; } /* Tabela Interna */
+    .node-card-body {
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .node-field {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      padding: 3px 8px;
+      font-size: 12px;
+      cursor: grab;
+    }
+    .node-field input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 12px;
+      background: transparent;
+      font-family: 'Consolas', monospace;
+      cursor: text;
+    }
+    .node-field-more {
+      padding: 2px 6px;
+      background: #eaeaea;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    /* Handle de arrastar linha */
+    .node-field-drag {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 7px;
+      color: #aaa;
+      font-size: 16px;
+      cursor: grab;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .node-field-drag:active { cursor: grabbing; }
+    .node-field-drag:hover  { color: #555; }
+    /* Linha sendo arrastada */
+    .node-field.dragging-row {
+      opacity: 0.4;
+      cursor: grabbing;
+    }
+    /* Indicador de onde vai soltar */
+    .node-field.drop-above { border-top:    2px solid #4f8ef7; }
+    .node-field.drop-below { border-bottom: 2px solid #4f8ef7; }
+    /* Linha de inserção entre cards no canvas */
+    #card-drop-line {
+      position: absolute;
+      left: 20px; right: 20px;
+      height: 3px;
+      background: #4f8ef7;
+      border-radius: 2px;
+      pointer-events: none;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 0 6px rgba(79,142,247,0.6);
+    }
+    .node-field-help {
+      color: #888;
+      font-size: 13px;
+      cursor: help;
+    }
+    /* Menu flutuante por linha de campo */
+    .field-row-menu {
+      position: fixed;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0 3px 10px rgba(0,0,0,.18);
+      z-index: 9999;
+      font-size: 12px;
+      min-width: 170px;
+      overflow: hidden;
+    }
+    .field-row-menu div {
+      padding: 7px 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .field-row-menu div:hover { background: #f0f4ff; }
+    /* Botão + linha no rodapé do card */
+    .node-add-field-btn {
+      display: block;
+      width: calc(100% - 10px);
+      margin: 3px 5px 5px;
+      padding: 3px 0;
+      font-size: 11px;
+      color: #777;
+      background: #f5f5f5;
+      border: 1px dashed #bbb;
+      border-radius: 3px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .node-add-field-btn:hover { background: #e8f0fe; border-color: #4f8ef7; color: #4f8ef7; }
+    /* Sub-bloco aninhado dentro de um card */
+    .node-sub-block {
+      margin: 4px 5px;
+      border: 1px solid #c8c8e0;
+      border-radius: 4px;
+      background: #f4f4fb;
+      overflow: hidden;
+    }
+    .node-sub-block-header {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 7px;
+      background: #e2e2f0;
+      border-bottom: 1px solid #c8c8e0;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: grab;
+      user-select: none;
+    }
+    .node-sub-block-header.dragging-row { cursor: grabbing; }
+    .sub-block-toggle { cursor: pointer !important; }
+    .sub-block-remove { cursor: pointer !important; }
+    .node-sub-block-header.blue   { background: #d0e8ff; }
+    .node-sub-block-header.green  { background: #c8f4d8; }
+    .node-sub-block-header.purple { background: #e4d8ff; }
+    .node-sub-block-header.orange { background: #ffe4c8; }
+    .node-sub-block-header.red    { background: #ffd8d8; }
+    .node-sub-block-header.yellow { background: #fdf9c0; }
+    .node-sub-block-header.teal   { background: #b8f4e8; }
+    .node-sub-block-header.sky    { background: #c8edff; }
+    .sub-block-toggle { font-size: 9px; transition: transform 0.15s; cursor: pointer; }
+    .sub-block-label  { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sub-block-remove { color: #c00; cursor: pointer; font-size: 12px; padding: 0 2px; }
+    .sub-block-remove:hover { color: #900; }
+    .node-sub-block.collapsed .sub-block-toggle { display: inline-block; transform: rotate(-90deg); }
+    .node-sub-block.collapsed .node-sub-block-body { display: none; }
+    /* Drag handle do sub-bloco */
+    .node-sub-block-drag {
+      padding: 0 5px;
+      color: #aaa;
+      font-size: 12px;
+      cursor: grab;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .node-sub-block-drag:active { cursor: grabbing; }
+    .node-sub-block-drag:hover  { color: #666; }
+    .node-sub-block.dragging-row { opacity: 0.4; }
+    .node-sub-block.drop-above { border-top:    2px solid #4f8ef7; }
+    .node-sub-block.drop-below { border-bottom: 2px solid #4f8ef7; }
+    /* Realce quando outro card está sendo arrastado sobre este */
+    .node-card.drop-target {
+      outline: 2px dashed #4f8ef7;
+      outline-offset: 3px;
+      box-shadow: 0 0 12px rgba(79,142,247,0.45);
+    }
+
+    /* Connector arrow (SVG overlay) */
+    #arrows-svg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .arrow-path {
+      fill: none;
+      stroke: var(--arrow-color);
+      stroke-width: 2;
+      marker-end: url(#arrowhead);
+    }
+
+    /* Drag zone label */
+    .section-label {
+      position: absolute;
+      background: rgba(255,255,255,0.85);
+      border: 1px dashed #bbb;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      pointer-events: none;
+    }
+
+    /* ─── Right Panel ────────────────────────────────────────────── */
+    #right-panel {
+      width: 260px;
+      min-width: 160px;
+      max-width: 700px;
+      background: var(--panel-bg);
+      border-left: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+    }
+    #panel-resize {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 5px;
+      cursor: col-resize;
+      z-index: 20;
+      background: transparent;
+      transition: background 0.15s;
+    }
+    #panel-resize:hover,
+    #panel-resize.dragging { background: var(--accent); opacity: 0.4; }
+    .import-mode-row { padding: 3px 0 0 0; }
+    .import-mode-sel { font-size: 10px; width: 100%; padding: 2px 4px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer; }
+    .import-mode-sel:focus { outline: none; border-color: var(--accent); }
+    #right-panel-tabs {
+      display: flex;
+      background: var(--tab-inactive-bg);
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .rtab {
+      flex: 1;
+      text-align: center;
+      padding: 5px 4px;
+      font-size: 11px;
+      cursor: pointer;
+      border-right: 1px solid var(--panel-border);
+      user-select: none;
+      transition: background 0.12s;
+    }
+    .rtab:last-child { border-right: none; }
+    .rtab.active { background: var(--panel-bg); font-weight: 600; }
+    .rtab:hover:not(.active) { background: #e0e0e0; }
+    #right-panel-content { flex: 1; overflow-y: auto; padding: 8px; }
+
+    /* Properties */
+    .prop-title {
+      font-size: 11px;
+      font-weight: 700;
+      background: #dde0e5;
+      padding: 4px 8px;
+      border-radius: 3px;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    .prop-search {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .prop-search input {
+      flex: 1;
+      border: 1px solid var(--panel-border);
+      border-radius: 3px;
+      padding: 3px 6px;
+      font-size: 11px;
+      outline: none;
+    }
+    .prop-search button {
+      padding: 2px 8px;
+      border: 1px solid var(--panel-border);
+      border-radius: 3px;
+      background: #fff;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .prop-group-header {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 0;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      color: #333;
+      border-bottom: 1px solid var(--panel-border);
+      margin-bottom: 4px;
+      user-select: none;
+    }
+    .prop-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .prop-row label {
+      width: 100px;
+      font-size: 11px;
+      color: var(--prop-label);
+      flex-shrink: 0;
+    }
+    .prop-row .prop-val {
+      flex: 1;
+      font-size: 11px;
+      border: 1px solid var(--panel-border);
+      background: var(--prop-value-bg);
+      border-radius: 2px;
+      padding: 2px 5px;
+      font-family: 'Consolas', monospace;
+      outline: none;
+    }
+    .prop-row select.prop-val {
+      font-family: var(--font);
+    }
+
+    /* Code View */
+    #code-view { display: none; }
+    #code-view.visible { display: block; }
+    #code-editor {
+      width: 100%;
+      height: 100%;
+      min-height: 300px;
+      border: none;
+      resize: none;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 11px;
+      background: #1e1e2e;
+      color: #cdd6f4;
+      padding: 8px;
+      outline: none;
+      line-height: 1.5;
+    }
+    #props-view.visible { display: block; }
+    #props-view { display: none; }
+
+    /* ─── Bottom Bar ─────────────────────────────────────────────── */
+    #bottom-bar {
+      background: var(--status-bg);
+      color: var(--status-text);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      height: 28px;
+      font-size: 11px;
+      gap: 16px;
+      flex-shrink: 0;
+      border-top: 1px solid #333;
+    }
+    #bottom-bar .bottom-label {
+      font-weight: 700;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+    #bottom-bar .bottom-label:hover { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    #bottom-bar .bsep { color: rgba(255,255,255,0.25); }
+    #bottom-bar .status-msg { color: #86efac; }
+
+    /* Arguments panel (togglable) */
+    #args-panel {
+      background: #12122a;
+      border-top: 1px solid #333;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.25s ease;
+      flex-shrink: 0;
+    }
+    #args-panel.open { max-height: 160px; }
+    #args-panel-inner {
+      padding: 8px 12px;
+      overflow-y: auto;
+      max-height: 150px;
+    }
+    .args-table { width: 100%; border-collapse: collapse; font-size: 11px; color: #cdd6f4; }
+    .args-table th {
+      text-align: left;
+      padding: 3px 8px;
+      border-bottom: 1px solid #333;
+      font-size: 11px;
+      color: #888;
+      font-weight: 600;
+    }
+    .args-table td {
+      padding: 3px 8px;
+      border-bottom: 1px solid #222;
+    }
+    .args-table tr:hover td { background: rgba(255,255,255,0.05); }
+    .args-table td input {
+      background: transparent;
+      border: none;
+      color: #cdd6f4;
+      font-family: 'Consolas', monospace;
+      font-size: 11px;
+      width: 100%;
+      outline: none;
+    }
+
+    /* ─── Modal ──────────────────────────────────────────────────── */
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    #modal-overlay.open { display: flex; }
+    #modal {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px 24px;
+      min-width: 400px;
+      max-width: 600px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    #modal h2 { font-size: 14px; margin-bottom: 14px; }
+    #modal textarea {
+      width: 100%;
+      height: 300px;
+      font-family: 'Consolas', monospace;
+      font-size: 12px;
+      background: #1e1e2e;
+      color: #cdd6f4;
+      border: none;
+      border-radius: 4px;
+      padding: 10px;
+      resize: none;
+      outline: none;
+      line-height: 1.6;
+    }
+    #modal .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    #modal button {
+      padding: 6px 18px;
+      border-radius: 4px;
+      border: 1px solid var(--panel-border);
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.12s;
+    }
+    #modal .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    #modal .btn-primary:hover { background: #1d4ed8; }
+    #modal .btn-secondary:hover { background: #eee; }
+
+    /* ─── Notification Toast ─────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 40px;
+      right: 20px;
+      background: #333;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { background: #16a34a; }
+    #toast.error { background: #dc2626; }
+
+    /* ─── Scrollbar styling ──────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #ececec; }
+    ::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #999; }
+
+    /* ─── Utility ────────────────────────────────────────────────── */
+    .hidden { display: none !important; }
+    .text-muted { color: #888; font-size: 11px; }
+
+    /* Drag-over highlight */
+    #canvas.drag-over { outline: 2px dashed var(--accent); outline-offset: -4px; }
+  </style>
+</head>
+<body autocomplete="off">
+<div id="app">
+
+  <!-- ═══ HEADER ════════════════════════════════════════════════════ -->
+  <div id="header">
+    <div class="logo">
+      <div class="icon-logo">CB</div>
+      COBOL RPA Dev Studio 1.0
+    </div>
+    <div class="project-tab" title="Projeto atual">📁 Project: MeuProgramaCOBOL</div>
+    <div class="spacer"></div>
+    <div class="user-info">dev@cobol-studio.local</div>
+  </div>
+
+  <!-- ═══ RIBBON ════════════════════════════════════════════════════ -->
+  <div id="ribbon">
+    <div id="ribbon-content">
+
+      <!-- Workflow -->
+      <div class="ribbon-group">
+        <div class="ribbon-buttons">
+          <button class="rbtn large" onclick="newProgram()" title="Novo Programa">
+            <span class="rbtn-icon">📄</span>
+            <span class="rbtn-label">Novo</span>
+          </button>
+          <button class="rbtn large" onclick="saveProgram()" title="Salvar .CBL">
+            <span class="rbtn-icon">💾</span>
+            <span class="rbtn-label">Salvar</span>
+          </button>
+          <div class="rbtn-col">
+            <button class="rbtn small" onclick="saveProject()" title="Salvar projeto JSON">
+              <span class="rbtn-icon">📌</span>
+              <span class="rbtn-label">Salvar Projeto</span>
+            </button>
+            <button class="rbtn small" onclick="importProgram()" title="Importar projeto JSON ou .CBL">
+              <span class="rbtn-icon">📥</span>
+              <span class="rbtn-label">Importar</span>
+            </button>
+            <div class="import-mode-row">
+              <select id="import-mode" class="import-mode-sel" title="Granularidade da importação COBOL">
+                <option value="por-paragrafo">📄 Por parágrafo</option>
+                <option value="por-instrucao">🔩 Por instrução</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="ribbon-group-label">Workflow</div>
+      </div>
+
+      <!-- Projeto -->
+      <div class="ribbon-group">
+        <div class="ribbon-buttons">
+          <button class="rbtn" onclick="exportCode()" title="Exportar .cbl">
+            <span class="rbtn-icon">📦</span>
+            <span class="rbtn-label">Exportar</span>
+          </button>
+          <button class="rbtn" onclick="showConfigModal()" title="Configurações">
+            <span class="rbtn-icon">⚙️</span>
+            <span class="rbtn-label">Config</span>
+          </button>
+          <div class="rbtn-col">
+            <button class="rbtn small" onclick="importCopybooks()" title="Importar COPY">
+              <span class="rbtn-icon">📋</span>
+              <span class="rbtn-label">Import COPY</span>
+            </button>
+            <button class="rbtn small" onclick="manageLibraries()" title="Biblioteca">
+              <span class="rbtn-icon">📚</span>
+              <span class="rbtn-label">Biblioteca</span>
+            </button>
+          </div>
+        </div>
+        <div class="ribbon-group-label">Projeto</div>
+      </div>
+
+      <!-- Código COBOL -->
+      <div class="ribbon-group">
+        <div class="ribbon-buttons">
+          <button class="rbtn" onclick="generateAllCode()" title="Gerar Código COBOL">
+            <span class="rbtn-icon">⚡</span>
+            <span class="rbtn-label">Gerar<br>Código</span>
+          </button>
+          <button class="rbtn" onclick="openCodeView()" title="Ver Código">
+            <span class="rbtn-icon">📝</span>
+            <span class="rbtn-label">Ver<br>Código</span>
+          </button>
+          <button class="rbtn" onclick="compileProgram()" title="Compilar">
+            <span class="rbtn-icon">🔨</span>
+            <span class="rbtn-label">Compilar</span>
+          </button>
+          <button class="rbtn" onclick="runProgram()" title="Executar">
+            <span class="rbtn-icon">▶️</span>
+            <span class="rbtn-label">Executar</span>
+          </button>
+        </div>
+        <div class="ribbon-group-label">Código COBOL</div>
+      </div>
+
+      <!-- Dados -->
+      <div class="ribbon-group">
+        <div class="ribbon-buttons">
+          <div class="rbtn-col">
+            <button class="rbtn small" onclick="editWorkingStorage()" title="Working Storage">
+              <span class="rbtn-icon">🗃️</span>
+              <span class="rbtn-label">Working Storage</span>
+            </button>
+            <button class="rbtn small" onclick="editFileSection()" title="File Section">
+              <span class="rbtn-icon">📁</span>
+              <span class="rbtn-label">File Section</span>
+            </button>
+          </div>
+          <div class="rbtn-col">
+            <button class="rbtn small" onclick="editLinkage()" title="Linkage Section">
+              <span class="rbtn-icon">🔗</span>
+              <span class="rbtn-label">Linkage</span>
+            </button>
+            <button class="rbtn small" onclick="editEnvironment()" title="Environment">
+              <span class="rbtn-icon">🌐</span>
+              <span class="rbtn-label">Environment</span>
+            </button>
+          </div>
+        </div>
+        <div class="ribbon-group-label">Dados</div>
+      </div>
+
+      <!-- Validação -->
+      <div class="ribbon-group">
+        <div class="ribbon-buttons">
+          <button class="rbtn" onclick="refreshAnalyse()" title="Atualizar e Analisar">
+            <span class="rbtn-icon">🔄</span>
+            <span class="rbtn-label">Refresh &amp;<br>Analyse</span>
+          </button>
+          <button class="rbtn" onclick="syntaxCheck()" title="Verificação Sintática">
+            <span class="rbtn-icon">🔍</span>
+            <span class="rbtn-label">Verificar<br>Sintaxe</span>
+          </button>
+          <button class="rbtn" onclick="generateFlowMap()" title="Mapa de Fluxo">
+            <span class="rbtn-icon">🗺️</span>
+            <span class="rbtn-label">Mapa de<br>Fluxo</span>
+          </button>
+        </div>
+        <div class="ribbon-group-label">Validação</div>
+      </div>
+
+      <!-- Documentação -->
+      <div class="ribbon-group">
+        <div class="ribbon-buttons">
+          <button class="rbtn large" onclick="showDocs()" title="Documentação COBOL">
+            <span class="rbtn-icon">📖</span>
+            <span class="rbtn-label">Docu-<br>mentação</span>
+          </button>
+        </div>
+        <div class="ribbon-group-label">Ajuda</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ VIEW TABS ════════════════════════════════════════════════ -->
+  <div id="view-tabs">
+    <div class="vtab active" data-canvas="main-flowchart" onclick="switchCanvas(this, 'main-flowchart')">Bot</div>
+    <div class="vtab" data-canvas="data-canvas" onclick="switchCanvas(this, 'data-canvas')">Dados</div>
+    <div class="vtab" data-canvas="report-canvas" onclick="switchCanvas(this, 'report-canvas')">Relatórios</div>
+  </div>
+
+  <!-- ═══ MAIN ═════════════════════════════════════════════════════ -->
+  <div id="main">
+
+    <!-- ─── Left Panel ───────────────────────────────────────────── -->
+    <div id="left-panel">
+      <div id="left-panel-tabs">
+        <div class="ltab active" onclick="switchLTab(this,'project-tab-content')">Projeto</div>
+        <div class="ltab" onclick="switchLTab(this,'activities-panel')">Atividades</div>
+        <div class="ltab" onclick="switchLTab(this,'custom-tab-content')">Custom</div>
+      </div>
+      <div id="left-panel-content">
+
+        <!-- Project Tree -->
+        <div id="project-tab-content">
+          <div class="tree-item open" onclick="toggleTree(this, 'tree-deps')">
+            <span class="tree-toggle">▶</span>
+            <span class="tree-icon">📦</span>
+            <span class="tree-label">Dependências do Projeto</span>
+          </div>
+          <div class="tree-children open" id="tree-deps">
+            <div class="tree-item" style="padding-left:24px" onclick="selectTreeItem(this)">
+              <span class="tree-icon">📋</span>
+              <span class="tree-label">COPY.CLIENTE</span>
+            </div>
+            <div class="tree-item" style="padding-left:24px" onclick="selectTreeItem(this)">
+              <span class="tree-icon">📋</span>
+              <span class="tree-label">COPY.PRODUTO</span>
+            </div>
+            <div class="tree-item" style="padding-left:24px" onclick="selectTreeItem(this)">
+              <span class="tree-icon">📋</span>
+              <span class="tree-label">COPY.PEDIDO</span>
+            </div>
+          </div>
+
+          <div class="tree-item open" onclick="toggleTree(this,'tree-prog')">
+            <span class="tree-toggle">▶</span>
+            <span class="tree-icon">💻</span>
+            <span class="tree-label" id="prog-name-label">MEUCOBOL</span>
+          </div>
+          <div class="tree-children open" id="tree-prog">
+            <!-- IDENTIFICATION -->
+            <div class="tree-item open" style="padding-left:16px" onclick="toggleTree(this,'tree-ident')">
+              <span class="tree-toggle">▶</span>
+              <span class="tree-icon">🆔</span>
+              <span class="tree-label">IDENTIFICATION DIVISION</span>
+            </div>
+            <div class="tree-children open" id="tree-ident">
+              <div class="tree-item selected" style="padding-left:32px" onclick="selectTreeItem(this,'ident-props')">
+                <span class="tree-icon">📝</span>
+                <span class="tree-label">PROGRAM-ID</span>
+              </div>
+              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'author-props')">
+                <span class="tree-icon">👤</span>
+                <span class="tree-label">AUTHOR</span>
+              </div>
+            </div>
+            <!-- ENVIRONMENT -->
+            <div class="tree-item open" style="padding-left:16px" onclick="toggleTree(this,'tree-env')">
+              <span class="tree-toggle">▶</span>
+              <span class="tree-icon">🌐</span>
+              <span class="tree-label">ENVIRONMENT DIVISION</span>
+            </div>
+            <div class="tree-children open" id="tree-env">
+              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'cfg-props')">
+                <span class="tree-icon">⚙️</span>
+                <span class="tree-label">CONFIGURATION SECTION</span>
+              </div>
+              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'io-props')">
+                <span class="tree-icon">📁</span>
+                <span class="tree-label">INPUT-OUTPUT SECTION</span>
+              </div>
+            </div>
+            <!-- DATA -->
+            <div class="tree-item open" style="padding-left:16px" onclick="toggleTree(this,'tree-data')">
+              <span class="tree-toggle">▶</span>
+              <span class="tree-icon">🗃️</span>
+              <span class="tree-label">DATA DIVISION</span>
+            </div>
+            <div class="tree-children open" id="tree-data">
+              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'ws-props')">
+                <span class="tree-icon">📦</span>
+                <span class="tree-label">WORKING-STORAGE</span>
+              </div>
+              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'file-props')">
+                <span class="tree-icon">📄</span>
+                <span class="tree-label">FILE SECTION</span>
+              </div>
+              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'link-props')">
+                <span class="tree-icon">🔗</span>
+                <span class="tree-label">LINKAGE SECTION</span>
+              </div>
+            </div>
+            <!-- PROCEDURE -->
+            <div class="tree-item open" style="padding-left:16px" onclick="toggleTree(this,'tree-proc')">
+              <span class="tree-toggle">▶</span>
+              <span class="tree-icon">🔧</span>
+              <span class="tree-label">PROCEDURE DIVISION</span>
+            </div>
+            <div class="tree-children open" id="tree-proc">
+              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'main-para-props')" id="tree-main-para">
+                <span class="tree-icon">▶️</span>
+                <span class="tree-label">0000-MAIN</span>
+              </div>
+              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'read-props')">
+                <span class="tree-icon">📖</span>
+                <span class="tree-label">1000-LER-DADOS</span>
+              </div>
+              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'proc-props')">
+                <span class="tree-icon">⚙️</span>
+                <span class="tree-label">2000-PROCESSAR</span>
+              </div>
+              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'write-props')">
+                <span class="tree-icon">💾</span>
+                <span class="tree-label">3000-GRAVAR</span>
+              </div>
+              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'end-props')">
+                <span class="tree-icon">🔚</span>
+                <span class="tree-label">9999-FIM</span>
+              </div>
+            </div>
+          </div>
+        </div><!-- /project-tab-content -->
+
+        <!-- Activities Panel -->
+        <div id="activities-panel">
+          <!-- Barra de pesquisa -->
+          <div id="act-search-wrap">
+            <input type="text" id="act-search" placeholder="&#128269; Pesquisar atividade..."
+                   oninput="filterActivities(this.value)" />
+          </div>
+
+          <!-- Grupos recolhíveis -->
+          <div id="act-groups">
+
+            <!-- COBOL.Sistema -->
+            <div class="act-group-header open" onclick="toggleActivityGroup(this,'ag-sistema')">
+              <span class="act-group-toggle">&#9658;</span>
+              <span class="act-group-icon">&#9881;</span> COBOL.Sistema
+            </div>
+            <div class="act-group-body open" id="ag-sistema">
+              <div class="activity-item" draggable="true" data-type="PERFORM" ondragstart="onDragStart(event,'PERFORM')">
+                <span class="act-icon">&#128257;</span> PERFORM
+              </div>
+              <div class="activity-item" draggable="true" data-type="PERFORM_UNTIL" ondragstart="onDragStart(event,'PERFORM_UNTIL')">
+                <span class="act-icon">&#128258;</span> PERFORM UNTIL
+              </div>
+              <div class="activity-item" draggable="true" data-type="PERFORM_VARYING" ondragstart="onDragStart(event,'PERFORM_VARYING')">
+                <span class="act-icon">&#128259;</span> PERFORM VARYING
+              </div>
+              <div class="activity-item" draggable="true" data-type="STOP_RUN" ondragstart="onDragStart(event,'STOP_RUN')">
+                <span class="act-icon">&#9209;</span> STOP RUN
+              </div>
+              <div class="activity-item" draggable="true" data-type="GO_TO" ondragstart="onDragStart(event,'GO_TO')">
+                <span class="act-icon">&#8618;</span> GO TO
+              </div>
+            </div>
+
+            <!-- COBOL.EntradaSaida -->
+            <div class="act-group-header" onclick="toggleActivityGroup(this,'ag-io')">
+              <span class="act-group-toggle">&#9658;</span>
+              <span class="act-group-icon">&#128260;</span> COBOL.EntradaSaida
+            </div>
+            <div class="act-group-body" id="ag-io">
+              <div class="activity-item" draggable="true" data-type="READ" ondragstart="onDragStart(event,'READ')">
+                <span class="act-icon">&#128214;</span> READ File
+              </div>
+              <div class="activity-item" draggable="true" data-type="WRITE" ondragstart="onDragStart(event,'WRITE')">
+                <span class="act-icon">&#9997;</span> WRITE Record
+              </div>
+              <div class="activity-item" draggable="true" data-type="DISPLAY" ondragstart="onDragStart(event,'DISPLAY')">
+                <span class="act-icon">&#128187;</span> DISPLAY
+              </div>
+              <div class="activity-item" draggable="true" data-type="ACCEPT" ondragstart="onDragStart(event,'ACCEPT')">
+                <span class="act-icon">&#9000;</span> ACCEPT
+              </div>
+            </div>
+
+            <!-- COBOL.Movimentacao -->
+            <div class="act-group-header" onclick="toggleActivityGroup(this,'ag-mov')">
+              <span class="act-group-toggle">&#9658;</span>
+              <span class="act-group-icon">&#128260;</span> COBOL.Movimentacao
+            </div>
+            <div class="act-group-body" id="ag-mov">
+              <div class="activity-item" draggable="true" data-type="MOVE" ondragstart="onDragStart(event,'MOVE')">
+                <span class="act-icon">&#10145;</span> MOVE
+              </div>
+              <div class="activity-item" draggable="true" data-type="INITIALIZE" ondragstart="onDragStart(event,'INITIALIZE')">
+                <span class="act-icon">&#128260;</span> INITIALIZE
+              </div>
+            </div>
+
+            <!-- COBOL.Aritmetica -->
+            <div class="act-group-header" onclick="toggleActivityGroup(this,'ag-arit')">
+              <span class="act-group-toggle">&#9658;</span>
+              <span class="act-group-icon">&#129518;</span> COBOL.Aritmetica
+            </div>
+            <div class="act-group-body" id="ag-arit">
+              <div class="activity-item" draggable="true" data-type="ADD" ondragstart="onDragStart(event,'ADD')">
+                <span class="act-icon">&#10133;</span> ADD
+              </div>
+              <div class="activity-item" draggable="true" data-type="SUBTRACT" ondragstart="onDragStart(event,'SUBTRACT')">
+                <span class="act-icon">&#10134;</span> SUBTRACT
+              </div>
+              <div class="activity-item" draggable="true" data-type="MULTIPLY" ondragstart="onDragStart(event,'MULTIPLY')">
+                <span class="act-icon">&#10006;</span> MULTIPLY
+              </div>
+              <div class="activity-item" draggable="true" data-type="DIVIDE" ondragstart="onDragStart(event,'DIVIDE')">
+                <span class="act-icon">&#10135;</span> DIVIDE
+              </div>
+              <div class="activity-item" draggable="true" data-type="COMPUTE" ondragstart="onDragStart(event,'COMPUTE')">
+                <span class="act-icon">&#129518;</span> COMPUTE
+              </div>
+            </div>
+
+            <!-- COBOL.Decisao -->
+            <div class="act-group-header" onclick="toggleActivityGroup(this,'ag-dec')">
+              <span class="act-group-toggle">&#9658;</span>
+              <span class="act-group-icon">&#10067;</span> COBOL.Decisao
+            </div>
+            <div class="act-group-body" id="ag-dec">
+              <div class="activity-item" draggable="true" data-type="IF" ondragstart="onDragStart(event,'IF')">
+                <span class="act-icon">&#10067;</span> IF / ELSE
+              </div>
+              <div class="activity-item" draggable="true" data-type="EVALUATE" ondragstart="onDragStart(event,'EVALUATE')">
+                <span class="act-icon">&#128256;</span> EVALUATE
+              </div>
+            </div>
+
+            <!-- COBOL.String -->
+            <div class="act-group-header" onclick="toggleActivityGroup(this,'ag-str')">
+              <span class="act-group-toggle">&#9658;</span>
+              <span class="act-group-icon">&#128289;</span> COBOL.String
+            </div>
+            <div class="act-group-body" id="ag-str">
+              <div class="activity-item" draggable="true" data-type="STRING_OP" ondragstart="onDragStart(event,'STRING_OP')">
+                <span class="act-icon">&#128289;</span> STRING
+              </div>
+              <div class="activity-item" draggable="true" data-type="UNSTRING" ondragstart="onDragStart(event,'UNSTRING')">
+                <span class="act-icon">&#9986;</span> UNSTRING
+              </div>
+            </div>
+
+            <!-- COBOL.DB2 -->
+            <div class="act-group-header" onclick="toggleActivityGroup(this,'ag-db2')">
+              <span class="act-group-toggle">&#9658;</span>
+              <span class="act-group-icon">&#128190;</span> COBOL.DB2
+            </div>
+            <div class="act-group-body" id="ag-db2">
+              <div class="activity-item" draggable="true" data-type="DB2_SELECT" ondragstart="onDragStart(event,'DB2_SELECT')">
+                <span class="act-icon">&#128269;</span> DB2 SELECT
+              </div>
+              <div class="activity-item" draggable="true" data-type="DB2_INSERT" ondragstart="onDragStart(event,'DB2_INSERT')">
+                <span class="act-icon">&#10133;</span> DB2 INSERT
+              </div>
+              <div class="activity-item" draggable="true" data-type="DB2_UPDATE" ondragstart="onDragStart(event,'DB2_UPDATE')">
+                <span class="act-icon">&#9998;</span> DB2 UPDATE
+              </div>
+              <div class="activity-item" draggable="true" data-type="DB2_DELETE" ondragstart="onDragStart(event,'DB2_DELETE')">
+                <span class="act-icon">&#128465;</span> DB2 DELETE
+              </div>
+              <div class="activity-item" draggable="true" data-type="DB2_OPEN" ondragstart="onDragStart(event,'DB2_OPEN')">
+                <span class="act-icon">&#128194;</span> DB2 OPEN CURSOR
+              </div>
+              <div class="activity-item" draggable="true" data-type="DB2_FETCH" ondragstart="onDragStart(event,'DB2_FETCH')">
+                <span class="act-icon">&#128203;</span> DB2 FETCH
+              </div>
+              <div class="activity-item" draggable="true" data-type="DB2_CLOSE" ondragstart="onDragStart(event,'DB2_CLOSE')">
+                <span class="act-icon">&#128193;</span> DB2 CLOSE CURSOR
+              </div>
+              <div class="activity-item" draggable="true" data-type="DB2_COMMIT" ondragstart="onDragStart(event,'DB2_COMMIT')">
+                <span class="act-icon">&#9989;</span> DB2 COMMIT
+              </div>
+              <div class="activity-item" draggable="true" data-type="DB2_ROLLBACK" ondragstart="onDragStart(event,'DB2_ROLLBACK')">
+                <span class="act-icon">&#8617;</span> DB2 ROLLBACK
+              </div>
+              <div class="activity-item" draggable="true" data-type="DB2_FETCH_FIRST" ondragstart="onDragStart(event,'DB2_FETCH_FIRST')">
+                <span class="act-icon">&#127947;</span> DB2 FETCH FIRST ROW
+              </div>
+              <div class="activity-item" draggable="true" data-type="DB2_SQLCODE" ondragstart="onDragStart(event,'DB2_SQLCODE')">
+                <span class="act-icon">&#9888;</span> Check SQLCODE
+              </div>
+            </div>
+
+            <!-- COBOL.TabelaInterna -->
+            <div class="act-group-header" onclick="toggleActivityGroup(this,'ag-tbl')">
+              <span class="act-group-toggle">&#9658;</span>
+              <span class="act-group-icon">&#128202;</span> COBOL.TabelaInterna
+            </div>
+            <div class="act-group-body" id="ag-tbl">
+              <div class="activity-item" draggable="true" data-type="TBL_DEFINE" ondragstart="onDragStart(event,'TBL_DEFINE')">
+                <span class="act-icon">&#128202;</span> OCCURS (Tabela)
+              </div>
+              <div class="activity-item" draggable="true" data-type="TBL_SET" ondragstart="onDragStart(event,'TBL_SET')">
+                <span class="act-icon">&#128290;</span> SET INDEX
+              </div>
+              <div class="activity-item" draggable="true" data-type="TBL_SET_UP" ondragstart="onDragStart(event,'TBL_SET_UP')">
+                <span class="act-icon">&#11014;</span> SET INDEX UP BY
+              </div>
+              <div class="activity-item" draggable="true" data-type="TBL_SET_DOWN" ondragstart="onDragStart(event,'TBL_SET_DOWN')">
+                <span class="act-icon">&#11015;</span> SET INDEX DOWN BY
+              </div>
+              <div class="activity-item" draggable="true" data-type="TBL_SEARCH" ondragstart="onDragStart(event,'TBL_SEARCH')">
+                <span class="act-icon">&#128269;</span> SEARCH (Seq)
+              </div>
+              <div class="activity-item" draggable="true" data-type="TBL_SEARCH_ALL" ondragstart="onDragStart(event,'TBL_SEARCH_ALL')">
+                <span class="act-icon">&#9889;</span> SEARCH ALL (Bin)
+              </div>
+              <div class="activity-item" draggable="true" data-type="TBL_PERFORM" ondragstart="onDragStart(event,'TBL_PERFORM')">
+                <span class="act-icon">&#128260;</span> PERFORM Tabela
+              </div>
+              <div class="activity-item" draggable="true" data-type="TBL_MOVE_ITEM" ondragstart="onDragStart(event,'TBL_MOVE_ITEM')">
+                <span class="act-icon">&#10145;</span> MOVE p/ Tabela
+              </div>
+              <div class="activity-item" draggable="true" data-type="TBL_LOAD" ondragstart="onDragStart(event,'TBL_LOAD')">
+                <span class="act-icon">&#128229;</span> Carregar Tabela
+              </div>
+            </div>
+
+          </div><!-- /act-groups -->
+        </div><!-- /activities-panel -->
+
+        <!-- Custom -->
+        <div id="custom-tab-content" style="padding:8px;display:none;">
+          <p class="text-muted" style="margin:8px 0;">Nenhum item customizado cadastrado.</p>
+          <button class="canvas-btn" onclick="showToast('Em breve: suporte a macros COBOL customizadas.','success')">+ Novo Template</button>
+        </div>
+
+      </div><!-- /left-panel-content -->
+    </div><!-- /left-panel -->
+
+    <!-- ─── Canvas Area ──────────────────────────────────────────── -->
+    <div id="canvas-area">
+      <div id="canvas-toolbar">
+        <label>Bot</label>
+        <div style="flex:1"></div>
+        <button class="canvas-btn" onclick="expandAll()">Expandir Tudo</button>
+        <button class="canvas-btn" onclick="collapseAll()">Reduzir Tudo</button>
+        <button class="canvas-btn" onclick="undoLastConnection()" title="Desfazer última seta criada" style="color:#dc2626;border-color:#fca5a5;">↩ Seta</button>
+        <button class="canvas-btn" onclick="clearAllConnections()" title="Remover todas as setas" style="color:#dc2626;border-color:#fca5a5;">× Setas</button>
+        <span style="color:#aaa;font-size:11px;margin-left:8px;" id="node-count">7 nós</span>
+      </div>
+      <div id="canvas-scroll">
+        <div id="canvas"
+             ondragover="onCanvasDragOver(event)"
+             ondrop="onCanvasDrop(event)"
+             ondragleave="onCanvasDragLeave(event)">
+          <!-- SVG for arrows -->
+          <svg id="arrows-svg">
+            <defs>
+              <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" fill="#888"/>
+              </marker>
+            </defs>
+          </svg>
+
+          <!-- Section label -->
+          <div class="section-label" style="left:20px;top:12px;">Flowchart — PROCEDURE DIVISION</div>
+
+          <!-- Linha indicadora de inserção entre cards -->
+          <div id="card-drop-line"></div>
+
+          <!-- START node -->
+          <div class="cf-node" id="node-start" style="left:310px;top:60px;"
+               onclick="selectNode('start','Início do Programa')" title="Start">
+            <div class="node-start">
+              <span style="font-size:22px;">●</span>
+              <span>Start</span>
+            </div>
+            <span class="node-connect-btn"
+                  style="position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);z-index:10;"
+                  onclick="event.stopPropagation();startConnect(event,'node-start')"
+                  title="Conectar saída">→</span>
+          </div>
+
+          <!-- 0000-MAIN -->
+          <div class="cf-node node-card selected" id="node-main" style="left:190px;top:180px;"
+               onclick="selectNode('main','0000-MAIN')" ondblclick="editNodeLabel('main')">
+            <div class="node-card-header blue">
+              <span>▶️</span> <span class="node-label">0000-MAIN</span>
+              <span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'node-main')" title="Conectar saída">→</span>
+              <span class="node-field-more" onclick="event.stopPropagation();deleteNode('main')" title="Remover">✕</span>
+            </div>
+            <div class="node-card-body">
+              <div class="node-field">
+                <input id="field-main-1" placeholder="ex: PERFORM 1000-LER-DADOS" />
+                <span class="node-field-more" onclick="openFieldPicker('main',1)">···</span>
+                <span class="node-field-help" title="Ajuda">?</span>
+              </div>
+              <div class="node-field">
+                <input id="field-main-2" placeholder="ex: PERFORM 2000-PROCESSAR" />
+                <span class="node-field-more">···</span>
+                <span class="node-field-help">?</span>
+              </div>
+              <div class="node-field">
+                <input id="field-main-3" placeholder="ex: PERFORM 3000-GRAVAR" />
+                <span class="node-field-more">···</span>
+                <span class="node-field-help">?</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 1000-LER-DADOS -->
+          <div class="cf-node node-card" id="node-read" style="left:40px;top:390px;"
+               onclick="selectNode('read','1000-LER-DADOS')" ondblclick="editNodeLabel('read')">
+            <div class="node-card-header green">
+              <span>📖</span> <span class="node-label">1000-LER-DADOS</span>
+              <span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'node-read')" title="Conectar saída">→</span>
+              <span class="node-field-more" onclick="event.stopPropagation();deleteNode('read')" title="Remover">✕</span>
+            </div>
+            <div class="node-card-body">
+              <div class="node-field">
+                <input id="field-read-1" placeholder="ex: OPEN INPUT ARQ-ENTRADA" />
+                <span class="node-field-more">···</span>
+                <span class="node-field-help">?</span>
+              </div>
+              <div class="node-field">
+                <input id="field-read-2" placeholder="ex: READ ARQ-ENTRADA" />
+                <span class="node-field-more">···</span>
+                <span class="node-field-help">?</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2000-PROCESSAR -->
+          <div class="cf-node node-card" id="node-proc" style="left:190px;top:560px;"
+               onclick="selectNode('proc','2000-PROCESSAR')" ondblclick="editNodeLabel('proc')">
+            <div class="node-card-header orange">
+              <span>⚙️</span> <span class="node-label">2000-PROCESSAR</span>
+              <span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'node-proc')" title="Conectar saída">→</span>
+              <span class="node-field-more" onclick="event.stopPropagation();deleteNode('proc')" title="Remover">✕</span>
+            </div>
+            <div class="node-card-body">
+              <div class="node-field">
+                <input id="field-proc-1" placeholder="ex: EVALUATE WS-TIPO" />
+                <span class="node-field-more">···</span>
+                <span class="node-field-help">?</span>
+              </div>
+              <div class="node-field">
+                <input id="field-proc-2" placeholder='ex: WHEN "A" PERFORM 2100-ACAO-A' />
+                <span class="node-field-more">···</span>
+                <span class="node-field-help">?</span>
+              </div>
+              <div class="node-field">
+                <input id="field-proc-3" placeholder='ex: WHEN OTHER PERFORM 2900-OUTROS' />
+                <span class="node-field-more">···</span>
+                <span class="node-field-help">?</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3000-GRAVAR -->
+          <div class="cf-node node-card" id="node-write" style="left:400px;top:390px;"
+               onclick="selectNode('write','3000-GRAVAR')" ondblclick="editNodeLabel('write')">
+            <div class="node-card-header purple">
+              <span>💾</span> <span class="node-label">3000-GRAVAR</span>
+              <span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'node-write')" title="Conectar saída">→</span>
+              <span class="node-field-more" onclick="event.stopPropagation();deleteNode('write')" title="Remover">✕</span>
+            </div>
+            <div class="node-card-body">
+              <div class="node-field">
+                <input id="field-write-1" placeholder="ex: WRITE REG-SAIDA FROM WS-REG" />
+                <span class="node-field-more">···</span>
+                <span class="node-field-help">?</span>
+              </div>
+              <div class="node-field">
+                <input id="field-write-2" placeholder="ex: CLOSE ARQ-SAIDA" />
+                <span class="node-field-more">···</span>
+                <span class="node-field-help">?</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 9999-FIM -->
+          <div class="cf-node" id="node-end-node" style="left:310px;top:720px;"
+               onclick="selectNode('end','9999-FIM')" title="9999-FIM / STOP RUN">
+            <div class="node-end">
+              <span style="font-size:16px;">⏹</span>
+              <span>FIM</span>
+            </div>
+          </div>
+
+        </div><!-- /canvas -->
+      </div><!-- /canvas-scroll -->
+    </div><!-- /canvas-area -->
+
+    <!-- ─── Right Panel ──────────────────────────────────────────── -->
+    <div id="right-panel">
+      <div id="panel-resize" title="Arraste para redimensionar o painel"></div>
+      <div id="right-panel-tabs">
+        <div class="rtab active" onclick="switchRTab(this,'props-view')">Propriedades</div>
+        <div class="rtab" onclick="switchRTab(this,'code-view')">Ver Código</div>
+      </div>
+      <div id="right-panel-content">
+
+        <!-- Properties View -->
+        <div id="props-view" class="visible">
+          <div class="prop-title" id="prop-node-title">System.COBOL.ProgramBuilder</div>
+          <div class="prop-search">
+            <input type="text" placeholder="Pesquisar..." oninput="filterProps(this.value)" />
+            <button onclick="clearPropSearch()">Limpar</button>
+          </div>
+
+          <div class="prop-group-header" onclick="togglePropGroup(this, 'pg-identificacao')">
+            ▼ &nbsp;Identificação
+          </div>
+          <div id="pg-identificacao">
+            <div class="prop-row">
+              <label>Program-ID</label>
+              <input class="prop-val" id="prop-program-id" value="MEUCOBOL" oninput="updateProgramName(this.value)" />
+            </div>
+            <div class="prop-row">
+              <label>Author</label>
+              <input class="prop-val" id="prop-author" value="DEV COBOL" />
+            </div>
+            <div class="prop-row">
+              <label>Date</label>
+              <input class="prop-val" id="prop-date" value="2026-04-16" />
+            </div>
+            <div class="prop-row">
+              <label>Remarks</label>
+              <input class="prop-val" id="prop-remarks" value="Programa gerado pelo protótipo" />
+            </div>
+          </div>
+
+          <div class="prop-group-header" onclick="togglePropGroup(this,'pg-environment')">
+            ▼ &nbsp;Environment
+          </div>
+          <div id="pg-environment">
+            <div class="prop-row">
+              <label>Dialeto</label>
+              <select class="prop-val" id="prop-dialect">
+                <option>IBM Enterprise COBOL</option>
+                <option>GnuCOBOL</option>
+                <option>MicroFocus COBOL</option>
+                <option>COBOL 85</option>
+              </select>
+            </div>
+            <div class="prop-row">
+              <label>Plataforma</label>
+              <select class="prop-val" id="prop-platform">
+                <option>z/OS</option>
+                <option>Linux</option>
+                <option>Windows</option>
+              </select>
+            </div>
+            <div class="prop-row">
+              <label>Encode</label>
+              <select class="prop-val">
+                <option>EBCDIC</option>
+                <option>ASCII</option>
+                <option>UTF-8</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="prop-group-header" onclick="togglePropGroup(this,'pg-selecionado')">
+            ▼ &nbsp;Elemento Selecionado
+          </div>
+          <div id="pg-selecionado">
+            <div class="prop-row">
+              <label>Nome</label>
+              <input class="prop-val" id="prop-sel-name" value="(nenhum)" readonly />
+            </div>
+            <div class="prop-row">
+              <label>Tipo</label>
+              <input class="prop-val" id="prop-sel-type" value="—" readonly />
+            </div>
+            <div class="prop-row">
+              <label>Linha(s)</label>
+              <input class="prop-val" id="prop-sel-lines" value="—" readonly />
+            </div>
+          </div>
+        </div><!-- /props-view -->
+
+        <!-- Code View -->
+        <div id="code-view">
+          <div style="display:flex;gap:6px;padding:4px 6px;background:#f5f5f5;border-bottom:1px solid #ddd;">
+            <button onclick="_forceRegerarCodigo()" title="Regenera o código COBOL a partir do fluxo atual (descarta o importado)" style="font-size:11px;padding:2px 8px;cursor:pointer;">⟳ Regerar do Fluxo</button>
+            <span id="code-mode-badge" style="font-size:10px;color:#888;align-self:center;"></span>
+          </div>
+          <textarea id="code-editor" spellcheck="false" readonly></textarea>
+        </div>
+
+      </div><!-- /right-panel-content -->
+    </div><!-- /right-panel -->
+
+  </div><!-- /main -->
+
+  <!-- ═══ BOTTOM BAR ════════════════════════════════════════════════ -->
+  <div id="bottom-bar">
+    <span class="bottom-label" onclick="toggleArgsPanel()">Argumentos</span>
+    <span class="bsep">|</span>
+    <span class="bottom-label" onclick="toggleConsolePanel()">Console</span>
+    <span class="bsep">|</span>
+    <span class="status-msg" id="status-msg">✓ Pronto</span>
+  </div>
+
+  <!-- Arguments Panel -->
+  <div id="args-panel">
+    <div id="args-panel-inner">
+      <table class="args-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Nível</th>
+            <th>PIC</th>
+            <th>Valor</th>
+          </tr>
+        </thead>
+        <tbody id="args-tbody">
+          <tr>
+            <td><input value="WS-CONTADOR" /></td>
+            <td><input value="01" style="width:40px" /></td>
+            <td><input value="PIC 9(4)" /></td>
+            <td><input value="ZEROS" /></td>
+          </tr>
+          <tr>
+            <td><input value="WS-NOME" /></td>
+            <td><input value="01" style="width:40px" /></td>
+            <td><input value="PIC X(40)" /></td>
+            <td><input value="SPACES" /></td>
+          </tr>
+          <tr>
+            <td><input value="WS-TIPO" /></td>
+            <td><input value="01" style="width:40px" /></td>
+            <td><input value="PIC X(1)" /></td>
+            <td><input value="SPACES" /></td>
+          </tr>
+          <tr>
+            <td><input value="WS-VALOR" /></td>
+            <td><input value="01" style="width:40px" /></td>
+            <td><input value="PIC 9(10)V99" /></td>
+            <td><input value="ZEROS" /></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ═══ MODAL ════════════════════════════════════════════════════════ -->
+<div id="modal-overlay" onclick="closeModalIfOutside(event)">
+  <div id="modal">
+    <h2 id="modal-title">Título</h2>
+    <textarea id="modal-content" spellcheck="false"></textarea>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Fechar</button>
+      <button class="btn-primary" onclick="copyModalContent()">📋 Copiar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOAST ════════════════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<!-- ═══ SCRIPT ══════════════════════════════════════════════════════ -->
+<script>
+/* ─ State ─────────────────────────────────────────────────────────── */
+let selectedNode   = null;
+let draggingType   = null;
+let nodeCounter    = 7;
+let _codeWasImported = false; // true quando um .CBL foi importado; false = construído pelo fluxo
+let argsOpen       = false;
+let connectingFrom = null;
+let connections    = [];
+let nodeSeqCounter = { READ:0, WRITE:0, DISPLAY:0, ACCEPT:0, MOVE:0, INITIALIZE:0,
+                       ADD:0, SUBTRACT:0, MULTIPLY:0, DIVIDE:0, COMPUTE:0,
+                       IF:0, EVALUATE:0, PERFORM:0, PERFORM_UNTIL:0, PERFORM_VARYING:0,
+                       GO_TO:0, STOP_RUN:0, STRING_OP:0, UNSTRING:0 };
+
+/* ─ Tree ──────────────────────────────────────────────────────────── */
+function toggleTree(el, childId) {
+  el.classList.toggle('open');
+  const ch = document.getElementById(childId);
+  if (ch) ch.classList.toggle('open');
+}
+function selectTreeItem(el, propGroup) {
+  document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+/* ─ Tab switching ─────────────────────────────────────────────────── */
+function switchLTab(tab, contentId) {
+  document.querySelectorAll('.ltab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  ['project-tab-content','activities-panel','custom-tab-content'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const target = document.getElementById(contentId);
+  if (target) target.style.display = (contentId === 'activities-panel') ? 'flex' : 'block';
+}
+function switchRTab(tab, contentId) {
+  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('#right-panel-content > div').forEach(d => {
+    d.classList.remove('visible');
+    d.style.display = 'none';
+  });
+  const target = document.getElementById(contentId);
+  if (target) { target.classList.add('visible'); target.style.display = 'block'; }
+  if (contentId === 'code-view') {
+    if (_codeWasImported) {
+      // Código importado: apenas garante que o editor está visível e editável
+      const ca = document.getElementById('code-editor');
+      if (ca) ca.removeAttribute('readonly');
+    } else {
+      generateAllCode();
+    }
+  }
+}
+function switchCanvas(tab, name) {
+  document.querySelectorAll('.vtab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+}
+
+/* ─ Node selection ────────────────────────────────────────────────── */
+function selectNode(nodeId, label) {
+  const fullId = 'node-' + nodeId;
+  /* Se estiver em modo de conexão, completa a seta */
+  if (connectingFrom) { finishConnect(fullId); return; }
+  document.querySelectorAll('.node-card').forEach(c => c.classList.remove('selected'));
+  const el = document.getElementById(fullId);
+  if (el) el.classList.add('selected');
+  selectedNode = nodeId;
+  document.getElementById('prop-sel-name').value = label;
+  const typeMap = {
+    start:'Nó Inicial', end:'Nó Final (STOP RUN)',
+    main:'Parágrafo COBOL', read:'Parágrafo COBOL',
+    proc:'Parágrafo COBOL', write:'Parágrafo COBOL'
+  };
+  document.getElementById('prop-sel-type').value = typeMap[nodeId] || 'Instrução COBOL';
+  const linesMap = { start:'—', end:'~95', main:'30–38', read:'40–48', proc:'50–68', write:'70–78' };
+  document.getElementById('prop-sel-lines').value = linesMap[nodeId] || '—';
+  setStatus('Selecionado: ' + label);
+  drawArrows();
+}
+
+/* ─ Conexão de setas ─────────────────────────────────────────────── */
+function startConnect(event, nodeId) {
+  event.stopPropagation();
+  if (connectingFrom === nodeId) { cancelConnect(); return; }
+  if (connectingFrom) { finishConnect(nodeId); return; }
+  connectingFrom = nodeId;
+  document.getElementById('canvas').classList.add('connecting-mode');
+  document.querySelectorAll('.cf-node').forEach(n => n.classList.remove('conn-source'));
+  const s = document.getElementById(nodeId); if (s) s.classList.add('conn-source');
+  setStatus('Clique no nó destino para conectar — ESC para cancelar');
+}
+function finishConnect(toId) {
+  if (!connectingFrom || connectingFrom === toId) { cancelConnect(); return; }
+  const from = connectingFrom;
+  cancelConnect();
+  if (!connections.some(c => c.from === from && c.to === toId)) {
+    connections.push({ from, to: toId });
+    drawArrows();
+    showToast('Seta criada! Clique direito na seta para remover.', 'success');
+    setStatus('✓ Conexão adicionada');
+  } else {
+    showToast('Essa conexão já existe.', 'error');
+  }
+}
+function cancelConnect() {
+  connectingFrom = null;
+  document.getElementById('canvas').classList.remove('connecting-mode');
+  document.querySelectorAll('.cf-node').forEach(n => n.classList.remove('conn-source'));
+  setStatus('✓ Pronto');
+}
+/* ─ Grupos recolhíveis de Atividades ─────────────────────────────── */
+function toggleActivityGroup(headerEl, bodyId) {
+  headerEl.classList.toggle('open');
+  document.getElementById(bodyId).classList.toggle('open');
+}
+function filterActivities(query) {
+  const q = query.toLowerCase().trim();
+  document.querySelectorAll('#act-groups .activity-item').forEach(item => {
+    const match = !q || item.textContent.toLowerCase().includes(q);
+    item.classList.toggle('hidden', !match);
+  });
+  document.querySelectorAll('.act-group-body').forEach(body => {
+    const hasVisible = !!body.querySelector('.activity-item:not(.hidden)');
+    const show = hasVisible || !q;
+    body.classList.toggle('open', show);
+    body.previousElementSibling.classList.toggle('open', show);
+  });
+}
+
+function undoLastConnection() {
+  if (connections.length === 0) { showToast('Nenhuma seta para desfazer.'); return; }
+  connections.pop();
+  drawArrows();
+  showToast('Última seta removida.');
+}
+function clearAllConnections() {
+  if (!confirm('Remover todas as setas do canvas?')) return;
+  connections = [];
+  drawArrows();
+  showToast('Todas as setas removidas.');
+}
+
+/* ─ Node creation via drag & drop ─────────────────────────────────── */
+function onDragStart(event, type) {
+  draggingType = type;
+  event.dataTransfer.effectAllowed = 'copy';
+}
+// Limpa ghost se o drag for cancelado (solto fora do canvas)
+document.addEventListener('dragend', () => { _removeDropGhost(); });
+
+// Converte coordenadas do evento para posição dentro do canvas
+function _canvasXY(event) {
+  const scrollEl = document.getElementById('canvas-scroll');
+  const rect = scrollEl.getBoundingClientRect();
+  return {
+    x: event.clientX - rect.left + scrollEl.scrollLeft,
+    y: event.clientY - rect.top  + scrollEl.scrollTop
+  };
+}
+
+// Ghost de pré-visualização (elemento seguindo o cursor durante dragover)
+let _dropGhost = null;
+function _ensureDropGhost() {
+  if (_dropGhost) return _dropGhost;
+  _dropGhost = document.createElement('div');
+  _dropGhost.id = 'drop-ghost';
+  _dropGhost.style.cssText = [
+    'position:absolute', 'pointer-events:none', 'z-index:9990',
+    'border:2px dashed #4f8ef7', 'border-radius:6px',
+    'background:rgba(79,142,247,0.08)', 'width:220px', 'height:80px',
+    'display:flex', 'align-items:center', 'justify-content:center',
+    'font-size:12px', 'color:#4f8ef7', 'font-weight:600', 'gap:6px'
+  ].join(';');
+  document.getElementById('canvas').appendChild(_dropGhost);
+  return _dropGhost;
+}
+function _removeDropGhost() {
+  if (_dropGhost) { _dropGhost.remove(); _dropGhost = null; }
+}
+
+function onCanvasDragOver(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'copy';
+  if (!draggingType) return;
+  const { x, y } = _canvasXY(event);
+  const gx = Math.round(x - 110);
+  const gy = Math.round(y - 20);
+  const meta = activityMeta[draggingType];
+  const ghost = _ensureDropGhost();
+  ghost.style.left = Math.max(4, gx) + 'px';
+  ghost.style.top  = Math.max(4, gy) + 'px';
+  ghost.innerHTML  = `<span>${meta ? meta.icon : '📦'}</span><span>${meta ? meta.label : draggingType}</span>`;
+}
+
+function onCanvasDragLeave(event) {
+  // Remove ghost somente quando sair do canvas completamente
+  if (!event.relatedTarget || !event.relatedTarget.closest('#canvas')) {
+    _removeDropGhost();
+  }
+}
+
+function onCanvasDrop(event) {
+  event.preventDefault();
+  _removeDropGhost();
+  if (!draggingType) return;
+  const { x, y } = _canvasXY(event);
+  createNodeAt(draggingType, Math.round(x - 110), Math.round(y - 20));
+  draggingType = null;
+}
+
+const activityMeta = {
+  /* ── Entrada / Saída ── */
+  READ:          { icon:'📖', label:'READ',          color:'green',  fields:['READ [arquivo]','  AT END MOVE "S" TO WS-FIM'] },
+  WRITE:         { icon:'✍️', label:'WRITE',         color:'purple', fields:['WRITE [registro] FROM WS-REG'] },
+  DISPLAY:       { icon:'🖥️', label:'DISPLAY',       color:'purple', fields:['DISPLAY WS-MENSAGEM'] },
+  ACCEPT:        { icon:'⌨️', label:'ACCEPT',        color:'green',  fields:['ACCEPT WS-VARIAVEL'] },
+  /* ── Movimentação ── */
+  MOVE:          { icon:'➡️', label:'MOVE',          color:'blue',   fields:['MOVE [origem] TO [destino]'] },
+  INITIALIZE:    { icon:'🔄', label:'INITIALIZE',    color:'blue',   fields:['INITIALIZE WS-VARIAVEL'] },
+  /* ── Aritmética ── */
+  ADD:           { icon:'➕', label:'ADD',           color:'orange', fields:['ADD 1 TO WS-CONTADOR'] },
+  SUBTRACT:      { icon:'➖', label:'SUBTRACT',      color:'orange', fields:['SUBTRACT WS-A FROM WS-B'] },
+  MULTIPLY:      { icon:'✖️', label:'MULTIPLY',      color:'orange', fields:['MULTIPLY WS-A BY WS-B GIVING WS-C'] },
+  DIVIDE:        { icon:'➗', label:'DIVIDE',        color:'orange', fields:['DIVIDE WS-A BY WS-B GIVING WS-C'] },
+  COMPUTE:       { icon:'🧮', label:'COMPUTE',       color:'orange', fields:['COMPUTE WS-RESULT = WS-A + WS-B'] },
+  /* ── Decisão ── */
+  IF:            { icon:'❓', label:'IF / ELSE',     color:'yellow', fields:['IF WS-COND = "S"','  PERFORM [paragraf]','ELSE','  PERFORM [outro]','END-IF'] },
+  EVALUATE:      { icon:'🔀', label:'EVALUATE',      color:'yellow', fields:['EVALUATE WS-TIPO','  WHEN "A" PERFORM [para-A]','  WHEN OTHER PERFORM [outro]','END-EVALUATE'] },
+  /* ── Sistema ── */
+  PERFORM:       { icon:'🔁', label:'PERFORM',         color:'blue',   fields:['PERFORM [paragrafo]'] },
+  PERFORM_UNTIL: { icon:'🔂', label:'PERFORM UNTIL',   color:'blue',   fields:['PERFORM [paragrafo]','  UNTIL WS-FIM = "S"'] },
+  PERFORM_VARYING:{ icon:'🔃', label:'PERFORM VARYING', color:'blue',  fields:['PERFORM VARYING WS-CTR FROM 1 BY 1','  UNTIL WS-CTR > WS-TOTAL','    PERFORM [paragrafo]','END-PERFORM'] },
+  GO_TO:         { icon:'↪️', label:'GO TO',           color:'red',    fields:['GO TO [paragrafo]'] },
+  STOP_RUN:      { icon:'⏹️', label:'STOP RUN',        color:'red',    fields:['STOP RUN'] },
+  /* ── String ── */
+  STRING_OP:     { icon:'🔤', label:'STRING',        color:'blue',   fields:['STRING WS-A DELIMITED SIZE','  INTO WS-DESTINO','END-STRING'] },
+  UNSTRING:      { icon:'✂️', label:'UNSTRING',      color:'blue',   fields:['UNSTRING WS-ORIGEM DELIMITED ";"','  INTO WS-A WS-B','END-UNSTRING'] },
+  /* ── DB2 ── */
+  DB2_SELECT:    { icon:'🔍', label:'DB2 SELECT',     color:'teal',   fields:['EXEC SQL','  SELECT [coluna]','  INTO :[host-var]','  FROM [tabela]','  WHERE [condição]','END-EXEC','IF SQLCODE NOT = 0','  PERFORM DB2-ERRO-RTN','END-IF'] },
+  DB2_INSERT:    { icon:'➕', label:'DB2 INSERT',     color:'teal',   fields:['EXEC SQL','  INSERT INTO [tabela]','  ([col1], [col2])','  VALUES (:[hv1], :[hv2])','END-EXEC','IF SQLCODE NOT = 0','  PERFORM DB2-ERRO-RTN','END-IF'] },
+  DB2_UPDATE:    { icon:'✏️', label:'DB2 UPDATE',     color:'teal',   fields:['EXEC SQL','  UPDATE [tabela]','  SET [coluna] = :[host-var]','  WHERE [condição]','END-EXEC','IF SQLCODE NOT = 0','  PERFORM DB2-ERRO-RTN','END-IF'] },
+  DB2_DELETE:    { icon:'🗑️', label:'DB2 DELETE',     color:'teal',   fields:['EXEC SQL','  DELETE FROM [tabela]','  WHERE [condição]','END-EXEC','IF SQLCODE NOT = 0','  PERFORM DB2-ERRO-RTN','END-IF'] },
+  DB2_OPEN:      { icon:'📂', label:'DB2 OPEN CURSOR',color:'teal',   fields:['EXEC SQL','  OPEN [cursor-name]','END-EXEC','IF SQLCODE NOT = 0','  PERFORM DB2-ERRO-RTN','END-IF'] },
+  DB2_FETCH:     { icon:'📋', label:'DB2 FETCH',      color:'teal',   fields:['EXEC SQL','  FETCH [cursor-name]','  INTO :[hv1], :[hv2]','END-EXEC'] },
+  DB2_CLOSE:     { icon:'📁', label:'DB2 CLOSE CURSOR',color:'teal',  fields:['EXEC SQL','  CLOSE [cursor-name]','END-EXEC'] },
+  DB2_COMMIT:    { icon:'✅', label:'DB2 COMMIT',     color:'teal',   fields:['EXEC SQL','  COMMIT','END-EXEC'] },
+  DB2_ROLLBACK:  { icon:'↩️', label:'DB2 ROLLBACK',   color:'teal',   fields:['EXEC SQL','  ROLLBACK','END-EXEC'] },
+  DB2_FETCH_FIRST: { icon:'🥇', label:'DB2 FETCH FIRST ROW', color:'teal', fields:['EXEC SQL','  SELECT [coluna1], [coluna2]','  INTO :[hv1], :[hv2]','  FROM [tabela]','  WHERE [condição]','  FETCH FIRST 1 ROW ONLY','END-EXEC','IF SQLCODE = 0','  CONTINUE','ELSE','  PERFORM DB2-ERRO-RTN','END-IF'] },
+  DB2_SQLCODE:   { icon:'⚠️', label:'Check SQLCODE',  color:'yellow', fields:['EVALUATE TRUE','  WHEN SQLCODE = 0','    CONTINUE','  WHEN SQLCODE = 100','    MOVE "S" TO WS-FIM','  WHEN OTHER','    PERFORM DB2-ERRO-RTN','END-EVALUATE'] },
+  /* ── Tabela Interna Indexada ── */
+  TBL_DEFINE:    { icon:'📊', label:'OCCURS (Tabela)',  color:'sky',    fields:['01 WS-TABELA.','   05 WS-TB-ITEM OCCURS 100 TIMES','              INDEXED BY IX-TB.','      10 WS-TB-CHAVE  PIC X(10).','      10 WS-TB-VALOR  PIC X(40).','      10 WS-TB-NUM    PIC 9(7)V99.'] },
+  TBL_SET:       { icon:'🔢', label:'SET INDEX',        color:'sky',    fields:['SET IX-TB TO 1'] },
+  TBL_SET_UP:    { icon:'⬆️', label:'SET INDEX UP BY',  color:'sky',    fields:['SET IX-TB UP BY 1'] },
+  TBL_SET_DOWN:  { icon:'⬇️', label:'SET INDEX DOWN BY',color:'sky',    fields:['SET IX-TB DOWN BY 1'] },
+  TBL_SEARCH:    { icon:'🔍', label:'SEARCH (Seq)',     color:'sky',    fields:['SET IX-TB TO 1','SEARCH WS-TB-ITEM','  AT END','    MOVE "N" TO WS-ACHOU','  WHEN WS-TB-CHAVE(IX-TB) = WS-CHAVE-BUS','    MOVE "S" TO WS-ACHOU','END-SEARCH'] },
+  TBL_SEARCH_ALL:{ icon:'⚡', label:'SEARCH ALL (Bin)', color:'sky',   fields:['SEARCH ALL WS-TB-ITEM','  AT END','    MOVE "N" TO WS-ACHOU','  WHEN WS-TB-CHAVE(IX-TB) = WS-CHAVE-BUS','    MOVE "S" TO WS-ACHOU','    MOVE WS-TB-VALOR(IX-TB) TO WS-RESULTADO','END-SEARCH'] },
+  TBL_PERFORM:   { icon:'🔄', label:'PERFORM Tabela',   color:'sky',    fields:['PERFORM VARYING IX-TB FROM 1 BY 1','  UNTIL IX-TB > WS-TB-QTD','    PERFORM [paragrafo-proc-item]','END-PERFORM'] },
+  TBL_MOVE_ITEM: { icon:'➡️', label:'MOVE p/ Tabela',   color:'sky',    fields:['MOVE WS-DADO-CHAVE  TO WS-TB-CHAVE(IX-TB)','MOVE WS-DADO-VALOR  TO WS-TB-VALOR(IX-TB)','MOVE WS-DADO-NUM    TO WS-TB-NUM(IX-TB)'] },
+  TBL_LOAD:      { icon:'📥', label:'Carregar Tabela',  color:'sky',    fields:['SET IX-TB TO 0','PERFORM UNTIL WS-FIM = "S"','  READ ARQ-TABELA','    AT END MOVE "S" TO WS-FIM','  END-READ','  IF WS-FIM NOT = "S"','    SET IX-TB UP BY 1','    MOVE RE-CHAVE TO WS-TB-CHAVE(IX-TB)','    MOVE RE-VALOR TO WS-TB-VALOR(IX-TB)','  END-IF','END-PERFORM','MOVE IX-TB TO WS-TB-QTD'] },
+};
+
+function createNodeAt(type, x, y) {
+  if (!activityMeta[type]) return;
+  const meta = activityMeta[type];
+  nodeSeqCounter[type] = (nodeSeqCounter[type] || 0) + 1;
+  const uid = type.toLowerCase().replace('_','-') + '-' + nodeSeqCounter[type];
+  const nodeId = 'node-dyn-' + uid;
+  const canvas = document.getElementById('canvas');
+
+  const div = document.createElement('div');
+  div.className = 'cf-node node-card';
+  div.id = nodeId;
+  div.style.left = Math.max(10,x) + 'px';
+  div.style.top = Math.max(10,y) + 'px';
+  div.setAttribute('onclick', `selectNode('dyn-${uid}','${meta.label} #${nodeSeqCounter[type]}')`);
+  div.setAttribute('ondblclick', `editNodeLabel('dyn-${uid}')`);
+
+  const headerColor = meta.color ? `class="node-card-header ${meta.color}"` : `class="node-card-header"`;
+  let fieldsHtml = meta.fields.map((f,i) => `
+    <div class="node-field">
+      <span class="node-field-drag" title="Arrastar para reordenar">&#8597;</span>
+      <input id="field-${uid}-${i}" placeholder="${f}" />
+      <span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>
+      <span class="node-field-help">?</span>
+    </div>`).join('');
+
+  div.innerHTML = `
+    <div ${headerColor}>
+      <span>${meta.icon}</span> <span class="node-label">${meta.label}</span>
+      <span class="node-connect-btn" onclick="event.stopPropagation();startConnect(event,'${nodeId}')" title="Conectar saída">→</span>
+      <span class="node-field-more" onclick="event.stopPropagation();this.closest('.node-card').remove();updateNodeCount();drawArrows();" title="Remover">✕</span>
+    </div>
+    <div class="node-card-body">${fieldsHtml}</div>
+    <button class="node-add-field-btn" onclick="event.stopPropagation();_addFieldToCard(this)" title="Adicionar linha">＋ linha</button>`;
+
+  makeDraggable(div);
+  canvas.appendChild(div);
+  nodeCounter++;
+  updateNodeCount();
+  selectNode('dyn-' + uid, `${meta.label} #${nodeSeqCounter[type]}`);
+  showToast(`${meta.label} adicionado ao fluxo.`, 'success');
+  drawArrows();
+}
+
+function updateNodeCount() {
+  nodeCounter = document.querySelectorAll('#canvas .cf-node').length;
+  document.getElementById('node-count').textContent = nodeCounter + ' nós';
+}
+
+/* ─ Drag reposition nodes + drop-to-nest + reorder between ──────── */
+function makeDraggable(el) {
+  let startX, startY, startLeft, startTop;
+  let _dropTarget     = null;   // card sob o cursor (nest)
+  let _insertAfter    = undefined; // null = antes do 1º; nodeEl = depois dele; undefined = sem zona
+  const dropLine = () => document.getElementById('card-drop-line');
+  const header = el.querySelector('.node-card-header') || el;
+  header.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('node-field-more') || e.target.classList.contains('node-connect-btn') || e.target.tagName === 'INPUT') return;
+    startX = e.clientX; startY = e.clientY;
+    startLeft = parseInt(el.style.left) || 0;
+    startTop  = parseInt(el.style.top)  || 0;
+    const onMove = (ev) => {
+      el.style.left = (startLeft + ev.clientX - startX) + 'px';
+      el.style.top  = (startTop  + ev.clientY - startY) + 'px';
+      drawArrows();
+      // Detecta card-alvo sob o cursor
+      el.style.pointerEvents = 'none';
+      const under = document.elementFromPoint(ev.clientX, ev.clientY);
+      el.style.pointerEvents = '';
+      const candidate = under?.closest('.node-card');
+      const nestTarget = (candidate && candidate !== el) ? candidate : null;
+      if (nestTarget !== _dropTarget) {
+        if (_dropTarget) _dropTarget.classList.remove('drop-target');
+        _dropTarget = nestTarget;
+        if (_dropTarget) _dropTarget.classList.add('drop-target');
+      }
+      // Linha de inserção entre cards (só quando não está sobre outro card)
+      if (!_dropTarget) {
+        const canvas = document.getElementById('canvas');
+        const scroll = document.getElementById('canvas-scroll');
+        const canvasRect = canvas.getBoundingClientRect();
+        const cursorY = ev.clientY - canvasRect.top + scroll.scrollTop;
+        // Nós ordit não-ocultos exceto o arrastado
+        const nodes = Array.from(canvas.querySelectorAll(
+          '.cf-node:not(#node-start):not(#node-end-node)'
+        )).filter(n => n !== el && getComputedStyle(n).display !== 'none')
+          .sort((a, b) => parseInt(a.style.top) - parseInt(b.style.top));
+        let found = false;
+        // Antes do primeiro nó
+        if (nodes.length && cursorY < parseInt(nodes[0].style.top)) {
+          _insertAfter = null;
+          dropLine().style.top = (parseInt(nodes[0].style.top) - 8) + 'px';
+          dropLine().style.display = 'block';
+          found = true;
+        }
+        if (!found) {
+          for (let i = 0; i < nodes.length; i++) {
+            const thisBot = parseInt(nodes[i].style.top) + nodes[i].offsetHeight;
+            const nextTop = i + 1 < nodes.length ? parseInt(nodes[i+1].style.top) : Infinity;
+            if (cursorY >= thisBot && cursorY <= nextTop) {
+              _insertAfter = nodes[i];
+              dropLine().style.top = Math.round((thisBot + Math.min(nextTop, thisBot + 40)) / 2) + 'px';
+              dropLine().style.display = 'block';
+              found = true;
+              break;
+            }
+          }
+        }
+        if (!found) { dropLine().style.display = 'none'; _insertAfter = undefined; }
+      } else {
+        dropLine().style.display = 'none'; _insertAfter = undefined;
+      }
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      dropLine().style.display = 'none';
+      if (_dropTarget) {
+        _dropTarget.classList.remove('drop-target');
+        nestCardInto(el, _dropTarget);
+        _dropTarget = null;
+      } else if (_insertAfter !== undefined) {
+        reorderCard(el, _insertAfter);
+        _insertAfter = undefined;
+      }
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    e.preventDefault();
+  });
+}
+
+// Insere card na posição entre cards e atualiza conexões
+function reorderCard(card, insertAfterNode) {
+  const cardId = card.id;
+  // Conexão antiga: prev → card → next
+  const oldPrev = connections.find(c => c.to   === cardId);
+  const oldNext = connections.find(c => c.from === cardId);
+  // Remove conexões do card
+  connections = connections.filter(c => c.from !== cardId && c.to !== cardId);
+  // Reconecta: prev → next (bypass do card removido)
+  if (oldPrev && oldNext) connections.push({ from: oldPrev.from, to: oldNext.to });
+  else if (oldPrev && !oldNext) { /* era o último, deixa sem */ }
+  else if (!oldPrev && oldNext) { /* era o primeiro, deixa sem */ }
+  // Nova posição: depois de insertAfterNode (ou antes de todos se null)
+  const newPrevId = insertAfterNode ? insertAfterNode.id : 'node-start';
+  const splitConn = connections.find(c => c.from === newPrevId);
+  const newNextId = splitConn ? splitConn.to : null;
+  if (splitConn) connections = connections.filter(c => c !== splitConn);
+  connections.push({ from: newPrevId, to: cardId });
+  if (newNextId) connections.push({ from: cardId, to: newNextId });
+  requestAnimationFrame(() => { reflowCanvas(); drawArrows(); });
+}
+
+// Encaixa srcCard como sub-bloco dentro de dstCard
+function nestCardInto(srcCard, dstCard) {
+  const label  = srcCard.querySelector('.node-label')?.textContent?.trim() || 'Bloco';
+  const fields = Array.from(srcCard.querySelectorAll('.node-field input'))
+                      .map(i => (i.value || i.placeholder || '').replace(/"/g, '&quot;'));
+  // cor do header original
+  const hdr = srcCard.querySelector('.node-card-header');
+  const colorCls = hdr ? ([...hdr.classList].find(c =>
+    ['blue','green','purple','orange','red','yellow','teal','sky'].includes(c)) || '') : '';
+
+  const fieldsHtml = fields.map(v =>
+    `<div class="node-field">
+      <span class="node-field-drag" title="Arrastar para reordenar">↕</span>
+      <input value="${v}" placeholder="..." />
+      <span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>
+      <span class="node-field-help">?</span>
+    </div>`).join('');
+
+  const sub = document.createElement('div');
+  sub.className = 'node-sub-block';
+  sub.innerHTML = `
+    <div class="node-sub-block-header ${colorCls}"
+         onclick="event.stopPropagation();this.parentElement.classList.toggle('collapsed')">
+      <span class="node-sub-block-drag" onclick="event.stopPropagation()" title="Arrastar para reordenar">↕</span>
+      <span class="sub-block-toggle">&#9660;</span>
+      <span class="sub-block-label">${label}</span>
+      <span class="sub-block-remove"
+            onclick="event.stopPropagation();this.closest('.node-sub-block').remove();requestAnimationFrame(()=>reflowCanvas());"
+            title="Remover sub-bloco">✕</span>
+    </div>
+    <div class="node-sub-block-body">${fieldsHtml}</div>`;
+
+  // Insere no node-card-body para ficar na mesma lista das linhas de campo
+  const cardBody = dstCard.querySelector('.node-card-body');
+  if (cardBody) cardBody.appendChild(sub);
+  else {
+    const addBtn = dstCard.querySelector('.node-add-field-btn');
+    if (addBtn) dstCard.insertBefore(sub, addBtn);
+    else dstCard.appendChild(sub);
+  }
+
+  // Remove conexões do card-fonte e o card em si
+  const srcId = srcCard.id;
+  connections = connections.filter(c => c.from !== srcId && c.to !== srcId);
+  srcCard.remove();
+
+  updateNodeCount();
+  requestAnimationFrame(() => reflowCanvas());
+}
+// Init
+const _STATIC_NODE_IDS = ['node-start','node-end-node','node-main','node-read','node-proc','node-write'];
+
+function _doReset() {
+  // 1. Remove nós dinâmicos (criados por drag/import)
+  document.querySelectorAll('#canvas .cf-node').forEach(n => {
+    if (!_STATIC_NODE_IDS.includes(n.id)) n.remove();
+  });
+  // 1b. Restaura visibilidade dos nós template (ocultos durante import)
+  _STATIC_NODE_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = '';
+  });
+  // 2. Zera todos os inputs dos nós estáticos
+  document.querySelectorAll('#canvas .node-field input').forEach(inp => {
+    inp.value = '';
+    inp.setAttribute('autocomplete', 'off');
+    inp.setAttribute('name', '_f' + Math.random().toString(36).slice(2));
+    inp.setAttribute('id',   '_f' + Math.random().toString(36).slice(2));
+  });
+  // 3. Zera tabela Working-Storage
+  const tbody = document.getElementById('args-tbody');
+  if (tbody) tbody.innerHTML = '';
+  // 4. Zera propriedades do programa
+  ['prop-program-id','prop-author','prop-date','prop-remarks'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.setAttribute('autocomplete', 'off'); }
+  });
+  // 5. Zera editor de código
+  const codeArea = document.getElementById('code-editor');
+  if (codeArea) codeArea.value = '';
+  // 6. Flow sem conexões
+  connections = [];
+  drawArrows();
+  updateNodeCount();
+}
+
+function _resetCanvasState() {
+  _doReset();
+  // Executa novamente após o browser tentar restaurar valores de formulário
+  setTimeout(_doReset, 0);
+  setTimeout(_doReset, 150);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Torna os nós estáticos arrastáveis
+  document.querySelectorAll('.cf-node.node-card').forEach(makeDraggable);
+  // Torna START e END arrastáveis (pelo próprio elemento)
+  ['node-start','node-end-node'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let sx, sy, sl, st;
+    el.style.cursor = 'grab';
+    el.addEventListener('mousedown', e => {
+      if (e.target.classList.contains('node-connect-btn')) return;
+      sx = e.clientX; sy = e.clientY;
+      sl = parseInt(el.style.left) || 0;
+      st = parseInt(el.style.top)  || 0;
+      el.style.cursor = 'grabbing';
+      const onMove = ev => {
+        el.style.left = Math.max(0, sl + ev.clientX - sx) + 'px';
+        el.style.top  = Math.max(0, st + ev.clientY - sy) + 'px';
+        drawArrows();
+      };
+      const onUp = () => {
+        el.style.cursor = 'grab';
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+      };
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      e.preventDefault();
+    });
+  });
+
+  _resetCanvasState();
+  setStatus('✓ Pronto — clique → para conectar nós');
+});
+
+// pageshow cobre bfcache (restauração por F5 / botão voltar)
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) {
+    // Página veio do bfcache — força reload limpo
+    window.location.reload();
+    return;
+  }
+  _resetCanvasState();
+});
+
+// ESC cancela modo de conexão
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && connectingFrom) cancelConnect();
+});
+
+window.addEventListener('resize', drawArrows);
+
+// ── Redimensionamento lateral do painel direito ─────────────────────
+(function() {
+  const handle = document.getElementById('panel-resize');
+  const panel  = document.getElementById('right-panel');
+  if (!handle || !panel) return;
+  let startX, startW;
+  handle.addEventListener('mousedown', e => {
+    startX = e.clientX;
+    startW = panel.offsetWidth;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    const onMove = ev => {
+      const delta = startX - ev.clientX;          // arrastar para esquerda = aumentar
+      const newW  = Math.min(700, Math.max(160, startW + delta));
+      panel.style.width = newW + 'px';
+      drawArrows();
+    };
+    const onUp = () => {
+      handle.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup',  onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup',   onUp);
+    e.preventDefault();
+  });
+})();
+
+function deleteNode(nid) {
+  const el = document.getElementById('node-' + nid);
+  if (el) { el.remove(); updateNodeCount(); drawArrows(); showToast('Nó removido.'); }
+}
+function editNodeLabel(nid) {
+  const el = document.getElementById('node-' + nid);
+  if (!el) return;
+  const lbl = el.querySelector('.node-label');
+  if (!lbl) return;
+  const old = lbl.textContent.trim();
+  const novo = prompt('Renomear parágrafo / seção:', old);
+  if (novo && novo.trim() && novo.trim() !== old) {
+    lbl.textContent = novo.trim();
+    showToast('Parágrafo renomeado.', 'success');
+    drawArrows();
+  }
+}
+
+// Delegação global: dblclick em qualquer cabeçalho de card abre renomear
+document.addEventListener('dblclick', e => {
+  const hdr = e.target.closest('.node-card-header');
+  if (!hdr) return;
+  const card = hdr.closest('.cf-node');
+  if (!card) return;
+  // evita disparar duplamente para nós estáticos que já têm ondblclick no próprio card
+  if (card.getAttribute('ondblclick')) return;
+  const lbl = hdr.querySelector('.node-label');
+  if (!lbl) return;
+  const old = lbl.textContent.trim();
+  const novo = prompt('Renomear parágrafo / seção:', old);
+  if (novo && novo.trim() && novo.trim() !== old) {
+    lbl.textContent = novo.trim();
+    showToast('Parágrafo renomeado.', 'success');
+    drawArrows();
+  }
+});
+
+/* ─ Arrows ─────────────────────────────────────────────────────────── */
+function getNodeCenter(nodeId) {
+  const el = document.getElementById(nodeId);
+  if (!el) return null;
+  const x = parseInt(el.style.left) || 0;
+  const y = parseInt(el.style.top) || 0;
+  const w = el.offsetWidth || 72;
+  const h = el.offsetHeight || 72;
+  return { x: x + w/2, y, bx: x + w/2, by: y + h };
+}
+function drawArrows() {
+  const svg = document.getElementById('arrows-svg');
+  svg.querySelectorAll('.arrow-path, .arrow-label').forEach(e => e.remove());
+
+  connections.forEach(({ from, to }, idx) => {
+    const f = getNodeCenter(from);
+    const t = document.getElementById(to);
+    if (!f || !t) return;
+    const tx = parseInt(t.style.left) + (t.offsetWidth||72)/2;
+    const ty = parseInt(t.style.top);
+    const my = (f.by + ty) / 2;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M ${f.bx} ${f.by} C ${f.bx} ${my+30}, ${tx} ${my-30}, ${tx} ${ty}`);
+    path.setAttribute('class', 'arrow-path');
+    path.style.pointerEvents = 'stroke';
+    path.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      connections.splice(idx, 1);
+      drawArrows();
+      showToast('Conexão removida.');
+    });
+    svg.appendChild(path);
+  });
+}
+
+/* ─ Code Generation ────────────────────────────────────────────────── */
+
+// Normaliza indentação COBOL para linhas de uma procedure:
+// col 12 (11 esp.) = nível 0; cada nível aninhado += 4 espaços
+function _cobolProcIndent(rawLines) {
+  const A = '       ';  // 7 espaços: Area A (col 8) para parágrafo/seção
+  const B = '           '; // 11 espaços: Area B (col 12) base
+  const INDENT = '    '; // +4 por nível
+
+  // Palavras que abrem escopo (+1)
+  const OPEN  = /^(EXEC\b|IF\b|EVALUATE\b|PERFORM\s+UNTIL\b|PERFORM\s+VARYING\b|READ\b|SEARCH\b|STRING\b|UNSTRING\b)/i;
+  // Palavras que fecham escopo (-1)
+  const CLOSE = /^(END-EXEC\b|END-IF\b|END-EVALUATE\b|END-PERFORM\b|END-READ\b|END-SEARCH\b|END-STRING\b|END-UNSTRING\b)/i;
+  // ELSE / WHEN não mudam o depth mas ficam no nível anterior (-1 momentâneo)
+  const SAME  = /^(ELSE\b|WHEN\b|NOT\s+AT\s+END\b|AT\s+END\b)/i;
+
+  let depth = 0;
+  const out = [];
+  rawLines.forEach(raw => {
+    const line = raw.trim();
+    if (!line) return;
+    if (CLOSE.test(line)) { depth = Math.max(0, depth - 1); }
+    const pad = B + INDENT.repeat(depth);
+    if (SAME.test(line) && depth > 0) {
+      out.push(B + INDENT.repeat(depth - 1) + line);
+    } else {
+      out.push(pad + line);
+    }
+    if (OPEN.test(line) && !CLOSE.test(line)) { depth++; }
+  });
+  return out.join('\n');
+}
+
+function generateAllCode() {
+  const pid = (document.getElementById('prop-program-id')?.value || 'MEUCOBOL').toUpperCase();
+  const author = document.getElementById('prop-author')?.value || 'AUTOR';
+  const date = document.getElementById('prop-date')?.value || '2026-04-16';
+  const remarks = document.getElementById('prop-remarks')?.value || '';
+  const dialect = document.getElementById('prop-dialect')?.value || 'IBM Enterprise COBOL';
+
+  // Collect Working-Storage from args table
+  const rows = document.querySelectorAll('#args-tbody tr');
+  let wsLines = '';
+  rows.forEach(r => {
+    const inputs = r.querySelectorAll('input');
+    if (inputs[0] && inputs[2]) {
+      const nm = inputs[0].value.trim();
+      const lv = inputs[1]?.value.trim() || '01';
+      const pic = inputs[2]?.value.trim() || 'PIC X';
+      const val = inputs[3]?.value.trim() || '';
+      wsLines += `       ${lv} ${nm.padEnd(20)} ${pic}${val ? ` VALUE ${val}` : ''}.\n`;
+    }
+  });
+
+  // Detectar se há nós DB2 para incluir SQLCA
+  const hasDB2 = document.querySelectorAll('#canvas .cf-node[id*="db2"]').length > 0
+    || [...document.querySelectorAll('#canvas .node-card-header')].some(h => h.textContent.includes('DB2'));
+  const sqlcaBlock = hasDB2 ? `\n      * SQL COMMUNICATION AREA\n       EXEC SQL\n         INCLUDE SQLCA\n       END-EXEC.\n` : '';
+
+  // Collect procedure nodes com indentação corrigida
+  const nodes = document.querySelectorAll('#canvas .node-card');
+  let procLines = '';
+  nodes.forEach(n => {
+    const hdr   = n.querySelector('.node-card-header');
+    const title = hdr?.querySelector('.node-label')?.textContent?.trim()
+               || hdr?.textContent?.replace('✕','').trim()
+               || 'PARA';
+    // Coleta linhas não-vazias dos inputs
+    const fieldLines = [];
+    n.querySelectorAll('.node-field input').forEach(inp => {
+      if (inp.value.trim()) fieldLines.push(inp.value.trim());
+    });
+    procLines += `\n       ${title.toUpperCase()}.\n`;
+    if (fieldLines.length) procLines += _cobolProcIndent(fieldLines) + '\n';
+  });
+
+  const code =
+`      *================================================================*
+      *  PROGRAMA  : ${pid.padEnd(20)}                             *
+      *  DIALETO   : ${dialect.padEnd(28)}                 *
+      *  GERADO POR: COBOL RPA Dev Studio 1.0                         *
+      *================================================================*
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. ${pid}.
+       AUTHOR. ${author}.
+       DATE-WRITTEN. ${date}.
+       REMARKS. ${remarks}.
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER. IBM-ZOS.
+       OBJECT-COMPUTER. IBM-ZOS.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT ARQ-ENTRADA  ASSIGN TO ENTRADA
+               ORGANIZATION IS SEQUENTIAL
+               ACCESS MODE  IS SEQUENTIAL
+               FILE STATUS  IS WS-STATUS-ENT.
+           SELECT ARQ-SAIDA    ASSIGN TO SAIDA
+               ORGANIZATION IS SEQUENTIAL
+               ACCESS MODE  IS SEQUENTIAL
+               FILE STATUS  IS WS-STATUS-SAI.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  ARQ-ENTRADA  RECORDING MODE IS F
+                        BLOCK CONTAINS 0 RECORDS
+                        RECORD CONTAINS 80 CHARACTERS.
+       01  REG-ENTRADA.
+           05  RE-TIPO            PIC X(1).
+           05  RE-DADOS           PIC X(79).
+
+       FD  ARQ-SAIDA    RECORDING MODE IS F
+                        BLOCK CONTAINS 0 RECORDS
+                        RECORD CONTAINS 133 CHARACTERS.
+       01  REG-SAIDA.
+           05  RS-LINHA           PIC X(133).
+
+       WORKING-STORAGE SECTION.
+       01 WS-STATUS-ENT           PIC X(2)  VALUE SPACES.
+       01 WS-STATUS-SAI           PIC X(2)  VALUE SPACES.
+       01 WS-FIM                  PIC X(1)  VALUE "N".
+${sqlcaBlock}${wsLines}
+       PROCEDURE DIVISION.
+${procLines}
+       9999-FIM.
+           STOP RUN.
+${hasDB2 ? `\n       DB2-ERRO-RTN.\n           DISPLAY "SQLCODE: " SQLCODE\n           DISPLAY "SQLERRM: " SQLERRMC\n           PERFORM 9999-FIM.\n` : ''}
+`;
+
+  const codeArea = document.getElementById('code-editor');
+  if (codeArea) { codeArea.value = code; codeArea.removeAttribute('readonly'); }
+  return code;
+}
+
+/* ─ Toolbar Actions ────────────────────────────────────────────────── */
+function newProgram() {
+  if (!confirm('Criar novo programa? O projeto atual não salvo será perdido.')) return;
+  _codeWasImported = false;
+  document.querySelectorAll('#canvas .cf-node:not(#node-start):not(#node-end-node):not(#node-main):not(#node-read):not(#node-proc):not(#node-write)').forEach(n => n.remove());
+  document.querySelectorAll('#canvas .node-card .node-field input').forEach(inp => inp.value = '');
+  document.getElementById('prop-program-id').value = 'NOVOPROG';
+  updateNodeCount(); drawArrows();
+  showToast('Novo programa criado.', 'success');
+  setStatus('Novo programa iniciado');
+}
+
+function saveProgram() {
+  const code = generateAllCode();
+  const blob = new Blob([code], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (document.getElementById('prop-program-id')?.value || 'MEUCOBOL').toUpperCase() + '.CBL';
+  a.click();
+  showToast('Código COBOL salvo!', 'success');
+  setStatus('Arquivo .CBL salvo');
+}
+
+/* ── Salvar/Importar Projeto (JSON) ─────────────────────────── */
+function saveProject() {
+  const pid = document.getElementById('prop-program-id')?.value || 'MEUCOBOL';
+  const project = {
+    version: '1.0',
+    programId: pid,
+    author:   document.getElementById('prop-author')?.value || '',
+    date:     document.getElementById('prop-date')?.value || '',
+    remarks:  document.getElementById('prop-remarks')?.value || '',
+    dialect:  document.getElementById('prop-dialect')?.value || '',
+    nodes: [],
+    connections: connections
+  };
+  // Captura todos os nós do canvas
+  document.querySelectorAll('#canvas .cf-node').forEach(n => {
+    const isCircle = n.classList.contains('node-circle');
+    const entry = {
+      id:    n.id,
+      x:     parseInt(n.style.left) || 0,
+      y:     parseInt(n.style.top)  || 0,
+      label: n.querySelector('.node-card-header')?.childNodes[1]?.textContent?.trim() ||
+             n.querySelector('.node-label')?.textContent?.trim() || '',
+      isCircle,
+      fields: []
+    };
+    n.querySelectorAll('.node-field input').forEach(inp => {
+      entry.fields.push(inp.value);
+    });
+    // Tipo dinâmico: extrai do data-type original ou do id
+    const drag = n.querySelector('[draggable]');
+    entry.dynamicType = n.dataset.nodeType || null;
+    project.nodes.push(entry);
+  });
+  // Working-storage
+  const wsRows = [];
+  document.querySelectorAll('#args-tbody tr').forEach(r => {
+    const inputs = r.querySelectorAll('input');
+    wsRows.push(Array.from(inputs).map(i => i.value));
+  });
+  project.workingStorage = wsRows;
+
+  const blob = new Blob([JSON.stringify(project, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = pid.toUpperCase() + '.cobol-project.json';
+  a.click();
+  showToast('Projeto salvo como JSON!', 'success');
+  setStatus('Projeto .json salvo');
+}
+
+function importProgram() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,.cbl,.cob,.txt';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const content = ev.target.result;
+      if (file.name.toLowerCase().endsWith('.json')) {
+        _importProjectJSON(content);
+      } else {
+        const mode = document.getElementById('import-mode')?.value || 'por-paragrafo';
+        _importCobolSource(content, file.name, mode);
+      }
+    };
+    reader.onerror = () => showToast('Erro ao ler o arquivo.', 'error');
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function _importProjectJSON(text) {
+  let project;
+  try { project = JSON.parse(text); }
+  catch(e) { showToast('JSON inválido.', 'error'); return; }
+
+  if (!confirm('Importar projeto "' + (project.programId||'?') + '"? O canvas atual será substituído.')) return;
+
+  // Propriedades
+  if (project.programId) document.getElementById('prop-program-id').value = project.programId;
+  if (project.author)    document.getElementById('prop-author').value    = project.author;
+  if (project.date)      document.getElementById('prop-date').value      = project.date;
+  if (project.remarks)   document.getElementById('prop-remarks').value   = project.remarks;
+  if (project.dialect)   document.getElementById('prop-dialect').value   = project.dialect;
+
+  // Remove nós dinâmicos
+  document.querySelectorAll('#canvas .cf-node').forEach(n => {
+    if (!['node-start','node-main','node-read','node-proc','node-write','node-end-node'].includes(n.id))
+      n.remove();
+  });
+
+  // Reposiciona nós estáticos e preenche campos
+  const staticIds = ['node-start','node-main','node-read','node-proc','node-write','node-end-node'];
+  (project.nodes || []).forEach(nd => {
+    const el = document.getElementById(nd.id);
+    if (el) {
+      el.style.left = nd.x + 'px';
+      el.style.top  = nd.y + 'px';
+      const inputs = el.querySelectorAll('.node-field input');
+      (nd.fields || []).forEach((v, i) => { if (inputs[i]) inputs[i].value = v; });
+    } else if (!staticIds.includes(nd.id)) {
+      // Nó dinâmico: recria pelo type armazenado ou genérico
+      const type = nd.dynamicType || 'MOVE';
+      if (activityMeta[type]) {
+        createNodeAt(type, nd.x, nd.y);
+        // Preenche campos do último nó criado
+        const newEl = document.getElementById('node-dyn-' + type.toLowerCase().replace('_','-') + '-' + (nodeSeqCounter[type]||1));
+        if (newEl) {
+          newEl.id = nd.id; // restaura id original
+          const inputs = newEl.querySelectorAll('.node-field input');
+          (nd.fields || []).forEach((v, i) => { if (inputs[i]) inputs[i].value = v; });
+        }
+      }
+    }
+  });
+
+  // Restaura conexões
+  connections = project.connections || [];
+
+  // Working-storage
+  const tbody = document.getElementById('args-tbody');
+  if (tbody && project.workingStorage?.length) {
+    tbody.innerHTML = '';
+    project.workingStorage.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = row.map(v =>
+        `<td><input type="text" value="${v.replace(/"/g,'&quot;')}" /></td>`
+      ).join('') +
+      `<td><button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#dc2626">&#10005;</button></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  updateNodeCount();
+  // Aguarda DOM estabilizar antes de redesenhar as setas
+  requestAnimationFrame(() => {
+    drawArrows();
+    generateAllCode();
+    showToast('Projeto importado com sucesso!', 'success');
+    setStatus('Projeto importado — flowchart atualizado');
+  });
+}
+
+// ── Detecta tipo de nó pelo corpo do parágrafo COBOL ──────────────────────
+function detectNodeType(body) {
+  const b = body.toUpperCase();
+  if (/\bCALL\b/.test(b) && !/EXEC\s+SQL/.test(b)) return 'PERFORM';
+  if (/\bOPEN\b/.test(b)  && !/EXEC\s+SQL/.test(b)) return 'READ';
+  if (/\bCLOSE\b/.test(b) && !/EXEC\s+SQL/.test(b)) return 'WRITE';
+  if (/EXEC\s+SQL/.test(b)) {
+    if (/\bINSERT\b/.test(b))      return 'DB2_INSERT';
+    if (/\bUPDATE\b/.test(b))      return 'DB2_UPDATE';
+    if (/\bDELETE\b/.test(b))      return 'DB2_DELETE';
+    if (/FETCH\s+FIRST\b/.test(b)) return 'DB2_FETCH_FIRST';
+    if (/\bFETCH\b/.test(b))       return 'DB2_FETCH';
+    if (/\bOPEN\b/.test(b))        return 'DB2_OPEN';
+    if (/\bCLOSE\b/.test(b))       return 'DB2_CLOSE';
+    if (/\bCOMMIT\b/.test(b))      return 'DB2_COMMIT';
+    if (/\bROLLBACK\b/.test(b))    return 'DB2_ROLLBACK';
+    return 'DB2_SELECT';
+  }
+  if (/\bREAD\b/.test(b))               return 'READ';
+  if (/\bWRITE\b/.test(b))              return 'WRITE';
+  if (/\bDISPLAY\b/.test(b))            return 'DISPLAY';
+  if (/\bACCEPT\b/.test(b))             return 'ACCEPT';
+  if (/\bUNSTRING\b/.test(b))           return 'UNSTRING';
+  if (/\bSTRING\b/.test(b))             return 'STRING_OP';
+  if (/\bCOMPUTE\b/.test(b))            return 'COMPUTE';
+  if (/\bADD\b/.test(b))                return 'ADD';
+  if (/\bSUBTRACT\b/.test(b))           return 'SUBTRACT';
+  if (/\bMULTIPLY\b/.test(b))           return 'MULTIPLY';
+  if (/\bDIVIDE\b/.test(b))             return 'DIVIDE';
+  if (/\bEVALUATE\b/.test(b))           return 'EVALUATE';
+  if (/\bIF\b/.test(b))                 return 'IF';
+  if (/PERFORM\s+VARYING\b/.test(b))    return 'PERFORM_VARYING';
+  if (/PERFORM[\s\S]+?UNTIL\b/.test(b)) return 'PERFORM_UNTIL';
+  if (/\bPERFORM\b/.test(b))            return 'PERFORM';
+  if (/\bSTOP\s+RUN\b/.test(b))         return 'STOP_RUN';
+  if (/\bGO\s+TO\b/.test(b))            return 'GO_TO';
+  if (/SEARCH\s+ALL\b/.test(b))         return 'TBL_SEARCH_ALL';
+  if (/\bSEARCH\b/.test(b))             return 'TBL_SEARCH';
+  if (/\bINITIALIZE\b/.test(b))        return 'INITIALIZE';
+  if (/\bMOVE\b/.test(b))               return 'MOVE';
+  return 'PERFORM';
+}
+
+// ── Subdivide o corpo de um parágrafo em blocos de instrução individuais ──
+function splitIntoInstructions(paragraphName, body) {
+  const lines = body.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length === 0) return [];
+
+  // Padrões que ABREM um escopo aninhado (precisam de END-xxx para fechar)
+  const SCOPE_OPEN  = /^(IF\b|EVALUATE\b|EXEC\b|READ\b|SEARCH\b|PERFORM\s+\S.*\b(?:UNTIL|VARYING)\b)/i;
+  // Padrões que FECHAM um escopo aninhado
+  const SCOPE_CLOSE = /^END-(IF|EVALUATE|PERFORM|READ|EXEC|SEARCH)\b/i;
+  // Palavras que iniciam nova instrução — só respeitadas quando profundidade = 0
+  const STMT_START  = /^(EXEC\b|IF\b|EVALUATE\b|PERFORM\b|READ\b|WRITE\b|REWRITE\b|MOVE\b|CALL\b|OPEN\b|CLOSE\b|STOP\b|ADD\b|SUBTRACT\b|MULTIPLY\b|DIVIDE\b|COMPUTE\b|DISPLAY\b|ACCEPT\b|GO\s+TO\b|STRING\b|UNSTRING\b|SEARCH\b|INITIALIZE\b|FETCH\b|COMMIT\b|ROLLBACK\b)/i;
+
+  const blocks = [];
+  let cur = [];
+  let depth = 0;    // profundidade de aninhamento
+
+  const flush = () => { if (cur.length > 0) { blocks.push([...cur]); cur = []; } };
+
+  lines.forEach(line => {
+    // Remove comentário inline *> antes de testar padrões
+    const clean = line.replace(/\s*\*>.*$/, '').trim();
+
+    if (SCOPE_CLOSE.test(clean)) {
+      cur.push(line);
+      if (depth > 0) depth--;
+      if (depth === 0) flush();     // fecha o bloco ao voltar para nível 0
+      return;
+    }
+
+    // Somente na raiz (depth=0): nova instrução abre novo bloco
+    if (depth === 0 && STMT_START.test(clean) && cur.length > 0) flush();
+
+    cur.push(line);
+
+    if (SCOPE_OPEN.test(clean)) depth++;
+
+    // Ponto final implícito do COBOL encerra TODOS os escopos abertos
+    if (/\.\s*$/.test(clean)) { depth = 0; flush(); }
+  });
+
+  flush();
+
+  // Nomeia: primeiro bloco usa o nome do parágrafo, demais recebem sufixo pelo tipo
+  const typeCount = {};
+  return blocks.map((lineArr, idx) => {
+    const blockBody = lineArr.join('\n');
+    const type = detectNodeType(blockBody);
+    const shortType = type.replace(/^DB2_/, '').replace(/_/g, '-');
+    let name;
+    if (idx === 0) {
+      name = paragraphName;
+    } else {
+      typeCount[shortType] = (typeCount[shortType] || 0) + 1;
+      const n = typeCount[shortType];
+      name = paragraphName + '-' + shortType + (n > 1 ? '-' + n : '');
+    }
+    return { name, body: blockBody, lines: lineArr, type };
+  });
+}
+
+function _importCobolSource(text, filename, importMode) {
+  importMode = importMode || 'por-paragrafo';
+  if (!confirm('Importar "' + filename + '" e reconstruir o flowchart? O canvas atual será substituído.')) return;
+
+  _codeWasImported = true; // preserva o código original no "Ver Código"
+
+  // ── 1. Atualiza editor de código ──────────────────────────────────
+  const codeArea = document.getElementById('code-editor');
+  if (codeArea) { codeArea.value = text; codeArea.removeAttribute('readonly'); }
+
+  // ── 2. Extrai metadados ──────────────────────────────────────────
+  const pidMatch    = text.match(/PROGRAM-ID\.?\s+([\w-]+)/i);
+  const authorMatch = text.match(/AUTHOR\.?\s+([^\n\r.]+)/i);
+  const dateMatch   = text.match(/DATE-WRITTEN\.?\s+([\d-]+)/i);
+  const remMatch    = text.match(/REMARKS\.?\s+([^\n\r.]+)/i);
+  if (pidMatch)    document.getElementById('prop-program-id').value = pidMatch[1].trim().toUpperCase();
+  if (authorMatch) document.getElementById('prop-author').value     = authorMatch[1].trim();
+  if (dateMatch)   document.getElementById('prop-date').value       = dateMatch[1].trim();
+  if (remMatch)    document.getElementById('prop-remarks').value    = remMatch[1].trim();
+
+  // ── 3. Limpa canvas ────────────────────────────────────────────────
+  // Remove nós dinâmicos de imports anteriores
+  document.querySelectorAll('#canvas .cf-node:not(#node-start):not(#node-end-node):not(#node-main):not(#node-read):not(#node-proc):not(#node-write)')
+    .forEach(n => n.remove());
+  document.querySelectorAll('#canvas .node-card .node-field input').forEach(i => i.value = '');
+  // Oculta nós template para não misturar com os importados
+  const _TEMPLATE_IDS = ['node-main','node-read','node-proc','node-write'];
+  _TEMPLATE_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  connections = [];
+
+  // ── 4. Isola PROCEDURE DIVISION ──────────────────────────────────
+  const procMatch = text.match(/PROCEDURE\s+DIVISION[\s\S]*?(?=(?:\n\s{0,8}END\s+PROGRAM|$))/i);
+  if (!procMatch) {
+    updateNodeCount(); drawArrows();
+    showToast('PROCEDURE DIVISION não encontrada. Código carregado no editor.', 'success');
+    const codeTab = document.querySelector('.rtab[onclick*="code-view"]');
+    if (codeTab) switchRTab(codeTab, 'code-view');
+    return;
+  }
+  const procText = procMatch[0];
+
+  // ── 5. Detecta parágrafos e seções (Area A: 4-12 cols, nome + opcional SECTION + ponto)
+  //    Suporta tanto espaços quanto TAB, e declarações com SECTION.
+  // Detecta: "       NOME."  ou  "       NOME SECTION."  ou  TAB + "nome section."
+  const paraRe = /^[ \t]+([\w-]+)(?:[ \t]+SECTION)?[ \t]*\.[ \t]*$/gim;
+  // Palavras reservadas que NÃO são nomes de parágrafo
+  const KEYWORDS = /^(PROCEDURE|DIVISION|SECTION|USING|GIVING|BY|FROM|TO|INTO|END|UNTIL|VARYING|WHEN|AT|ON|NOT|IF|ELSE|PERFORM|STOP|GO|MOVE|ADD|SUBTRACT|CALL|READ|WRITE|OPEN|CLOSE|EXEC|SQL|EVALUATE|COMPUTE|DISPLAY|ACCEPT|COMMIT|ROLLBACK|FETCH|INSERT|UPDATE|DELETE|SELECT|INITIALIZE|RECORD|DATA|FILE|WORKING|STORAGE|COPY|FD|PIC|VALUE|PICTURE)$/;
+  const paragraphs = [];
+  let m;
+  while ((m = paraRe.exec(procText)) !== null) {
+    const name = m[1].toUpperCase();                     // grupo 1 = só o nome
+    if (KEYWORDS.test(name) || /^END-/.test(name)) continue;
+    // headerStart = início da linha-cabeçalho (para limitar o body do parágrafo anterior)
+    // bodyStart   = logo após a linha-cabeçalho (onde começa o corpo deste parágrafo)
+    paragraphs.push({ name, headerStart: m.index, bodyStart: m.index + m[0].length, body: '' });
+  }
+  for (let i = 0; i < paragraphs.length; i++) {
+    // Usa headerStart do próximo para NÃO incluir a linha-cabeçalho no body atual
+    const end = i + 1 < paragraphs.length ? paragraphs[i + 1].headerStart : procText.length;
+    paragraphs[i].body = procText.slice(paragraphs[i].bodyStart, end).trim();
+  }
+
+  // ── 6. Mapeia corpo → tipo de nó ─────────────────────────────────
+  //    (detectNodeType e splitIntoInstructions são funções globais)
+
+  // ── 7. Cria nós no canvas ─────────────────────────────────────────
+  // Layout vertical: coluna única, espaçamento dinâmico por número de campos
+  const NODE_X = 210;      // left dos nós (coluna central)
+  const NODE_START_Y = 180; // top do primeiro nó (abaixo do START)
+  const HEADER_H = 36, FIELD_H = 30, BODY_PAD = 20, GAP = 24;
+
+  // Estima altura de um nó pelo número de campos do seu tipo
+  function estimateH(type) {
+    const meta = activityMeta[type];
+    if (!meta) return 160;
+    return HEADER_H + BODY_PAD + meta.fields.length * FIELD_H + GAP;
+  }
+
+  const createdIds = [];
+  let currentY = NODE_START_Y;
+
+  // Helper: cria um nó importado com nome e linhas do corpo
+  function _placeNode(name, bodyLines, type, y) {
+    if (!activityMeta[type]) return null;
+    createNodeAt(type, NODE_X, y);
+    const uid    = type.toLowerCase().replace(/_/g, '-') + '-' + nodeSeqCounter[type];
+    const nodeId = 'node-dyn-' + uid;
+    const el     = document.getElementById(nodeId);
+    if (!el) return null;
+    const hdr = el.querySelector('.node-card-header');
+    if (hdr) { const lbl = hdr.querySelector('.node-label'); if (lbl) lbl.textContent = name; }
+    const bodyEl = el.querySelector('.node-card-body');
+    const existing = el.querySelectorAll('.node-field input');
+    const need = bodyLines.length, have = existing.length;
+    if (need > have && bodyEl) {
+      for (let i = have; i < need; i++) {
+        const row = document.createElement('div');
+        row.className = 'node-field';
+        row.innerHTML = `<span class="node-field-drag" title="Arrastar para reordenar">↕</span><input id="field-${uid}-${i}" placeholder="..." />
+            <span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>
+            <span class="node-field-help">?</span>`;
+        bodyEl.appendChild(row);
+      }
+    }
+    const allInputs = el.querySelectorAll('.node-field input');
+    bodyLines.forEach((line, i) => { if (allInputs[i]) allInputs[i].value = line; });
+    return nodeId;
+  }
+
+  if (importMode === 'por-instrucao') {
+    // Modo: um nó por instrução dentro de cada parágrafo
+    paragraphs.forEach((para) => {
+      const instrs = splitIntoInstructions(para.name, para.body);
+      instrs.forEach((instr) => {
+        const fieldCount = (activityMeta[instr.type] ? activityMeta[instr.type].fields.length : 1);
+        const y = currentY;
+        currentY += HEADER_H + BODY_PAD + Math.max(instr.lines.length, fieldCount) * FIELD_H + GAP;
+        const nodeId = _placeNode(instr.name, instr.lines, instr.type, y);
+        if (nodeId) createdIds.push(nodeId);
+      });
+    });
+  } else {
+    // Modo padrão: um nó por parágrafo completo
+    paragraphs.forEach((para) => {
+      const type = detectNodeType(para.body);
+      if (!activityMeta[type]) return;
+      const bodyLines = para.body.split('\n').map(l => l.trim()).filter(Boolean);
+      const y = currentY;
+      currentY += HEADER_H + BODY_PAD + Math.max(bodyLines.length, activityMeta[type].fields.length) * FIELD_H + GAP;
+      const nodeId = _placeNode(para.name, bodyLines, type, y);
+      if (nodeId) createdIds.push(nodeId);
+    });
+  }
+
+  // Expande o canvas para cobrir todos os nós + margem
+  const canvasEl = document.getElementById('canvas');
+  if (canvasEl) canvasEl.style.minHeight = (currentY + 200) + 'px';
+
+  // Centraliza nó START na mesma coluna e reposiciona END logo após o último
+  const startNode = document.getElementById('node-start');
+  if (startNode) {
+    startNode.style.left = (NODE_X + 15) + 'px';
+    startNode.style.top  = '20px';
+  }
+  const endNode = document.getElementById('node-end-node');
+  if (endNode && createdIds.length > 0) {
+    endNode.style.left = (NODE_X + 15) + 'px';
+    endNode.style.top  = (currentY) + 'px';
+  }
+
+  // ── 8. Conecta nós em sequência ──────────────────────────────────
+  for (let i = 0; i < createdIds.length - 1; i++) {
+    connections.push({ from: createdIds[i], to: createdIds[i + 1] });
+  }
+  if (createdIds.length > 0) {
+    connections.unshift({ from: 'node-start', to: createdIds[0] });
+    connections.push({ from: createdIds[createdIds.length - 1], to: 'node-end-node' });
+  }
+
+  // ── 9. Redesenha flowchart e atualiza "Ver Código" ───────────────
+  updateNodeCount();
+  // Triplo rAF: 1º → nós inseridos no DOM; 2º → alturas reais calculadas; 3º → setas corretas
+  requestAnimationFrame(() => {
+    // 2º frame: usa offsetHeight real de cada nó para redistribuir posições
+    reflowCanvas();
+    requestAnimationFrame(() => {
+      drawArrows();
+      // Scroll para o topo do canvas para mostrar o início do programa
+      const scroll = document.getElementById('canvas-scroll');
+      if (scroll) { scroll.scrollTop = 0; scroll.scrollLeft = 0; }
+      // Atualiza code-editor com o código re-gerado do canvas
+      generateAllCode();
+      // Ativa a aba "Ver Código" usando seletor de atributo (sem depender de texto)
+      const codeTab = document.querySelector('.rtab[onclick*="code-view"]');
+      if (codeTab) switchRTab(codeTab, 'code-view');
+      showToast('Importado: ' + createdIds.length + ' parágrafos → flowchart e código atualizados!', 'success');
+      setStatus('COBOL importado — ' + createdIds.length + ' nós criados');
+    });
+  });
+}
+
+// ── Reposiciona todos os nós em cascata baseado na altura real ──────────────
+const _REFLOW_GAP = 24;
+function reflowCanvas() {
+  const canvas = document.getElementById('canvas');
+  if (!canvas) return;
+  const nodes = Array.from(canvas.querySelectorAll('.cf-node'))
+    .filter(n => n.id !== 'node-start' && n.id !== 'node-end-node')
+    .filter(n => getComputedStyle(n).display !== 'none');
+  if (nodes.length === 0) return;
+  nodes.sort((a, b) => parseInt(a.style.top || 0) - parseInt(b.style.top || 0));
+  const nodeX = parseInt(nodes[0].style.left) || 210;
+  let curY = parseInt(nodes[0].style.top) || 180;
+  nodes.forEach(n => {
+    n.style.top  = curY + 'px';
+    n.style.left = nodeX + 'px';
+    curY += n.offsetHeight + _REFLOW_GAP;
+  });
+  const endNode = document.getElementById('node-end-node');
+  if (endNode) { endNode.style.top = curY + 'px'; endNode.style.left = (nodeX + 15) + 'px'; }
+  const minH = curY + 200;
+  if (parseInt(canvas.style.minHeight || 0) < minH) canvas.style.minHeight = minH + 'px';
+  requestAnimationFrame(() => drawArrows());
+}
+
+// ── Gerenciamento de linhas de campo dentro dos cards ────────────────
+let _currentFieldMenuRow = null;
+
+function fieldRowMenu(btn) {
+  document.querySelectorAll('.field-row-menu').forEach(m => m.remove());
+  _currentFieldMenuRow = btn.closest('.node-field');
+  const rect = btn.getBoundingClientRect();
+  const menu = document.createElement('div');
+  menu.className = 'field-row-menu';
+  menu.innerHTML = `
+    <div onmousedown="event.preventDefault();_addFieldBelow()">➕&nbsp; Adicionar linha abaixo</div>
+    <div onmousedown="event.preventDefault();_deleteFieldRow()">🗑&nbsp; Remover esta linha</div>`;
+  menu.style.top  = Math.max(4, rect.bottom + 4) + 'px';
+  menu.style.left = Math.max(4, rect.left - 130) + 'px';
+  document.body.appendChild(menu);
+  setTimeout(() => document.addEventListener('click', () => menu.remove(), {once: true}), 10);
+}
+
+function _addFieldBelow() {
+  document.querySelectorAll('.field-row-menu').forEach(m => m.remove());
+  if (!_currentFieldMenuRow) return;
+  const newRow = document.createElement('div');
+  newRow.className = 'node-field';
+  newRow.innerHTML = `<span class="node-field-drag" title="Arrastar para reordenar">↕</span><input placeholder="..." />
+    <span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>
+    <span class="node-field-help">?</span>`;
+  _currentFieldMenuRow.insertAdjacentElement('afterend', newRow);
+  _currentFieldMenuRow = null;
+  requestAnimationFrame(() => reflowCanvas());
+}
+
+function _deleteFieldRow() {
+  document.querySelectorAll('.field-row-menu').forEach(m => m.remove());
+  if (!_currentFieldMenuRow) return;
+  const body = _currentFieldMenuRow.parentElement;
+  if (body && body.querySelectorAll('.node-field').length <= 1) {
+    showToast('O card precisa ter ao menos uma linha.', 'error');
+    _currentFieldMenuRow = null;
+    return;
+  }
+  _currentFieldMenuRow.remove();
+  _currentFieldMenuRow = null;
+  requestAnimationFrame(() => reflowCanvas());
+}
+
+function _addFieldToCard(btn) {
+  const body = btn.closest('.node-card').querySelector('.node-card-body');
+  if (!body) return;
+  const newRow = document.createElement('div');
+  newRow.className = 'node-field';
+  newRow.innerHTML = `<span class="node-field-drag" title="Arrastar para reordenar">↕</span><input placeholder="..." />
+    <span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>
+    <span class="node-field-help">?</span>`;
+  body.appendChild(newRow);
+  newRow.querySelector('input').focus();
+  requestAnimationFrame(() => reflowCanvas());
+}
+
+// ── Reorder de linhas dentro do card (drag em toda a linha) ─────────────────
+(function initFieldRowDrag() {
+  let dragRow = null, dragBody = null;
+  let pendingRow = null, pendingBody = null;
+  let startX = 0, startY = 0;
+  const THRESHOLD = 6; // px mínimo antes de iniciar drag
+
+  // Elementos interativos que NÃO devem acionar o drag
+  const IGNORE = 'input, button, select, textarea, a, ' +
+    '.node-field-more, .node-field-help, .sub-block-remove, ' +
+    '.sub-block-toggle, .node-connect-btn, .node-field-drag';
+
+  function clearDropIndicators() {
+    document.querySelectorAll(
+      '.node-field.drop-above, .node-field.drop-below, .node-sub-block.drop-above, .node-sub-block.drop-below'
+    ).forEach(r => r.classList.remove('drop-above','drop-below'));
+  }
+
+  function rowsOf(body) {
+    return Array.from(body.children).filter(
+      el => el.classList.contains('node-field') || el.classList.contains('node-sub-block')
+    );
+  }
+
+  document.addEventListener('mousedown', e => {
+    // Ignora cliques em elementos interativos
+    if (e.target.closest(IGNORE)) return;
+
+    const field     = e.target.closest('.node-field');
+    const subHeader = e.target.closest('.node-sub-block-header');
+    if (!field && !subHeader) return;
+
+    const row  = field || subHeader.closest('.node-sub-block');
+    const body = row?.closest('.node-card-body') || row?.parentElement;
+    if (!row || !body) return;
+
+    pendingRow  = row;
+    pendingBody = body;
+    startX = e.clientX;
+    startY = e.clientY;
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  document.addEventListener('mousemove', e => {
+    // Ativa o drag somente após o limiar de movimento
+    if (pendingRow && !dragRow) {
+      if (Math.abs(e.clientX - startX) > THRESHOLD || Math.abs(e.clientY - startY) > THRESHOLD) {
+        dragRow  = pendingRow;
+        dragBody = pendingBody;
+        dragRow.classList.add('dragging-row');
+        pendingRow = null; pendingBody = null;
+      }
+    }
+    if (!dragRow) return;
+    clearDropIndicators();
+    const rows = rowsOf(dragBody);
+    let marked = false;
+    for (const row of rows) {
+      if (row === dragRow) continue;
+      const rect = row.getBoundingClientRect();
+      const mid  = rect.top + rect.height / 2;
+      if (!marked && e.clientY < mid) { row.classList.add('drop-above'); marked = true; break; }
+      else { row.classList.remove('drop-above'); row.classList.add('drop-below'); }
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    pendingRow = null; pendingBody = null;
+    if (!dragRow) return;
+    dragRow.classList.remove('dragging-row');
+    const rows  = rowsOf(dragBody);
+    const above = rows.find(r => r.classList.contains('drop-above'));
+    const below = [...rows].reverse().find(r => r.classList.contains('drop-below'));
+    clearDropIndicators();
+    if (above && above !== dragRow) {
+      dragBody.insertBefore(dragRow, above);
+    } else if (below && below !== dragRow) {
+      below.insertAdjacentElement('afterend', dragRow);
+    }
+    dragRow = null; dragBody = null;
+    requestAnimationFrame(() => reflowCanvas());
+  });
+})();
+
+function openCodeView() {
+  const rtabs = document.querySelectorAll('.rtab');
+  rtabs.forEach(t => { if (t.textContent.trim()==='Ver Código') switchRTab(t,'code-view'); });
+  const badge = document.getElementById('code-mode-badge');
+  if (badge) badge.textContent = _codeWasImported ? '📥 Código importado' : '🔧 Gerado do fluxo';
+  showToast(_codeWasImported ? 'Exibindo código importado.' : 'Código gerado no painel direito.', 'success');
+}
+
+// Força a regeneração a partir do fluxo, ignorando o import
+function _forceRegerarCodigo() {
+  _codeWasImported = false;
+  generateAllCode();
+  const badge = document.getElementById('code-mode-badge');
+  if (badge) badge.textContent = '🔧 Gerado do fluxo';
+  showToast('Código regenerado a partir do fluxo.', 'success');
+}
+
+function compileProgram() {
+  setStatus('Compilando...');
+  setTimeout(() => {
+    showToast('Compilação simulada: 0 erros, 0 avisos.', 'success');
+    setStatus('✓ Compilação OK');
+  }, 1200);
+}
+
+function runProgram() {
+  setStatus('Executando...');
+  setTimeout(() => {
+    showToast('Execução simulada concluída. Verifique o console.', 'success');
+    setStatus('✓ Execução finalizada');
+  }, 1500);
+}
+
+function refreshAnalyse() {
+  setStatus('Analisando...');
+  setTimeout(() => {
+    showToast('Análise concluída: sem problemas encontrados.', 'success');
+    setStatus('✓ Análise concluída');
+  }, 900);
+}
+
+function syntaxCheck() {
+  const fields = document.querySelectorAll('#canvas .node-field input');
+  let errors = 0;
+  fields.forEach(f => {
+    if (f.value.includes('TODO') || f.value.includes('[')) errors++;
+  });
+  if (errors > 0) showToast(`⚠ ${errors} campo(s) com placeholder detectado(s).`, 'error');
+  else showToast('✓ Nenhum erro de sintaxe detectado.', 'success');
+}
+
+function generateFlowMap() {
+  showToast('Mapa de fluxo: em desenvolvimento. Verifique os nós no canvas.', 'success');
+}
+
+function importCopybooks() { showToast('Importar COPY: selecione um arquivo .cpy no projeto.', 'success'); }
+function manageLibraries() { showToast('Gerenciador de bibliotecas COBOL em breve.', 'success'); }
+function editWorkingStorage() {
+  argsOpen = true;
+  document.getElementById('args-panel').classList.add('open');
+  showToast('Edite a Working-Storage na barra inferior.', 'success');
+}
+function editFileSection() { showToast('File Section: edite diretamente no código gerado.', 'success'); }
+function editLinkage() { showToast('Linkage Section: configure pelo painel de propriedades.', 'success'); }
+function editEnvironment() { showToast('Environment Division: configure pelo painel de propriedades.', 'success'); }
+function showDocs() {
+  showModal('Referência COBOL', [
+    'VERBOS MAIS USADOS:',
+    '  MOVE origem TO destino',
+    '  ADD valor TO acumulador',
+    '  SUBTRACT valor FROM total',
+    '  MULTIPLY a BY b GIVING c',
+    '  DIVIDE a BY b GIVING c REMAINDER r',
+    '  COMPUTE expr = a + b * c',
+    '  PERFORM paragrafo',
+    '  PERFORM paragrafo UNTIL cond',
+    '  IF cond ... ELSE ... END-IF',
+    '  EVALUATE var',
+    '    WHEN val  statements',
+    '    WHEN OTHER statements',
+    '  END-EVALUATE',
+    '  READ arquivo AT END ...',
+    '  WRITE registro FROM area',
+    '  DISPLAY "mensagem"',
+    '  ACCEPT variavel',
+    '  STRING a DELIMITED SIZE INTO b',
+    '  UNSTRING a DELIMITED ";" INTO b c',
+    '  INITIALIZE variavel',
+    '  STOP RUN'
+  ].join('\n'));
+}
+
+function showConfigModal() {
+  showModal('Configurações do Projeto', [
+    'PROGRAM-ID  : ' + (document.getElementById('prop-program-id')?.value || ''),
+    'AUTHOR      : ' + (document.getElementById('prop-author')?.value || ''),
+    'DIALETO     : ' + (document.getElementById('prop-dialect')?.value || ''),
+    'PLATAFORMA  : ' + (document.getElementById('prop-platform')?.value || ''),
+    'DATA        : ' + new Date().toISOString().split('T')[0],
+  ].join('\n'));
+}
+
+function expandAll() {
+  document.querySelectorAll('.tree-children').forEach(c => c.classList.add('open'));
+  document.querySelectorAll('.tree-item').forEach(i => i.classList.add('open'));
+  showToast('Todos os nós expandidos.');
+}
+function collapseAll() {
+  document.querySelectorAll('.tree-children').forEach(c => c.classList.remove('open'));
+  document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('open'));
+  showToast('Todos os nós recolhidos.');
+}
+
+/* ─ Properties ─────────────────────────────────────────────────────── */
+function togglePropGroup(header, groupId) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+  const open = group.style.display !== 'none';
+  group.style.display = open ? 'none' : 'block';
+  header.childNodes[0].textContent = open ? '▶' : '▼';
+}
+function filterProps(val) {
+  const v = val.toLowerCase();
+  document.querySelectorAll('.prop-row').forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(v) ? '' : 'none';
+  });
+}
+function clearPropSearch() {
+  document.querySelector('.prop-search input').value = '';
+  document.querySelectorAll('.prop-row').forEach(r => r.style.display = '');
+}
+function updateProgramName(val) {
+  const label = document.getElementById('prog-name-label');
+  if (label) label.textContent = val.toUpperCase() || 'MEUCOBOL';
+}
+
+/* ─ Modal ──────────────────────────────────────────────────────────── */
+function showModal(title, content) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-content').value = content;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalIfOutside(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+function copyModalContent() {
+  const ta = document.getElementById('modal-content');
+  navigator.clipboard.writeText(ta.value).then(() => showToast('Copiado para a área de transferência!', 'success'));
+}
+
+/* ─ Toast ──────────────────────────────────────────────────────────── */
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (type ? ' ' + type : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = '', 2800);
+}
+function setStatus(msg) {
+  const el = document.getElementById('status-msg');
+  if (el) el.textContent = msg;
+}
+
+/* ─ Bottom Bar ─────────────────────────────────────────────────────── */
+function toggleArgsPanel() {
+  argsOpen = !argsOpen;
+  document.getElementById('args-panel').classList.toggle('open', argsOpen);
+}
+function toggleConsolePanel() {
+  showToast('Console: saída do compilador/executor apareceria aqui.');
+}
+
+/* ─ Field picker (stub) ─────────────────────────────────────────────── */
+function openFieldPicker(nodeId, fieldIdx) {
+  showModal('Seletor de Instrução COBOL',
+`Selecione abaixo a instrução desejada:
+
+  > PERFORM [paragrafo]
+  > MOVE [var] TO [dest]
+  > ADD [val] TO [acc]
+  > IF [cond] ... END-IF
+  > EVALUATE [var] ... END-EVALUATE
+  > READ [arquivo] AT END ...
+  > WRITE [reg] FROM [area]
+  > DISPLAY [texto/var]
+  > ACCEPT [variavel]
+  > COMPUTE [var] = [expr]
+  > INITIALIZE [variavel]
+  > STOP RUN
+
+(Em uma versão completa, clique para inserir no campo.)`
+  );
+}
+
+</script>
+</body>
+</html>

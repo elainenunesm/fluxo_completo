@@ -1,0 +1,249 @@
+/* =================================================================
+   canvas.css — Área do canvas, nós do fluxograma, setas SVG,
+                botão de canvas e destaque de drag-over
+   ================================================================= */
+
+/* ── Canvas Area ─────────────────────────────────────────────────── */
+#canvas-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #e8e8e8;
+}
+
+#canvas-toolbar {
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--panel-border);
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+#canvas-toolbar label { color: #555; font-weight: 600; }
+
+.canvas-btn {
+  padding: 2px 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  background: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.canvas-btn:hover { background: #e8f0fd; border-color: var(--accent); }
+
+#canvas-scroll {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+#canvas {
+  min-width: 900px;
+  min-height: 800px;
+  width: 100%;
+  height: 100%;
+  background-color: var(--canvas-bg);
+  background-image:
+    linear-gradient(var(--canvas-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--canvas-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  position: relative;
+}
+
+/* Destaque ao arrastar item para o canvas */
+#canvas.drag-over {
+  outline: 2px dashed var(--accent);
+  outline-offset: -4px;
+}
+
+/* ── Nós do Flowchart ────────────────────────────────────────────── */
+.cf-node {
+  position: absolute;
+  user-select: none;
+}
+
+/* Nó Start (círculo verde) */
+.node-start {
+  width: 72px;
+  height: 72px;
+  background: var(--start-node);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(80, 180, 60, 0.35);
+  border: 3px solid #3d9e29;
+  transition: box-shadow 0.15s;
+}
+.node-start:hover { box-shadow: 0 4px 14px rgba(80, 180, 60, 0.5); }
+.node-start span  { color: #fff; font-size: 11px; font-weight: 700; margin-top: 2px; }
+
+/* Nó End (círculo vermelho) */
+.node-end {
+  width: 60px;
+  height: 60px;
+  background: #dc2626;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+  border: 3px solid #b91c1c;
+}
+.node-end span { color: #fff; font-size: 11px; font-weight: 700; }
+
+/* Card de atividade */
+.node-card {
+  width: 320px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  box-shadow: 0 2px 6px var(--card-shadow);
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  overflow: hidden;
+}
+.node-card:hover    { box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+.node-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+/* Cabeçalho do card — cor amarela padrão + variantes */
+.node-card-header {
+  background: var(--card-header-bg);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid #e0c060;
+}
+.node-card-header.blue   { background: #bfdbfe; border-bottom-color: #93c5fd; }
+.node-card-header.green  { background: #bbf7d0; border-bottom-color: #86efac; }
+.node-card-header.purple { background: #e9d5ff; border-bottom-color: #c4b5fd; }
+.node-card-header.orange { background: #fed7aa; border-bottom-color: #fdba74; }
+
+/* Corpo do card */
+.node-card-body {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Campo de instrução dentro do card */
+.node-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-size: 12px;
+}
+.node-field input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  background: transparent;
+  font-family: var(--font-mono);
+}
+.node-field-more {
+  padding: 2px 6px;
+  background: #eaeaea;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.node-field-help {
+  color: #888;
+  font-size: 13px;
+  cursor: help;
+}
+
+/* ── Setas SVG ───────────────────────────────────────────────────── */
+#arrows-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.arrow-path {
+  fill: none;
+  stroke: var(--arrow-color);
+  stroke-width: 2;
+  marker-end: url(#arrowhead);
+}
+
+/* ── Rótulo de seção (label flutuante no canvas) ─────────────────── */
+.section-label {
+  position: absolute;
+  background: rgba(255,255,255,0.85);
+  border: 1px dashed #bbb;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+}
+
+/* ── Botão de conexão de setas ───────────────────────────────────── */
+.node-connect-btn {
+  margin-left: auto;
+  margin-right: 4px;
+  padding: 1px 7px;
+  background: #dbeafe;
+  border: 1px solid #93c5fd;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1d4ed8;
+  cursor: crosshair;
+  line-height: 1;
+  transition: background 0.12s;
+}
+.node-connect-btn:hover {
+  background: #2563eb;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+
+/* Canvas em modo de conexão: cursor crosshair + borda de aviso */
+#canvas.connecting-mode {
+  cursor: crosshair;
+  outline: 2px dashed #2563eb;
+  outline-offset: -4px;
+}
+
+/* Nó de origem da conexão: borda azul pulsante */
+.cf-node.conn-source .node-card-header,
+.cf-node.conn-source .node-start,
+.cf-node.conn-source .node-end {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+  animation: pulse-connect 0.8s ease-in-out infinite alternate;
+}
+@keyframes pulse-connect {
+  from { box-shadow: 0 0 0 2px rgba(37,99,235,0.3); }
+  to   { box-shadow: 0 0 0 6px rgba(37,99,235,0.0); }
+}
