@@ -1024,44 +1024,89 @@
     #bottom-bar .bsep { color: rgba(255,255,255,0.25); }
     #bottom-bar .status-msg { color: #86efac; }
 
-    /* Arguments panel (togglable) */
-    #args-panel {
+    /* ── Painel inferior (Working Storage + Console) ── */
+    #bottom-panel {
       background: #12122a;
-      border-top: 1px solid #333;
+      border-top: 2px solid #2a2a4a;
       overflow: hidden;
       max-height: 0;
-      transition: max-height 0.25s ease;
+      transition: max-height 0.28s ease;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    #bottom-panel.open { max-height: 220px; }
+    #bottom-panel-tabs {
+      display: flex;
+      align-items: center;
+      background: #0e0e22;
+      border-bottom: 1px solid #2a2a4a;
+      padding: 0 8px;
+      gap: 2px;
       flex-shrink: 0;
     }
-    #args-panel.open { max-height: 160px; }
-    #args-panel-inner {
-      padding: 8px 12px;
-      overflow-y: auto;
-      max-height: 150px;
-    }
-    .args-table { width: 100%; border-collapse: collapse; font-size: 11px; color: #cdd6f4; }
-    .args-table th {
-      text-align: left;
-      padding: 3px 8px;
-      border-bottom: 1px solid #333;
+    .bp-tab {
+      padding: 4px 14px;
       font-size: 11px;
-      color: #888;
       font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      user-select: none;
     }
-    .args-table td {
-      padding: 3px 8px;
-      border-bottom: 1px solid #222;
+    .bp-tab.active { color: #89b4fa; border-bottom-color: #89b4fa; }
+    .bp-tab:hover:not(.active) { color: #cdd6f4; }
+    .bp-tab-spacer { flex: 1; }
+    .bp-tab-action {
+      font-size: 11px; color: #888; cursor: pointer; padding: 3px 8px;
+      border-radius: 3px; border: 1px solid #333;
     }
-    .args-table tr:hover td { background: rgba(255,255,255,0.05); }
+    .bp-tab-action:hover { color: #cdd6f4; border-color: #555; }
+    #bottom-panel-body { flex: 1; overflow: hidden; position: relative; }
+    .bp-pane { display: none; height: 100%; overflow-y: auto; }
+    .bp-pane.active { display: block; }
+    /* Working Storage */
+    #args-panel { display: contents; } /* compatibilidade */
+    #args-panel-inner { padding: 0; }
+    .args-table { width: 100%; border-collapse: collapse; font-size: 11px; color: #cdd6f4; }
+    .args-table thead tr { position: sticky; top: 0; z-index: 1; }
+    .args-table th {
+      text-align: left; padding: 4px 8px;
+      background: #0e0e22; border-bottom: 1px solid #2a2a4a;
+      font-size: 11px; color: #6c7086; font-weight: 600;
+    }
+    .args-table td { padding: 2px 6px; border-bottom: 1px solid #1a1a3a; }
+    .args-table tr:hover td { background: rgba(137,180,250,0.06); }
     .args-table td input {
-      background: transparent;
-      border: none;
-      color: #cdd6f4;
-      font-family: 'Consolas', monospace;
-      font-size: 11px;
-      width: 100%;
-      outline: none;
+      background: transparent; border: none; color: #cdd6f4;
+      font-family: 'Consolas', monospace; font-size: 11px;
+      width: 100%; outline: none; padding: 1px 2px;
     }
+    .args-table td input:focus { background: rgba(137,180,250,0.08); border-radius: 2px; }
+    .args-row-del {
+      background: none; border: none; color: #f38ba8; cursor: pointer;
+      font-size: 13px; padding: 0 4px; opacity: 0.5; line-height: 1;
+    }
+    .args-row-del:hover { opacity: 1; }
+    .args-add-row {
+      display: flex; padding: 4px 8px; gap: 6px;
+      border-top: 1px solid #2a2a4a; background: #0e0e22; flex-shrink: 0;
+    }
+    .args-add-btn {
+      font-size: 11px; padding: 2px 10px; border-radius: 3px;
+      border: 1px solid #333; background: #1a1a3a; color: #89b4fa; cursor: pointer;
+    }
+    .args-add-btn:hover { background: #2a2a4a; }
+    /* Console */
+    #console-log {
+      font-family: 'Consolas', monospace; font-size: 11px;
+      color: #a6e3a1; padding: 6px 12px; line-height: 1.6;
+      white-space: pre-wrap; min-height: 60px;
+    }
+    .cl-info  { color: #89b4fa; }
+    .cl-warn  { color: #f9e2af; }
+    .cl-error { color: #f38ba8; }
+    .cl-ok    { color: #a6e3a1; }
 
     /* ─── Modal ──────────────────────────────────────────────────── */
     #modal-overlay {
@@ -1266,7 +1311,7 @@
       <!-- Código COBOL -->
       <div class="ribbon-group">
         <div class="ribbon-buttons">
-          <button class="rbtn" onclick="generateAllCode()" title="Gerar Código COBOL">
+          <button class="rbtn" onclick="_gerarEVerCodigo()" title="Gerar Código COBOL">
             <span class="rbtn-icon">⚡</span>
             <span class="rbtn-label">Gerar<br>Código</span>
           </button>
@@ -1862,52 +1907,46 @@
 
   <!-- ═══ BOTTOM BAR ════════════════════════════════════════════════ -->
   <div id="bottom-bar">
-    <span class="bottom-label" onclick="toggleArgsPanel()">Argumentos</span>
+    <span class="bottom-label" onclick="toggleBottomPanel('ws')">Working Storage</span>
     <span class="bsep">|</span>
-    <span class="bottom-label" onclick="toggleConsolePanel()">Console</span>
+    <span class="bottom-label" onclick="toggleBottomPanel('console')">Console</span>
     <span class="bsep">|</span>
     <span class="status-msg" id="status-msg">✓ Pronto</span>
   </div>
 
-  <!-- Arguments Panel -->
-  <div id="args-panel">
-    <div id="args-panel-inner">
-      <table class="args-table">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Nível</th>
-            <th>PIC</th>
-            <th>Valor</th>
-          </tr>
-        </thead>
-        <tbody id="args-tbody">
-          <tr>
-            <td><input value="WS-CONTADOR" /></td>
-            <td><input value="01" style="width:40px" /></td>
-            <td><input value="PIC 9(4)" /></td>
-            <td><input value="ZEROS" /></td>
-          </tr>
-          <tr>
-            <td><input value="WS-NOME" /></td>
-            <td><input value="01" style="width:40px" /></td>
-            <td><input value="PIC X(40)" /></td>
-            <td><input value="SPACES" /></td>
-          </tr>
-          <tr>
-            <td><input value="WS-TIPO" /></td>
-            <td><input value="01" style="width:40px" /></td>
-            <td><input value="PIC X(1)" /></td>
-            <td><input value="SPACES" /></td>
-          </tr>
-          <tr>
-            <td><input value="WS-VALOR" /></td>
-            <td><input value="01" style="width:40px" /></td>
-            <td><input value="PIC 9(10)V99" /></td>
-            <td><input value="ZEROS" /></td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- Painel inferior unificado -->
+  <div id="bottom-panel">
+    <div id="bottom-panel-tabs">
+      <span class="bp-tab active" id="bp-tab-ws"    onclick="switchBPanel('ws')">Working Storage</span>
+      <span class="bp-tab"        id="bp-tab-console" onclick="switchBPanel('console')">Console</span>
+      <span class="bp-tab-spacer"></span>
+      <button class="bp-tab-action" onclick="_addWsRow()" id="bp-btn-add-ws">＋ Variável</button>
+      <button class="bp-tab-action" onclick="_clearConsole()" id="bp-btn-clear-con" style="display:none">🗑 Limpar</button>
+      <button class="bp-tab-action" style="margin-left:4px" onclick="closeBottomPanel()">✕</button>
+    </div>
+    <div id="bottom-panel-body">
+      <!-- Working Storage -->
+      <div class="bp-pane active" id="bp-pane-ws">
+        <div id="args-panel"><div id="args-panel-inner"></div></div>
+        <table class="args-table" style="width:100%">
+          <thead><tr>
+            <th style="width:32%">Nome</th>
+            <th style="width:10%">Nível</th>
+            <th style="width:28%">PIC</th>
+            <th style="width:24%">Valor</th>
+            <th style="width:28px"></th>
+          </tr></thead>
+          <tbody id="args-tbody"></tbody>
+        </table>
+        <div class="args-add-row">
+          <button class="args-add-btn" onclick="_addWsRow()">＋ Adicionar variável</button>
+        </div>
+      </div>
+      <!-- Console -->
+      <div class="bp-pane" id="bp-pane-console">
+        <div id="console-log"><span class="cl-info">▸ Console pronto.</span>
+</div>
+      </div>
     </div>
   </div>
 
@@ -1920,10 +1959,13 @@
     <textarea id="modal-content" spellcheck="false"></textarea>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal()">Fechar</button>
+      <button id="modal-save-btn" class="btn-primary" onclick="_saveModal()" style="display:none">💾 Salvar</button>
       <button class="btn-primary" onclick="copyModalContent()">📋 Copiar</button>
     </div>
   </div>
 </div>
+<!-- Input oculto para importar arquivos COPY -->
+<input type="file" id="copy-file-input" accept=".cpy,.cbl,.txt,.copy" style="display:none" onchange="_onCopyFileSelected(event)">
 
 <!-- ═══ TOAST ════════════════════════════════════════════════════════ -->
 <div id="toast"></div>
@@ -3637,6 +3679,7 @@ function newProgram() {
   _importedPreamble = null;
   try { localStorage.removeItem(_LS_KEY); } catch(e) {}
   document.querySelectorAll('#canvas .cf-node:not(#node-start):not(#node-end-node)').forEach(n => n.remove());
+  const tb = document.getElementById('args-tbody'); if (tb) tb.innerHTML = '';
   document.getElementById('prop-program-id').value = 'NOVOPROG';
   updateNodeCount(); drawArrows();
   refreshProjectTree();
@@ -3653,6 +3696,16 @@ function saveProgram() {
   a.click();
   showToast('Código COBOL salvo!', 'success');
   setStatus('Arquivo .CBL salvo');
+}
+function exportCode() { saveProgram(); }
+
+function _gerarEVerCodigo() {
+  generateAllCode();
+  _renderCodeHighlight();
+  const tab = document.querySelector('.rtab[onclick*="code-view"]');
+  if (tab) switchRTab(tab, 'code-view');
+  const lines = (document.getElementById('code-editor')?.value || '').split('\n').length;
+  showToast(`✓ Código gerado — ${lines} linhas.`, 'success');
 }
 
 /* ── Salvar/Importar Projeto (JSON) ─────────────────────────── */
@@ -4432,88 +4485,285 @@ function _codeGoto(lineIdx) {
 }
 
 function compileProgram() {
-  setStatus('Compilando...');
-  setTimeout(() => {
-    showToast('Compilação simulada: 0 erros, 0 avisos.', 'success');
-    setStatus('✓ Compilação OK');
-  }, 1200);
+  setStatus('Verificando código...');
+  const code = document.getElementById('code-editor')?.value || '';
+  if (!code.trim()) { _logConsole('⚠ Gere o código primeiro ("Gerar Código").', 'warn'); return; }
+  const errs = [];
+  const lines = code.split('\n');
+  const ifCount   = (code.match(/\bIF\b/gi)           || []).length;
+  const endIfCnt  = (code.match(/\bEND-IF\b/gi)       || []).length;
+  if (ifCount > endIfCnt)  errs.push(`${ifCount - endIfCnt} IF sem END-IF`);
+  const evCnt    = (code.match(/\bEVALUATE\b/gi)      || []).length;
+  const endEvCnt = (code.match(/\bEND-EVALUATE\b/gi)  || []).length;
+  if (evCnt > endEvCnt)    errs.push(`${evCnt - endEvCnt} EVALUATE sem END-EVALUATE`);
+  const perfUntil = (code.match(/\bPERFORM\s+(?:\w[\w-]*\s+)?UNTIL\b/gi) || []).length;
+  const endPerf   = (code.match(/\bEND-PERFORM\b/gi)  || []).length;
+  if (perfUntil > endPerf) errs.push(`${perfUntil - endPerf} PERFORM UNTIL sem END-PERFORM`);
+  const placeholders = (code.match(/\[[^\]]+\]/g) || []).length;
+  if (placeholders)        errs.push(`${placeholders} placeholder(s) não preenchido(s)`);
+  const paraCount = (code.match(/^\s+[\w-]+\.\s*$/gm) || []).filter(l => !/DIVISION|SECTION/.test(l)).length;
+  _logConsole(`▸ Verificação — ${lines.length} linhas, ${paraCount} parágrafos`, 'info');
+  if (errs.length) {
+    errs.forEach(e => _logConsole('  ⚠ ' + e, 'warn'));
+    _logConsole(`Resultado: ${errs.length} problema(s)`, 'warn');
+    setStatus(`⚠ ${errs.length} problema(s)`);
+  } else {
+    _logConsole('✓ Código OK — nenhum problema estrutural.', 'ok');
+    setStatus('✓ Código OK');
+  }
 }
 
 function runProgram() {
-  setStatus('Executando...');
-  setTimeout(() => {
-    showToast('Execução simulada concluída. Verifique o console.', 'success');
-    setStatus('✓ Execução finalizada');
-  }, 1500);
+  const code = document.getElementById('code-editor')?.value || '';
+  if (!code.trim()) { _logConsole('⚠ Gere o código primeiro.', 'warn'); return; }
+  const pid = document.getElementById('prop-program-id')?.value || 'MEUCOBOL';
+  _logConsole(`▸ Execução simulada: ${pid.toUpperCase()}`, 'info');
+  _logConsole('  Ambiente web — execução real requer mainframe IBM z/OS', 'info');
+  _logConsole('  1. Exporte o .CBL  2. Transfira via FTP/SFTP  3. Compile com IGYCRCTL', 'info');
+  setStatus(`▸ ${pid.toUpperCase()} pronto para submissão`);
 }
 
 function refreshAnalyse() {
-  setStatus('Analisando...');
-  setTimeout(() => {
-    showToast('Análise concluída: sem problemas encontrados.', 'success');
-    setStatus('✓ Análise concluída');
-  }, 900);
+  generateAllCode();
+  _renderCodeHighlight();
+  const nodes  = document.querySelectorAll('#canvas .node-card').length;
+  const conns  = connections.length;
+  let unfilled = 0;
+  document.querySelectorAll('#canvas .node-field input').forEach(i => { if (!i.value.trim() || i.value.includes('[')) unfilled++; });
+  const orphans = Array.from(document.querySelectorAll('#canvas .node-card')).filter(n =>
+    !connections.some(c => c.from === n.id || c.to === n.id)).length;
+  const codeLines = (document.getElementById('code-editor')?.value || '').split('\n').length;
+  _logConsole(`▸ Análise — ${nodes} blocos, ${conns} setas, ${codeLines} linhas de código`, 'info');
+  if (unfilled)  _logConsole(`  ⚠ ${unfilled} campo(s) não preenchido(s)`, 'warn');
+  if (orphans)   _logConsole(`  ⚠ ${orphans} bloco(s) sem seta conectada`, 'warn');
+  if (!unfilled && !orphans) _logConsole('✓ Nenhum problema detectado.', 'ok');
+  setStatus(`✓ ${nodes} nós · ${conns} conexões`);
 }
 
 function syntaxCheck() {
-  const fields = document.querySelectorAll('#canvas .node-field input');
-  let errors = 0;
-  fields.forEach(f => {
-    if (f.value.includes('TODO') || f.value.includes('[')) errors++;
-  });
-  if (errors > 0) showToast(`⚠ ${errors} campo(s) com placeholder detectado(s).`, 'error');
-  else showToast('✓ Nenhum erro de sintaxe detectado.', 'success');
+  compileProgram();
 }
 
 function generateFlowMap() {
-  showToast('Mapa de fluxo: em desenvolvimento. Verifique os nós no canvas.', 'success');
+  // Zoom-to-fit: centraliza e mostra todos os nós
+  const scroll = document.getElementById('canvas-scroll');
+  const canvas = document.getElementById('canvas');
+  if (!scroll || !canvas) { showToast('Canvas não encontrado.', 'error'); return; }
+  const nodes = Array.from(document.querySelectorAll('#canvas .cf-node'));
+  if (!nodes.length) { showToast('Nenhum nó no canvas.', 'error'); return; }
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  nodes.forEach(n => {
+    const x = parseInt(n.style.left) || 0;
+    const y = parseInt(n.style.top)  || 0;
+    const w = n.offsetWidth  || 120;
+    const h = n.offsetHeight || 40;
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x + w > maxX) maxX = x + w;
+    if (y + h > maxY) maxY = y + h;
+  });
+  scroll.scrollLeft = Math.max(0, minX - 40);
+  scroll.scrollTop  = Math.max(0, minY - 40);
+  showToast(`Mapa de fluxo: ${nodes.length} nós visíveis.`, 'success');
+  setStatus(`Mapa de fluxo — ${nodes.length} nós`);
 }
 
-function importCopybooks() { showToast('Importar COPY: selecione um arquivo .cpy no projeto.', 'success'); }
-function manageLibraries() { showToast('Gerenciador de bibliotecas COBOL em breve.', 'success'); }
+
+let _customFileSect    = null;  // null = usa template padrão
+let _customLinkageSect = null;  // null = não inclui LINKAGE SECTION
+let _customEnvSect     = null;  // null = usa template padrão
+
+// Modal com callback de salvar opcional
+let _modalSaveFn = null;
+function _showModalEditable(title, content, saveFn) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-content').value = content;
+  _modalSaveFn = saveFn || null;
+  const btn = document.getElementById('modal-save-btn');
+  if (btn) btn.style.display = _modalSaveFn ? '' : 'none';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function _saveModal() {
+  if (_modalSaveFn) _modalSaveFn(document.getElementById('modal-content').value);
+  closeModal();
+}
+
+function importCopybooks() {
+  document.getElementById('copy-file-input').value = '';
+  document.getElementById('copy-file-input').click();
+}
+function _onCopyFileSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const content = ev.target.result;
+    const name = file.name.replace(/\.[^.]+$/, '').toUpperCase();
+    _showModalEditable(
+      'Importar COPY: ' + file.name,
+      content,
+      function(val) {
+        // Adiciona COPY ao preamble (WORKING-STORAGE) se possível
+        if (_importedPreamble) {
+          const copyLine = '\n       COPY ' + name + '.';
+          _importedPreamble = _importedPreamble.replace(
+            /(WORKING-STORAGE\s+SECTION\.)/i,
+            '$1' + copyLine
+          );
+        }
+        showToast('COPY ' + name + ' importado.', 'success');
+        generateAllCode();
+        _renderCodeHighlight();
+      }
+    );
+  };
+  reader.readAsText(file);
+}
+
+function manageLibraries() {
+  const code = document.getElementById('code-editor')?.value || '';
+  const copies = [];
+  const re = /\bCOPY\s+([\w-]+)/gi;
+  let m;
+  while ((m = re.exec(code)) !== null) copies.push('  COPY ' + m[1].toUpperCase() + '.');
+  const content = copies.length
+    ? 'COPYBOOKs referenciados no programa:\n\n' + copies.join('\n')
+    : 'Nenhum COPY encontrado no código atual.\n\nDica: Use "Import COPY" para adicionar um arquivo .cpy.';
+  showModal('Biblioteca de COPYs', content);
+}
+
 function editWorkingStorage() {
-  argsOpen = true;
-  document.getElementById('args-panel').classList.add('open');
+  toggleBottomPanel('ws');
   showToast('Edite a Working-Storage na barra inferior.', 'success');
 }
-function editFileSection() { showToast('File Section: edite diretamente no código gerado.', 'success'); }
-function editLinkage() { showToast('Linkage Section: configure pelo painel de propriedades.', 'success'); }
-function editEnvironment() { showToast('Environment Division: configure pelo painel de propriedades.', 'success'); }
+
+function editFileSection() {
+  let content = _customFileSect;
+  if (!content) {
+    const code = document.getElementById('code-editor')?.value || '';
+    const m = code.match(/FILE\s+SECTION\.[\s\S]*?(?=\n[ \t]*(?:WORKING-STORAGE|LINKAGE|PROCEDURE|LOCAL-STORAGE)\s+(?:SECTION|DIVISION)|$)/i);
+    content = m ? m[0].trimEnd() : '       FILE SECTION.\n       FD  ARQ-ENTRADA  RECORDING MODE IS F\n                        BLOCK CONTAINS 0 RECORDS\n                        RECORD CONTAINS 80 CHARACTERS.\n       01  REG-ENTRADA.\n           05  RE-TIPO    PIC X(1).\n           05  RE-DADOS   PIC X(79).';
+  }
+  _showModalEditable('Editar FILE SECTION', content, function(val) {
+    _customFileSect = val.trim();
+    generateAllCode();
+    _renderCodeHighlight();
+    showToast('File Section atualizada.', 'success');
+  });
+}
+
+function editLinkage() {
+  const content = _customLinkageSect ||
+    '       LINKAGE SECTION.\n       01  LS-PARM.\n           05  LS-PARM-LEN  PIC S9(4) COMP.\n           05  LS-PARM-DAT  PIC X(100).';
+  _showModalEditable('Editar LINKAGE SECTION', content, function(val) {
+    _customLinkageSect = val.trim();
+    generateAllCode();
+    _renderCodeHighlight();
+    showToast('Linkage Section atualizada.', 'success');
+  });
+}
+
+function editEnvironment() {
+  let content = _customEnvSect;
+  if (!content) {
+    const code = document.getElementById('code-editor')?.value || '';
+    const m = code.match(/ENVIRONMENT\s+DIVISION\.[\s\S]*?(?=\n[ \t]*DATA\s+DIVISION|\n[ \t]*PROCEDURE\s+DIVISION|$)/i);
+    content = m ? m[0].trimEnd()
+      : '       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. IBM-ZOS.\n       OBJECT-COMPUTER. IBM-ZOS.\n\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT ARQ-ENTRADA ASSIGN TO ENTRADA\n               ORGANIZATION IS SEQUENTIAL\n               FILE STATUS  IS WS-STATUS-ENT.';
+  }
+  _showModalEditable('Editar ENVIRONMENT DIVISION', content, function(val) {
+    _customEnvSect = val.trim();
+    generateAllCode();
+    _renderCodeHighlight();
+    showToast('Environment Division atualizada.', 'success');
+  });
+}
+
 function showDocs() {
-  showModal('Referência COBOL', [
-    'VERBOS MAIS USADOS:',
-    '  MOVE origem TO destino',
-    '  ADD valor TO acumulador',
-    '  SUBTRACT valor FROM total',
+  showModal('Referência Rápida COBOL', [
+    '╔══════════════════════════════════════╗',
+    '║  REFERÊNCIA RÁPIDA — IBM COBOL/zOS   ║',
+    '╚══════════════════════════════════════╝',
+    '',
+    '── ARITMÉTICA ─────────────────────────',
+    '  MOVE valor TO var',
+    '  ADD a TO b',
+    '  SUBTRACT a FROM b',
     '  MULTIPLY a BY b GIVING c',
     '  DIVIDE a BY b GIVING c REMAINDER r',
-    '  COMPUTE expr = a + b * c',
+    '  COMPUTE x = a + b * c',
+    '',
+    '── CONTROLE DE FLUXO ──────────────────',
     '  PERFORM paragrafo',
     '  PERFORM paragrafo UNTIL cond',
-    '  IF cond ... ELSE ... END-IF',
+    '  PERFORM VARYING i FROM 1 BY 1 UNTIL i > n',
+    '  GO TO paragrafo',
+    '  STOP RUN',
+    '  GOBACK',
+    '',
+    '── CONDICIONAIS ───────────────────────',
+    '  IF cond',
+    '    statements',
+    '  ELSE',
+    '    statements',
+    '  END-IF',
+    '',
     '  EVALUATE var',
-    '    WHEN val  statements',
+    '    WHEN "A"  statements',
     '    WHEN OTHER statements',
     '  END-EVALUATE',
-    '  READ arquivo AT END ...',
-    '  WRITE registro FROM area',
-    '  DISPLAY "mensagem"',
-    '  ACCEPT variavel',
+    '',
+    '── ARQUIVOS ───────────────────────────',
+    '  OPEN INPUT arq',
+    '  READ arq INTO ws-area',
+    '    AT END MOVE "S" TO ws-fim',
+    '  END-READ',
+    '  WRITE reg FROM ws-area',
+    '  CLOSE arq',
+    '',
+    '── STRINGS ────────────────────────────',
     '  STRING a DELIMITED SIZE INTO b',
     '  UNSTRING a DELIMITED ";" INTO b c',
-    '  INITIALIZE variavel',
-    '  STOP RUN'
+    '  INSPECT var TALLYING cnt FOR ALL "X"',
+    '',
+    '── DB2 (EXEC SQL) ─────────────────────',
+    '  EXEC SQL SELECT col INTO :ws-var',
+    '    FROM tabela WHERE chave = :ws-chave',
+    '  END-EXEC',
+    '  EXEC SQL COMMIT END-EXEC',
   ].join('\n'));
 }
 
 function showConfigModal() {
-  showModal('Configurações do Projeto', [
-    'PROGRAM-ID  : ' + (document.getElementById('prop-program-id')?.value || ''),
-    'AUTHOR      : ' + (document.getElementById('prop-author')?.value || ''),
-    'DIALETO     : ' + (document.getElementById('prop-dialect')?.value || ''),
-    'PLATAFORMA  : ' + (document.getElementById('prop-platform')?.value || ''),
-    'DATA        : ' + new Date().toISOString().split('T')[0],
-  ].join('\n'));
+  const pid      = document.getElementById('prop-program-id')?.value || '';
+  const author   = document.getElementById('prop-author')?.value || '';
+  const date     = document.getElementById('prop-date')?.value || '';
+  const remarks  = document.getElementById('prop-remarks')?.value || '';
+  const dialect  = document.getElementById('prop-dialect')?.value || '';
+  const content  = [
+    'PROGRAM-ID   = ' + pid,
+    'AUTHOR       = ' + author,
+    'DATE-WRITTEN = ' + date,
+    'REMARKS      = ' + remarks,
+    'DIALETO      = ' + dialect,
+    '',
+    '── Edite os valores acima e clique Salvar. ──',
+    '   O formato esperado é: CAMPO = VALOR',
+  ].join('\n');
+  _showModalEditable('Configurações do Projeto', content, function(val) {
+    const get = (key) => { const m = val.match(new RegExp(key + '\\s*=\\s*(.+)')); return m ? m[1].trim() : null; };
+    const pid2     = get('PROGRAM-ID');
+    const author2  = get('AUTHOR');
+    const date2    = get('DATE-WRITTEN');
+    const remarks2 = get('REMARKS');
+    if (pid2)     { const el = document.getElementById('prop-program-id');  if (el) el.value = pid2.toUpperCase(); }
+    if (author2)  { const el = document.getElementById('prop-author');       if (el) el.value = author2; }
+    if (date2)    { const el = document.getElementById('prop-date');         if (el) el.value = date2; }
+    if (remarks2) { const el = document.getElementById('prop-remarks');      if (el) el.value = remarks2; }
+    generateAllCode();
+    _renderCodeHighlight();
+    showToast('Configurações salvas.', 'success');
+  });
 }
 
 function expandAll() {
@@ -4606,13 +4856,63 @@ function _updateLoadingProgress(done, total, nodeCount) {
   }
 }
 
-/* ─ Bottom Bar ─────────────────────────────────────────────────────── */
-function toggleArgsPanel() {
-  argsOpen = !argsOpen;
-  document.getElementById('args-panel').classList.toggle('open', argsOpen);
+/* ─ Bottom Panel ───────────────────────────────────────────────────── */
+let _bottomPanelOpen = false;
+let _bottomPanelTab  = 'ws';
+
+function toggleBottomPanel(tab) {
+  if (_bottomPanelOpen && _bottomPanelTab === tab) {
+    closeBottomPanel();
+  } else {
+    _bottomPanelOpen = true;
+    switchBPanel(tab);
+    document.getElementById('bottom-panel').classList.add('open');
+  }
 }
-function toggleConsolePanel() {
-  showToast('Console: saída do compilador/executor apareceria aqui.');
+function closeBottomPanel() {
+  _bottomPanelOpen = false;
+  document.getElementById('bottom-panel').classList.remove('open');
+}
+function switchBPanel(tab) {
+  _bottomPanelTab = tab;
+  document.querySelectorAll('.bp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.bp-pane').forEach(p => p.classList.remove('active'));
+  const tabEl  = document.getElementById('bp-tab-' + tab);
+  const paneEl = document.getElementById('bp-pane-' + tab);
+  if (tabEl)  tabEl.classList.add('active');
+  if (paneEl) paneEl.classList.add('active');
+  document.getElementById('bp-btn-add-ws').style.display    = (tab === 'ws')      ? '' : 'none';
+  document.getElementById('bp-btn-clear-con').style.display = (tab === 'console') ? '' : 'none';
+}
+/* toggleArgsPanel mantido para compatibilidade */
+function toggleArgsPanel() { toggleBottomPanel('ws'); }
+function toggleConsolePanel() { toggleBottomPanel('console'); }
+
+function _addWsRow(name, level, pic, val) {
+  const tbody = document.getElementById('args-tbody');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input value="${name||'WS-VAR'}" oninput="generateAllCode()" /></td>
+    <td><input value="${level||'01'}" style="width:40px" oninput="generateAllCode()" /></td>
+    <td><input value="${pic||'PIC X(10)'}" oninput="generateAllCode()" /></td>
+    <td><input value="${val||'SPACES'}" oninput="generateAllCode()" /></td>
+    <td><button class="args-row-del" onclick="this.closest('tr').remove();generateAllCode()" title="Remover">✕</button></td>`;
+  tbody.appendChild(tr);
+  toggleBottomPanel('ws');
+}
+function _clearConsole() {
+  const log = document.getElementById('console-log');
+  if (log) log.innerHTML = '<span class="cl-info">▸ Console limpo.</span>\n';
+}
+function _logConsole(msg, type) {
+  const log = document.getElementById('console-log');
+  if (!log) return;
+  const cls = type === 'error' ? 'cl-error' : type === 'warn' ? 'cl-warn' : type === 'ok' ? 'cl-ok' : 'cl-info';
+  const ts = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  log.innerHTML += `<span class="${cls}">[${ts}] ${msg}</span>\n`;
+  log.scrollTop = log.scrollHeight;
+  if (!_bottomPanelOpen || _bottomPanelTab !== 'console') toggleBottomPanel('console');
 }
 
 /* ─ Field picker (stub) ─────────────────────────────────────────────── */
