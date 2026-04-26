@@ -733,6 +733,8 @@
     .sub-block-label  { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .sub-block-remove { color: #c00; cursor: pointer; font-size: 12px; padding: 0 2px; }
     .sub-block-remove:hover { color: #900; }
+    .sub-block-eject { color: #555; cursor: pointer; font-size: 11px; padding: 0 3px; title: 'Tirar do grupo'; }
+    .sub-block-eject:hover { color: var(--accent); }
     .node-sub-block.collapsed .sub-block-toggle { display: inline-block; transform: rotate(-90deg); }
     .node-sub-block.collapsed .node-sub-block-body { display: none; }
     /* Drag handle do sub-bloco */
@@ -1371,18 +1373,7 @@
             <span class="tree-label">Dependências do Projeto</span>
           </div>
           <div class="tree-children open" id="tree-deps">
-            <div class="tree-item" style="padding-left:24px" onclick="selectTreeItem(this)">
-              <span class="tree-icon">📋</span>
-              <span class="tree-label">COPY.CLIENTE</span>
-            </div>
-            <div class="tree-item" style="padding-left:24px" onclick="selectTreeItem(this)">
-              <span class="tree-icon">📋</span>
-              <span class="tree-label">COPY.PRODUTO</span>
-            </div>
-            <div class="tree-item" style="padding-left:24px" onclick="selectTreeItem(this)">
-              <span class="tree-icon">📋</span>
-              <span class="tree-label">COPY.PEDIDO</span>
-            </div>
+            <div class="tree-item" style="padding-left:24px;color:#aaa;font-style:italic;font-size:11px"><span class="tree-label">— nenhuma —</span></div>
           </div>
 
           <div class="tree-item open" onclick="toggleTree(this,'tree-prog')">
@@ -1450,26 +1441,7 @@
               <span class="tree-label">PROCEDURE DIVISION</span>
             </div>
             <div class="tree-children open" id="tree-proc">
-              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'main-para-props')" id="tree-main-para">
-                <span class="tree-icon">▶️</span>
-                <span class="tree-label">0000-MAIN</span>
-              </div>
-              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'read-props')">
-                <span class="tree-icon">📖</span>
-                <span class="tree-label">1000-LER-DADOS</span>
-              </div>
-              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'proc-props')">
-                <span class="tree-icon">⚙️</span>
-                <span class="tree-label">2000-PROCESSAR</span>
-              </div>
-              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'write-props')">
-                <span class="tree-icon">💾</span>
-                <span class="tree-label">3000-GRAVAR</span>
-              </div>
-              <div class="tree-item" style="padding-left:32px" onclick="selectTreeItem(this,'end-props')">
-                <span class="tree-icon">🔚</span>
-                <span class="tree-label">9999-FIM</span>
-              </div>
+              <div class="tree-item" style="padding-left:32px;color:#aaa;font-style:italic;font-size:11px"><span class="tree-label">— vazio —</span></div>
             </div>
           </div>
         </div><!-- /project-tab-content -->
@@ -1511,6 +1483,9 @@
               </div>
               <div class="activity-item" draggable="true" data-type="GO_TO" ondragstart="onDragStart(event,'GO_TO')">
                 <span class="act-icon">&#8618;</span> GO TO
+              </div>
+              <div class="activity-item" draggable="true" data-type="GO_BACK" ondragstart="onDragStart(event,'GO_BACK')">
+                <span class="act-icon">&#8617;</span> GO BACK
               </div>
             </div>
 
@@ -2013,13 +1988,9 @@ function switchRTab(tab, contentId) {
   const target = document.getElementById(contentId);
   if (target) { target.classList.add('visible'); target.style.display = ''; }
   if (contentId === 'code-view') {
-    if (_codeWasImported) {
-      const ca = document.getElementById('code-editor');
-      if (ca) ca.removeAttribute('readonly');
-    } else {
-      generateAllCode();
-    }
-    _renderCodeHighlight();
+    generateAllCode();
+    // Highlight adiado: não bloqueia importação
+    requestAnimationFrame(_renderCodeHighlight);
   }
 }
 function switchCanvas(tab, name) {
@@ -2371,6 +2342,7 @@ const activityMeta = {
   PERFORM_UNTIL: { icon:'🔂', label:'PERFORM UNTIL',   color:'blue',   fields:['PERFORM [paragrafo]','  UNTIL WS-FIM = "S"'] },
   PERFORM_VARYING:{ icon:'🔃', label:'PERFORM VARYING', color:'blue',  fields:['PERFORM VARYING WS-CTR FROM 1 BY 1','  UNTIL WS-CTR > WS-TOTAL','    PERFORM [paragrafo]','END-PERFORM'] },
   GO_TO:         { icon:'↪️', label:'GO TO',           color:'red',    fields:['GO TO [paragrafo]'] },
+  GO_BACK:       { icon:'↩️', label:'GO BACK',          color:'red',    fields:['GO BACK'] },
   STOP_RUN:      { icon:'⏹️', label:'STOP RUN',        color:'red',    fields:['STOP RUN'] },
   /* ── String ── */
   STRING_OP:     { icon:'🔤', label:'STRING',        color:'blue',   fields:['STRING WS-A DELIMITED SIZE','  INTO WS-DESTINO','END-STRING'] },
@@ -2487,8 +2459,13 @@ function _removeNodeCard(btn) {
   const nodeLblEl = card.querySelector('.node-label');
   const nodeName  = nodeLblEl ? nodeLblEl.textContent.trim() : '';
 
-  // Limpa as setas que envolvem este nó
+  // Redireciona setas: se A→este→C, cria A→C
+  const prevConn = connections.find(c => c.to   === id);
+  const nextConn = connections.find(c => c.from === id);
   connections = connections.filter(c => c.from !== id && c.to !== id);
+  if (prevConn && nextConn) {
+    connections.push({ from: prevConn.from, to: nextConn.to });
+  }
 
   // Remove linhas de outros cards que referenciam este bloco (PERFORM, GO TO, etc.)
   if (nodeName) {
@@ -2497,13 +2474,11 @@ function _removeNodeCard(btn) {
       otherCard.querySelectorAll('.node-card-body .node-field').forEach(row => {
         const inp = row.querySelector('input');
         if (inp && inp.value.includes(nodeName)) {
-          // Se o card ficaria vazio, não remove (mantém ao menos 1 linha)
           const body = row.parentElement;
           if (body && body.querySelectorAll('.node-field').length > 1) {
             row.remove();
             _styleNodeFields(otherCard);
           } else {
-            // Apenas limpa o conteúdo da linha se for a única
             inp.value = '';
             _styleNodeFields(otherCard);
           }
@@ -2523,6 +2498,8 @@ function _removeNodeCard(btn) {
   card.remove();
   updateNodeCount();
   drawArrows();
+  generateAllCode();
+  _renderCodeHighlight();
 }
 
 // Ao deletar uma linha que referencia outro card (ex: PERFORM INI-RTN-1),
@@ -2833,25 +2810,9 @@ function makeDraggable(el) {
   });
 }
 
-// Insere card na posição entre cards e atualiza conexões
+// Reposiciona card visualmente — NÃO cria conexões automáticas.
+// Conexões só são criadas pelo botão → (startConnect/finishConnect).
 function reorderCard(card, insertAfterNode) {
-  const cardId = card.id;
-  // Conexão antiga: prev → card → next
-  const oldPrev = connections.find(c => c.to   === cardId);
-  const oldNext = connections.find(c => c.from === cardId);
-  // Remove conexões do card
-  connections = connections.filter(c => c.from !== cardId && c.to !== cardId);
-  // Reconecta: prev → next (bypass do card removido)
-  if (oldPrev && oldNext) connections.push({ from: oldPrev.from, to: oldNext.to });
-  else if (oldPrev && !oldNext) { /* era o último, deixa sem */ }
-  else if (!oldPrev && oldNext) { /* era o primeiro, deixa sem */ }
-  // Nova posição: depois de insertAfterNode (ou antes de todos se null)
-  const newPrevId = insertAfterNode ? insertAfterNode.id : 'node-start';
-  const splitConn = connections.find(c => c.from === newPrevId);
-  const newNextId = splitConn ? splitConn.to : null;
-  if (splitConn) connections = connections.filter(c => c !== splitConn);
-  connections.push({ from: newPrevId, to: cardId });
-  if (newNextId) connections.push({ from: cardId, to: newNextId });
   requestAnimationFrame(() => { reflowCanvas(); drawArrows(); });
 }
 
@@ -2881,6 +2842,9 @@ function nestCardInto(srcCard, dstCard) {
       <span class="node-sub-block-drag" onclick="event.stopPropagation()" title="Arrastar para reordenar">↕</span>
       <span class="sub-block-toggle">&#9660;</span>
       <span class="sub-block-label">${label}</span>
+      <span class="sub-block-eject"
+            onclick="event.stopPropagation();_ejectSubBlock(this)"
+            title="Tirar do grupo (volta ao canvas)">↗</span>
       <span class="sub-block-remove"
             onclick="event.stopPropagation();this.closest('.node-sub-block').remove();requestAnimationFrame(()=>reflowCanvas());"
             title="Remover sub-bloco">✕</span>
@@ -2905,6 +2869,66 @@ function nestCardInto(srcCard, dstCard) {
   showToast(`"${label}" incluído dentro de "${dstCard.querySelector('.node-label')?.textContent?.trim() || 'bloco'}" como sub-bloco.`, 'success');
   requestAnimationFrame(() => reflowCanvas());
 }
+/**
+ * Extrai um sub-bloco do card pai e o recria como card independente no canvas.
+ */
+function _ejectSubBlock(btn) {
+  const sub = btn.closest('.node-sub-block');
+  if (!sub) return;
+  const parentCard = sub.closest('.node-card');
+
+  // Coleta label e cor
+  const label    = sub.querySelector('.sub-block-label')?.textContent?.trim() || 'Bloco';
+  const hdrCls   = [...(sub.querySelector('.node-sub-block-header')?.classList || [])]
+                     .find(c => ['blue','green','purple','orange','red','yellow','gray','teal','sky'].includes(c)) || 'gray';
+
+  // Coleta campos
+  const fields = Array.from(sub.querySelectorAll('.node-sub-block-body .node-field input'))
+                      .map(i => i.value || '');
+
+  // Posição: um pouco abaixo e à direita do card pai
+  const px = parseInt(parentCard?.style.left || 0) + 260;
+  const py = parseInt(parentCard?.style.top  || 0);
+
+  // Cria o tipo mais próximo (SECTION para gray, senão tenta mapear pela cor)
+  const colorTypeMap = { gray:'SECTION', blue:'PERFORM', green:'READ', purple:'WRITE',
+                         orange:'ADD', red:'STOP_RUN', yellow:'IF', teal:'DB2_SELECT', sky:'TBL_DEFINE' };
+  const type = colorTypeMap[hdrCls] || 'SECTION';
+
+  // Cria o card no canvas
+  createNodeAt(type, px, py);
+  const uid    = type.toLowerCase().replace(/_/g,'-') + '-' + nodeSeqCounter[type];
+  const nodeId = 'node-dyn-' + uid;
+  const el     = document.getElementById(nodeId);
+  if (el) {
+    // Atualiza o label
+    const lblEl = el.querySelector('.node-label');
+    if (lblEl) lblEl.textContent = label;
+    // Preenche os campos
+    const bodyEl  = el.querySelector('.node-card-body');
+    const inputs  = el.querySelectorAll('.node-field input');
+    const need    = fields.length, have = inputs.length;
+    if (need > have && bodyEl) {
+      for (let i = have; i < need; i++) {
+        const row = document.createElement('div');
+        row.className = 'node-field';
+        row.innerHTML = `<span class="node-field-drag" title="Arrastar para reordenar">↕</span><input id="field-${uid}-${i}" placeholder="..." /><span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span><span class="node-field-help">?</span>`;
+        bodyEl.appendChild(row);
+      }
+    }
+    el.querySelectorAll('.node-field input').forEach((inp, i) => {
+      if (fields[i] != null) inp.value = fields[i];
+    });
+    requestAnimationFrame(() => _styleNodeFields(el));
+  }
+
+  // Remove o sub-bloco do pai
+  sub.remove();
+  updateNodeCount();
+  showToast(`"${label}" extraído de volta ao canvas.`, 'success');
+  requestAnimationFrame(() => reflowCanvas());
+}
+
 // Init
 const _STATIC_NODE_IDS = ['node-start','node-end-node'];
 
@@ -3354,7 +3378,7 @@ function getNodeCenter(nodeId) {
 }
 function drawArrows() {
   const svg = document.getElementById('arrows-svg');
-  svg.querySelectorAll('.arrow-path, .arrow-label').forEach(e => e.remove());
+  svg.querySelectorAll('.arrow-path, .arrow-label, .arrow-remove-btn').forEach(e => e.remove());
 
   connections.forEach(({ from, to }, idx) => {
     const f = getNodeCenter(from);
@@ -3363,18 +3387,57 @@ function drawArrows() {
     const tx = parseInt(t.style.left) + (t.offsetWidth||72)/2;
     const ty = parseInt(t.style.top);
     const my = (f.by + ty) / 2;
+
+    // Ponto médio da curva de Bézier (t=0.5)
+    const mx = 0.125*f.bx + 0.375*(f.bx) + 0.375*(tx) + 0.125*(tx);
+    const mby = 0.125*f.by + 0.375*(my+30) + 0.375*(my-30) + 0.125*(ty);
+
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('d', `M ${f.bx} ${f.by} C ${f.bx} ${my+30}, ${tx} ${my-30}, ${tx} ${ty}`);
     path.setAttribute('class', 'arrow-path');
     path.style.pointerEvents = 'stroke';
-    path.addEventListener('contextmenu', (e) => {
+
+    // Botão ✕ no meio da seta (foreignObject)
+    const fo = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
+    fo.setAttribute('x', mx - 10);
+    fo.setAttribute('y', mby - 10);
+    fo.setAttribute('width', 20);
+    fo.setAttribute('height', 20);
+    fo.setAttribute('class', 'arrow-remove-btn');
+    fo.style.overflow = 'visible';
+    fo.style.opacity = '0';
+    fo.style.transition = 'opacity 0.15s';
+    fo.style.pointerEvents = 'all';
+    fo.innerHTML = `<button xmlns="http://www.w3.org/1999/xhtml"
+      style="width:20px;height:20px;border-radius:50%;border:none;background:#dc2626;color:#fff;
+             font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+             box-shadow:0 1px 4px rgba(0,0,0,.35);padding:0;line-height:1;">✕</button>`;
+
+    const removeConn = (e) => {
       e.preventDefault();
+      e.stopPropagation();
       connections.splice(idx, 1);
       drawArrows();
       showToast('Conexão removida.');
+    };
+
+    fo.querySelector('button').addEventListener('click', removeConn);
+    path.addEventListener('contextmenu', removeConn);
+
+    // Mostrar/ocultar botão ao passar o mouse na seta ou no botão
+    path.addEventListener('mouseenter', () => { fo.style.opacity = '1'; });
+    path.addEventListener('mouseleave', (e) => {
+      if (!fo.contains(e.relatedTarget)) fo.style.opacity = '0';
     });
+    fo.addEventListener('mouseenter', () => { fo.style.opacity = '1'; });
+    fo.addEventListener('mouseleave', (e) => {
+      if (!path.contains(e.relatedTarget)) fo.style.opacity = '0';
+    });
+
     svg.appendChild(path);
+    svg.appendChild(fo);
   });
+  scheduleTreeRefresh();
 }
 
 /* ─ Code Generation ────────────────────────────────────────────────── */
@@ -3393,17 +3456,23 @@ function _cobolProcIndent(rawLines) {
   // ELSE / WHEN não mudam o depth mas ficam no nível anterior (-1 momentâneo)
   const SAME  = /^(ELSE\b|WHEN\b|NOT\s+AT\s+END\b|AT\s+END\b)/i;
 
+  // Padrão de cabeçalho de seção ou parágrafo → deve ir na Área A (col 8)
+  const AREA_A = /^[A-Z][A-Z0-9-]*(\s+SECTION)?\.\s*$/i;
+
   let depth = 0;
   const out = [];
   rawLines.forEach(raw => {
     const line = raw.trim();
     if (!line) return;
     if (CLOSE.test(line)) { depth = Math.max(0, depth - 1); }
-    const pad = B + INDENT.repeat(depth);
-    if (SAME.test(line) && depth > 0) {
+    if (AREA_A.test(line)) {
+      // Seção ou parágrafo: sempre na Área A, zera indentação
+      depth = 0;
+      out.push(A + line);
+    } else if (SAME.test(line) && depth > 0) {
       out.push(B + INDENT.repeat(depth - 1) + line);
     } else {
-      out.push(pad + line);
+      out.push(B + INDENT.repeat(depth) + line);
     }
     if (OPEN.test(line) && !CLOSE.test(line)) { depth++; }
   });
@@ -3417,7 +3486,7 @@ function generateAllCode() {
   const remarks = document.getElementById('prop-remarks')?.value || '';
   const dialect = document.getElementById('prop-dialect')?.value || 'IBM Enterprise COBOL';
 
-  // Collect Working-Storage from args table
+  // Coleta Working-Storage
   const rows = document.querySelectorAll('#args-tbody tr');
   let wsLines = '';
   rows.forEach(r => {
@@ -3431,13 +3500,31 @@ function generateAllCode() {
     }
   });
 
-  // Detectar se há nós DB2 para incluir SQLCA
+  // DB2
   const hasDB2 = document.querySelectorAll('#canvas .cf-node[id*="db2"]').length > 0
     || [...document.querySelectorAll('#canvas .node-card-header')].some(h => h.textContent.includes('DB2'));
   const sqlcaBlock = hasDB2 ? `\n      * SQL COMMUNICATION AREA\n       EXEC SQL\n         INCLUDE SQLCA\n       END-EXEC.\n` : '';
 
-  // Collect procedure nodes com indentação corrigida
-  const nodes = document.querySelectorAll('#canvas .node-card');
+  // ── Ordena nós seguindo a cadeia de setas a partir de node-start ──
+  const nextMap = {};
+  connections.forEach(c => { nextMap[c.from] = c.to; });
+
+  const allCardEls = Array.from(document.querySelectorAll('#canvas .node-card'));
+  const ordered = [];
+  const visited = new Set();
+
+  // Percorre a cadeia de setas
+  let curId = nextMap['node-start'];
+  while (curId && !visited.has(curId)) {
+    visited.add(curId);
+    const el = document.getElementById(curId);
+    if (el && el.classList.contains('node-card')) ordered.push(el);
+    curId = nextMap[curId];
+  }
+  // Nós sem setas (não visitados) ficam no final, em ordem DOM
+  allCardEls.forEach(n => { if (!visited.has(n.id)) ordered.push(n); });
+
+  const nodes = ordered;
   let procLines = '';
   nodes.forEach(n => {
     const hdr   = n.querySelector('.node-card-header');
@@ -3527,24 +3614,19 @@ function generateAllCode() {
 ${sqlcaBlock}${wsLines}`;
   }
 
+  const db2Block = hasDB2 ? `\n       DB2-ERRO-RTN.\n           DISPLAY "SQLCODE: " SQLCODE\n           DISPLAY "SQLERRM: " SQLERRMC\n           PERFORM 9999-FIM.\n` : '';
+
   const code = hasNodes
 ? `${preamble}
 
        PROCEDURE DIVISION.
-${procLines}
-       9999-FIM.
-           STOP RUN.
-${hasDB2 ? `\n       DB2-ERRO-RTN.\n           DISPLAY "SQLCODE: " SQLCODE\n           DISPLAY "SQLERRM: " SQLERRMC\n           PERFORM 9999-FIM.\n` : ''}
-`
-: `       PROCEDURE DIVISION.
-
-       9999-FIM.
-           STOP RUN.
-`;
+${procLines}${db2Block}`
+: `       PROCEDURE DIVISION.\n`;
 
   const codeArea = document.getElementById('code-editor');
   if (codeArea) { codeArea.value = code; codeArea.removeAttribute('readonly'); }
   _saveToStorage();
+  refreshProjectTree();
   return code;
 }
 
@@ -3557,6 +3639,7 @@ function newProgram() {
   document.querySelectorAll('#canvas .cf-node:not(#node-start):not(#node-end-node)').forEach(n => n.remove());
   document.getElementById('prop-program-id').value = 'NOVOPROG';
   updateNodeCount(); drawArrows();
+  refreshProjectTree();
   showToast('Novo programa criado.', 'success');
   setStatus('Novo programa iniciado');
 }
@@ -3826,12 +3909,10 @@ function _importCobolSource(text, filename, importMode) {
   importMode = importMode || 'por-instrucao';
   if (!confirm('Importar "' + filename + '" e reconstruir o flowchart? O canvas atual será substituído.')) return;
 
-  // Mostra loading imediatamente (antes de qualquer trabalho pesado)
+  // Mostra overlay e aguarda o browser pintar antes de processar
   _showLoading('Importando ' + filename + '…');
   _updateLoadingStep('Lendo estrutura do programa…');
-
-  // Cede o frame para o browser renderizar o overlay, depois processa
-  setTimeout(() => _doImport(text, filename, importMode), 30);
+  requestAnimationFrame(() => requestAnimationFrame(() => _doImport(text, filename, importMode)));
 }
 
 function _doImport(text, filename, importMode) {
@@ -3902,76 +3983,91 @@ function _doImport(text, filename, importMode) {
 
   const createdIds = [];
   let currentY = NODE_START_Y;
+  const canvas = document.getElementById('canvas');
 
+  // Cria nó diretamente no DOM sem chamar createNodeAt (evita drawArrows/selectNode a cada nó)
   function _placeNode(name, bodyLines, type, y) {
     if (!activityMeta[type]) return null;
-    createNodeAt(type, NODE_X, y);
+    const meta = activityMeta[type];
+    nodeSeqCounter[type] = (nodeSeqCounter[type] || 0) + 1;
     const uid    = type.toLowerCase().replace(/_/g, '-') + '-' + nodeSeqCounter[type];
     const nodeId = 'node-dyn-' + uid;
-    const el     = document.getElementById(nodeId);
-    if (!el) return null;
-    const hdr = el.querySelector('.node-card-header');
-    if (hdr) { const lbl = hdr.querySelector('.node-label'); if (lbl) lbl.textContent = name; }
-    const bodyEl = el.querySelector('.node-card-body');
-    const existing = el.querySelectorAll('.node-field input');
-    const need = bodyLines.length, have = existing.length;
-    if (need > have && bodyEl) {
-      for (let i = have; i < need; i++) {
-        const row = document.createElement('div');
-        row.className = 'node-field';
-        row.innerHTML = `<span class="node-field-drag" title="Arrastar">↕</span><input id="field-${uid}-${i}" placeholder="..." /><span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span><span class="node-field-help">?</span>`;
-        bodyEl.appendChild(row);
-      }
-    }
-    const allInputs = el.querySelectorAll('.node-field input');
+
+    const need = Math.max(bodyLines.length, meta.fields.length);
+    const fieldsHtml = Array.from({ length: need }, (_, i) => `
+      <div class="node-field">
+        <span class="node-field-drag" title="Arrastar para reordenar">↕</span>
+        <input id="field-${uid}-${i}" placeholder="${meta.fields[i] || '...'}" />
+        <span class="node-field-more" onclick="event.stopPropagation();fieldRowMenu(this)">···</span>
+        <span class="node-field-help">?</span>
+      </div>`).join('');
+
+    const headerClass = meta.color ? `node-card-header ${meta.color}` : 'node-card-header';
+
+    const div = document.createElement('div');
+    div.className  = 'cf-node node-card';
+    div.id         = nodeId;
+    div.dataset.nodeType = type;
+    div.dataset.codeRole = 'paragraph';  // nós importados sempre viram parágrafos COBOL
+    div.style.left = Math.max(10, NODE_X) + 'px';
+    div.style.top  = y + 'px';
+    div.setAttribute('onclick', `selectNode('dyn-${uid}','${name}')`);
+    div.innerHTML = `
+      <div class="${headerClass}">
+        <span>${meta.icon}</span>
+        <span class="node-label">${name}</span>
+        <span class="node-connect-btn"
+              onclick="event.stopPropagation();startConnect(event,'${nodeId}')"
+              title="Conectar saída deste nó">→</span>
+        <span class="node-field-more"
+              onclick="event.stopPropagation();_removeNodeCard(this)"
+              title="Remover">✕</span>
+      </div>
+      <div class="node-card-body">${fieldsHtml}</div>`;
+
+    makeDraggable(div);
+    canvas.appendChild(div);
+    nodeCounter++;
+
+    // Preenche campos
+    const allInputs = div.querySelectorAll('.node-field input');
     bodyLines.forEach((line, i) => { if (allInputs[i]) allInputs[i].value = line; });
     return nodeId;
   }
 
-  // ── 8. Processa em chunks de 5 parágrafos para não travar o browser
-  const CHUNK = 5;
-  let idx = 0;
-
-  function processChunk() {
-    const end = Math.min(idx + CHUNK, totalParas);
-    for (; idx < end; idx++) {
-      const para = paragraphs[idx];
-      const type = detectNodeType(para.body);
-      if (!activityMeta[type]) continue;
-      const bodyLines = para.body.split('\n').map(l => l.trim()).filter(l => l && !/^\*/.test(l));
-      const y = currentY;
-      currentY += HEADER_H + BODY_PAD + Math.max(bodyLines.length, activityMeta[type].fields.length) * FIELD_H + GAP;
-      const nodeId = _placeNode(para.name, bodyLines, type, y);
-      if (nodeId) {
-        createdIds.push(nodeId);
-        const el = document.getElementById(nodeId);
-        if (el && importMode === 'por-instrucao') {
-          _styleNodeFields(el);
-          el.querySelectorAll('.node-field input').forEach(inp => {
-            inp.addEventListener('input', () => _styleNodeFields(el));
-          });
-        }
+  // ── 8. Processa todos os parágrafos de uma vez (sem setTimeout por chunk)
+  for (let i = 0; i < totalParas; i++) {
+    const para = paragraphs[i];
+    const type = detectNodeType(para.body);
+    if (!activityMeta[type]) continue;
+    const bodyLines = para.body.split('\n').map(l => l.trim()).filter(l => l && !/^\*/.test(l));
+    const y = currentY;
+    currentY += HEADER_H + BODY_PAD + Math.max(bodyLines.length, activityMeta[type].fields.length) * FIELD_H + GAP;
+    const nodeId = _placeNode(para.name, bodyLines, type, y);
+    if (nodeId) {
+      createdIds.push(nodeId);
+      const el = document.getElementById(nodeId);
+      if (el && importMode === 'por-instrucao') {
+        _styleNodeFields(el);
+        el.querySelectorAll('.node-field input').forEach(inp => {
+          inp.addEventListener('input', () => _styleNodeFields(el));
+        });
       }
-    }
-
-    _updateLoadingProgress(idx, totalParas, createdIds.length);
-    _updateLoadingStep('Criando nós… (' + idx + ' / ' + totalParas + ' parágrafos)');
-
-    if (idx < totalParas) {
-      // Mais chunks restantes — cede o frame para atualizar a UI
-      setTimeout(processChunk, 0);
-    } else {
-      // Todos os parágrafos processados → finaliza
-      _finishImport(createdIds, currentY, NODE_X, filename);
     }
   }
 
-  // Inicia processamento
-  setTimeout(processChunk, 0);
+  _updateLoadingProgress(totalParas, totalParas, createdIds.length);
+  _updateLoadingStep('Finalizando…');
+
+  {
+    // imediatamente finaliza (sem setTimeout extra)
+    _finishImport(createdIds, currentY, NODE_X, filename);
+  }
 }
 
 function _finishImport(createdIds, currentY, NODE_X, filename) {
-  _updateLoadingStep('Posicionando nós e desenhando setas…');
+  // Fecha overlay IMEDIATAMENTE — todo o resto é pós-processamento
+  _hideLoading();
 
   // Expande canvas
   const canvasEl = document.getElementById('canvas');
@@ -3996,23 +4092,17 @@ function _finishImport(createdIds, currentY, NODE_X, filename) {
   }
 
   updateNodeCount();
+  const scroll = document.getElementById('canvas-scroll');
+  if (scroll) { scroll.scrollTop = 0; scroll.scrollLeft = 0; }
 
-  _updateLoadingStep('Finalizando layout e salvando…');
-  _updateLoadingProgress(createdIds.length, createdIds.length, createdIds.length);
+  showToast('✓ Importado: ' + createdIds.length + ' parágrafos criados!', 'success');
+  setStatus('COBOL importado — ' + createdIds.length + ' nós criados');
 
+  // Aba de código + setas + árvore no próximo frame (não bloqueia a tela)
   requestAnimationFrame(() => {
-    reflowCanvas();
-    requestAnimationFrame(() => {
-      drawArrows();
-      const scroll = document.getElementById('canvas-scroll');
-      if (scroll) { scroll.scrollTop = 0; scroll.scrollLeft = 0; }
-      _saveToStorage();
-      _hideLoading();
-      const codeTab = document.querySelector('.rtab[onclick*="code-view"]');
-      if (codeTab) switchRTab(codeTab, 'code-view');
-      showToast('✓ Importado: ' + createdIds.length + ' parágrafos criados!', 'success');
-      setStatus('COBOL importado — ' + createdIds.length + ' nós criados');
-    });
+    drawArrows();
+    const codeTab = document.querySelector('.rtab[onclick*="code-view"]');
+    if (codeTab) switchRTab(codeTab, 'code-view');
   });
 }
 
@@ -4296,8 +4386,13 @@ function _renderCodeHighlight() {
   // Números de linha
   nums.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
 
-  // Syntax highlight
-  pre.innerHTML = lines.map(l => _highlightCobolLine(l)).join('\n');
+  // Syntax highlight com fallback para texto simples
+  try {
+    pre.innerHTML = lines.map(l => _highlightCobolLine(l)).join('\n');
+  } catch(e) {
+    // Fallback: exibe texto puro sem colorização
+    pre.textContent = text;
+  }
 
   // Preenche dropdown "Ir para"
   if (sel) {
@@ -4453,6 +4548,7 @@ function clearPropSearch() {
 function updateProgramName(val) {
   const label = document.getElementById('prog-name-label');
   if (label) label.textContent = val.toUpperCase() || 'MEUCOBOL';
+  scheduleTreeRefresh();
 }
 
 /* ─ Modal ──────────────────────────────────────────────────────────── */
@@ -4542,5 +4638,6 @@ function openFieldPicker(nodeId, fieldIdx) {
 }
 
 </script>
+<script src="js/tree.js"></script>
 </body>
 </html>

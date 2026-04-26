@@ -102,6 +102,7 @@ function createNodeAt(type, x, y) {
   const div = document.createElement('div');
   div.className = 'cf-node node-card';
   div.id        = nodeId;
+  div.dataset.nodeType = type;
   div.style.left = Math.max(10, x) + 'px';
   div.style.top  = Math.max(10, y) + 'px';
   div.setAttribute('onclick', `selectNode('dyn-${uid}','${meta.label} #${nodeSeqCounter[type]}')`);
