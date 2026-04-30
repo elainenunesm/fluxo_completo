@@ -1035,21 +1035,27 @@ async function exportReport(format) {
     doc.setFillColor(30, 58, 138);
     doc.rect(0, 0, pageW, 28, 'F');
     doc.setTextColor(255,255,255);
-    doc.setFontSize(16); doc.setFont('helvetica','bold');
-    doc.text(repTitle, margin, 18);
-    doc.setFontSize(9); doc.setFont('helvetica','normal');
-    const pdfSubLine = [`Projeto: ${repProj}`, repDept ? `Departamento: ${repDept}` : '', repAuthor ? `Responsável: ${repAuthor}` : '', `Gerado em: ${new Date().toLocaleDateString('pt-BR')}`].filter(Boolean).join('   |   ');
-    doc.text(pdfSubLine, margin, 25);
 
-    // Logo no canto direito do cabeçalho
+    // Logo no canto direito do cabeçalho — calcula espaço antes de escrever texto
+    let logoW = 0;
     if (reportLogoDataUrl) {
       try {
-        const logoH = 18;
+        const logoH = 22;
         const logoProps = doc.getImageProperties(reportLogoDataUrl);
-        const logoW = (logoProps.width * logoH) / logoProps.height;
-        doc.addImage(reportLogoDataUrl, pageW - margin - logoW, 5, logoW, logoH);
-      } catch (e) { /* imagem inválida, ignora */ }
+        logoW = (logoProps.width * logoH) / logoProps.height;
+        doc.addImage(reportLogoDataUrl, pageW - margin - logoW, 3, logoW, logoH);
+        logoW += 6; // margem entre logo e texto
+      } catch (e) { logoW = 0; }
     }
+
+    const textMaxW = pageW - margin * 2 - logoW;
+    doc.setFontSize(16); doc.setFont('helvetica','bold');
+    const titleLines = doc.splitTextToSize(repTitle, textMaxW);
+    doc.text(titleLines[0], margin, 18);
+    doc.setFontSize(9); doc.setFont('helvetica','normal');
+    const pdfSubLine = [`Projeto: ${repProj}`, repDept ? `Departamento: ${repDept}` : '', repAuthor ? `Responsável: ${repAuthor}` : '', `Gerado em: ${new Date().toLocaleDateString('pt-BR')}`].filter(Boolean).join('   |   ');
+    const subLines = doc.splitTextToSize(pdfSubLine, textMaxW);
+    doc.text(subLines[0], margin, 25);
 
     // Imagem do canvas
     doc.setTextColor(30,58,138);
