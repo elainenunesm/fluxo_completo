@@ -316,6 +316,43 @@ function attachNodeEvents(wrapper) {
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
   });
+
+  // Touch: mover nó no canvas
+  handle.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+    if (connectingFrom !== null) {
+      const toId = wrapper.id;
+      if (toId !== connectingFrom) addConnection(connectingFrom, toId, '', connectingFromPort);
+      exitConnectMode();
+      return;
+    }
+    isDragging = false;
+    const t = e.touches[0];
+    const scale = zoomLevel / 100;
+    startX = t.clientX; startY = t.clientY;
+    origLeft = parseInt(wrapper.style.left) || 0;
+    origTop  = parseInt(wrapper.style.top)  || 0;
+
+    function onTouchMove(ev) {
+      ev.preventDefault();
+      const tc = ev.touches[0];
+      const dx = (tc.clientX - startX) / scale;
+      const dy = (tc.clientY - startY) / scale;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) isDragging = true;
+      if (isDragging) {
+        wrapper.style.left = (origLeft + dx) + 'px';
+        wrapper.style.top  = (origTop  + dy) + 'px';
+        redrawConnections();
+      }
+    }
+    function onTouchEnd() {
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
+      if (!isDragging) selectNode(wrapper.id);
+    }
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd);
+  }, { passive: true });
 }
 
 // ---------- SELEÇÃO ----------
@@ -957,5 +994,53 @@ async function exportReport(format) {
   // Ao arrastar componente no mobile: fecha a sidebar automaticamente
   document.querySelectorAll('.component-item').forEach(item => {
     item.addEventListener('dragstart', closeSidebar);
+  });
+})();
+
+// ========== TOUCH DRAG DA SIDEBAR PARA O CANVAS ==========
+(function () {
+  let touchType = null;
+  let touchGhost = null;
+
+  document.querySelectorAll('.component-item').forEach(item => {
+    item.addEventListener('touchstart', function (e) {
+      touchType = this.dataset.type || this.textContent.trim();
+      // Criar elemento fantasma que segue o dedo
+      touchGhost = this.cloneNode(true);
+      touchGhost.style.cssText = 'position:fixed;opacity:0.75;pointer-events:none;z-index:9999;' +
+        'width:' + this.offsetWidth + 'px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.2);';
+      document.body.appendChild(touchGhost);
+      const t = e.touches[0];
+      touchGhost.style.left = (t.clientX - this.offsetWidth / 2) + 'px';
+      touchGhost.style.top  = (t.clientY - 24) + 'px';
+    }, { passive: true });
+
+    item.addEventListener('touchmove', function (e) {
+      e.preventDefault();
+      if (!touchGhost) return;
+      const t = e.touches[0];
+      touchGhost.style.left = (t.clientX - touchGhost.offsetWidth / 2) + 'px';
+      touchGhost.style.top  = (t.clientY - 24) + 'px';
+    }, { passive: false });
+
+    item.addEventListener('touchend', function (e) {
+      if (touchGhost) { touchGhost.remove(); touchGhost = null; }
+      if (!touchType) return;
+      const t = e.changedTouches[0];
+      const canvasRect = canvasEl.getBoundingClientRect();
+      const scale = zoomLevel / 100;
+      const x = (t.clientX - canvasRect.left) / scale - 80;
+      const y = (t.clientY - canvasRect.top)  / scale - 30;
+      if (t.clientX >= canvasRect.left && t.clientX <= canvasRect.right &&
+          t.clientY >= canvasRect.top  && t.clientY <= canvasRect.bottom) {
+        // Fechar sidebar se estiver aberta
+        document.querySelector('.sidebar-left')?.classList.remove('open');
+        document.getElementById('sidebarOverlay')?.classList.remove('active');
+        const id = createNodeElement(touchType, Math.max(0, x), Math.max(0, y));
+        selectNode(id);
+        updateFooterCount();
+      }
+      touchType = null;
+    });
   });
 })();
