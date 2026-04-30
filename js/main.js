@@ -317,7 +317,7 @@ function attachNodeEvents(wrapper) {
     document.addEventListener('mouseup', onUp);
   });
 
-  // Touch: mover nó no canvas
+  // Touch: toque curto = abrir propriedades | pressão longa (400ms) = arrastar
   handle.addEventListener('touchstart', (e) => {
     e.stopPropagation();
     if (connectingFrom !== null) {
@@ -327,25 +327,40 @@ function attachNodeEvents(wrapper) {
       return;
     }
     isDragging = false;
+    let dragMode = false;
     const t = e.touches[0];
     const scale = zoomLevel / 100;
     startX = t.clientX; startY = t.clientY;
     origLeft = parseInt(wrapper.style.left) || 0;
     origTop  = parseInt(wrapper.style.top)  || 0;
 
+    // Timer de pressão longa: 400ms sem mover → ativa modo arrasto
+    const longPressTimer = setTimeout(() => {
+      dragMode = true;
+      handle.style.transition = 'box-shadow 0.15s';
+      handle.style.boxShadow = '0 0 0 3px #3b82f6, 0 6px 20px rgba(59,130,246,0.35)';
+    }, 400);
+
     function onTouchMove(ev) {
-      ev.preventDefault();
       const tc = ev.touches[0];
       const dx = (tc.clientX - startX) / scale;
       const dy = (tc.clientY - startY) / scale;
-      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) isDragging = true;
-      if (isDragging) {
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Se moveu muito antes do timer → cancela pressão longa
+      if (dist > 8) clearTimeout(longPressTimer);
+
+      if (dragMode) {
+        ev.preventDefault();
+        isDragging = true;
         wrapper.style.left = (origLeft + dx) + 'px';
         wrapper.style.top  = (origTop  + dy) + 'px';
         redrawConnections();
       }
     }
     function onTouchEnd() {
+      clearTimeout(longPressTimer);
+      handle.style.boxShadow = '';
       document.removeEventListener('touchmove', onTouchMove);
       document.removeEventListener('touchend', onTouchEnd);
       if (!isDragging) selectNode(wrapper.id);
