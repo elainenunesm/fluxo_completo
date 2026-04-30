@@ -14,6 +14,9 @@
 <!-- HEADER -->
 <div class="header">
   <div class="header-left">
+    <button class="hamburger-btn" id="sidebarToggle" title="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
     <div class="logo-badge">CB</div>
     <span class="logo-text">COBOL Flow Studio</span>
     <div class="project-selector">
@@ -83,10 +86,15 @@
 </div>
 
 <!-- MAIN -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="props-overlay" id="propsOverlay"></div>
 <div class="main-container">
   
   <!-- LEFT SIDEBAR -->
   <div class="sidebar-left">
+    <button class="sidebar-close-btn" id="sidebarClose" title="Fechar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <div class="sidebar-left-content">
       <div class="sidebar-title">Componentes</div>
       <input type="text" class="search-input" placeholder="Buscar componente...">

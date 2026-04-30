@@ -1050,3 +1050,180 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+
+/* ========== HAMBÚRGUER / CLOSE / OVERLAY ========== */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #4b5563;
+  padding: 6px;
+  border-radius: 6px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.hamburger-btn:hover { background: #f3f4f6; }
+.hamburger-btn svg { width: 22px; height: 22px; }
+
+.sidebar-close-btn {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px;
+  border-radius: 6px;
+  z-index: 5;
+}
+.sidebar-close-btn:hover { background: #fee2e2; color: #dc2626; }
+.sidebar-close-btn svg { width: 18px; height: 18px; display: block; }
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.38);
+  z-index: 99;
+}
+.sidebar-overlay.active { display: block; }
+
+/* ========== TABLET (≤ 1024px) ========== */
+@media (max-width: 1024px) {
+  .sidebar-left  { width: 220px; min-width: 220px; }
+  .sidebar-right { width: 220px; min-width: 220px; }
+  .logo-text     { font-size: 15px; }
+  .footer-right  { gap: 16px; }
+  .project-selector { font-size: 13px; padding: 6px 10px; }
+}
+
+/* ========== PROPS OVERLAY ========== */
+.props-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.38);
+  z-index: 101;
+}
+.props-overlay.active { display: block; }
+
+/* ========== BOTÃO FECHAR PROPRIEDADES (só mobile) ========== */
+.props-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 4px;
+}
+.props-close-btn:hover { color: #dc2626; }
+
+/* ========== MOBILE (≤ 768px) ========== */
+@media (max-width: 768px) {
+  /* Mostrar hambúrguer e botão fechar */
+  .hamburger-btn    { display: flex; }
+  .sidebar-close-btn { display: flex; }
+
+  /* Header compacto */
+  .header { padding: 0 12px; height: 52px; }
+  .header-right { gap: 6px; }
+  .logo-text { display: none; }
+  .project-selector { display: none; }
+  .header-btn { display: none; }
+
+  /* Tabs */
+  .tabs-bar { padding: 0 8px; }
+  .tab-item { padding: 10px 12px; font-size: 12.5px; }
+
+  /* Sidebar esquerda: drawer oculto */
+  .sidebar-left {
+    position: fixed;
+    top: 0;
+    left: -285px;
+    height: 100dvh;
+    width: 270px !important;
+    min-width: 270px !important;
+    z-index: 100;
+    transition: left 0.25s ease;
+    box-shadow: none;
+    padding-top: 48px;
+  }
+  .sidebar-left.open {
+    left: 0;
+    box-shadow: 6px 0 28px rgba(0,0,0,0.18);
+  }
+
+  /* Sidebar direita: bottom sheet oculto por padrão */
+  .sidebar-right {
+    position: fixed;
+    bottom: -100%;
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    min-width: unset !important;
+    max-height: 75dvh;
+    overflow-y: auto;
+    border-radius: 18px 18px 0 0;
+    border-left: none;
+    border-top: 1px solid #e0e4ea;
+    z-index: 102;
+    transition: bottom 0.3s ease;
+    padding: 0;
+    align-items: flex-start;
+    justify-content: flex-start;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.16);
+  }
+  .sidebar-right.open {
+    bottom: 0;
+  }
+
+  /* Handle visual no topo da gaveta */
+  .sidebar-right::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: #d1d5db;
+    border-radius: 2px;
+    margin: 10px auto 0;
+    flex-shrink: 0;
+  }
+
+  /* Título da gaveta com botão fechar */
+  .sidebar-right-title-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px 10px;
+    position: static;
+  }
+  .props-close-btn { display: block; }
+
+  /* Canvas usa toda a largura */
+  .canvas-area { width: 100%; }
+
+  /* Canvas toolbar compacta */
+  .canvas-toolbar { padding: 8px 12px; gap: 6px; }
+  .canvas-toolbar-left h2 { font-size: 14px; }
+  .zoom-value { min-width: 34px; font-size: 12px; }
+  .zoom-btn { width: 28px; height: 28px; font-size: 14px; }
+
+  /* Footer */
+  .footer { padding: 6px 12px; }
+  .footer-right { display: none; }
+}
+
+/* ========== MOBILE PEQUENO (≤ 480px) ========== */
+@media (max-width: 480px) {
+  .header-right { gap: 2px; }
+  .icon-btn { padding: 4px; }
+  .btn-primary { padding: 7px 12px; font-size: 13px; }
+  .export-btn { padding: 0 10px; font-size: 11px; }
+  .canvas-toolbar-right { gap: 4px; }
+}

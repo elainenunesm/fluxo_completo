@@ -341,6 +341,23 @@ function selectNode(id) {
   }
 }
 
+// ---------- PROPRIEDADES (DRAWER MOBILE) ----------
+function openPropsDrawer() {
+  const sr = document.querySelector('.sidebar-right');
+  const po = document.getElementById('propsOverlay');
+  if (window.innerWidth <= 768) {
+    sr.classList.add('open');
+    if (po) po.classList.add('active');
+  }
+}
+function closePropsDrawer() {
+  const sr = document.querySelector('.sidebar-right');
+  const po = document.getElementById('propsOverlay');
+  sr.classList.remove('open');
+  if (po) po.classList.remove('active');
+}
+document.getElementById('propsOverlay')?.addEventListener('click', closePropsDrawer);
+
 // ---------- PROPRIEDADES ----------
 function showProperties(wrapper) {
   const sidebarRight = document.querySelector('.sidebar-right');
@@ -350,7 +367,7 @@ function showProperties(wrapper) {
   const nodeId  = wrapper.id;
 
   sidebarRight.innerHTML = `
-    <div class="sidebar-right-title-bar">Propriedades do Componente</div>
+    <div class="sidebar-right-title-bar">Propriedades do Componente<button class="props-close-btn" id="propsCloseMobile">✕</button></div>
     <div style="padding: 56px 16px 16px; width: 100%;">
       <div style="margin-bottom: 12px;">
         <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Tipo</label>
@@ -403,6 +420,13 @@ function showProperties(wrapper) {
   document.getElementById('prop-delete').addEventListener('click', () => {
     deleteNode(nodeId);
   });
+
+  document.getElementById('propsCloseMobile')?.addEventListener('click', () => {
+    closePropsDrawer();
+    resetSidebarRight();
+  });
+
+  openPropsDrawer();
 }
 
 function escHtml(str) {
@@ -570,6 +594,7 @@ function deleteNode(id) {
 }
 
 function resetSidebarRight() {
+  closePropsDrawer();
   document.querySelector('.sidebar-right').innerHTML = `
     <div class="sidebar-right-title-bar">Propriedades do Componente</div>
     <div class="empty-state" style="margin-top:60px;">
@@ -908,3 +933,29 @@ async function exportReport(format) {
     showToast(format === 'word' ? 'Word gerado!' : 'HTML gerado!');
   }
 }
+
+// ========== SIDEBAR MOBILE TOGGLE ==========
+(function () {
+  const toggleBtn   = document.getElementById('sidebarToggle');
+  const closeBtn    = document.getElementById('sidebarClose');
+  const overlay     = document.getElementById('sidebarOverlay');
+  const sidebarLeft = document.querySelector('.sidebar-left');
+
+  function openSidebar() {
+    sidebarLeft.classList.add('open');
+    overlay.classList.add('active');
+  }
+  function closeSidebar() {
+    sidebarLeft.classList.remove('open');
+    overlay.classList.remove('active');
+  }
+
+  if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
+  if (closeBtn)  closeBtn.addEventListener('click', closeSidebar);
+  if (overlay)   overlay.addEventListener('click', closeSidebar);
+
+  // Ao arrastar componente no mobile: fecha a sidebar automaticamente
+  document.querySelectorAll('.component-item').forEach(item => {
+    item.addEventListener('dragstart', closeSidebar);
+  });
+})();
