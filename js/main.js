@@ -829,6 +829,8 @@ registerExistingNodes();
 updateFooterCount();
 
 // ---------- EXPORTAR RELATÓRIO ----------
+let pendingExportFormat = null;
+
 document.getElementById('exportBtn')?.addEventListener('click', (e) => {
   e.stopPropagation();
   const menu = document.getElementById('exportMenu');
@@ -839,8 +841,37 @@ document.addEventListener('click', () => {
   if (menu) menu.style.display = 'none';
 });
 
+function openReportModal(format) {
+  pendingExportFormat = format;
+  const overlay = document.getElementById('report-modal-overlay');
+  overlay.style.display = 'flex';
+  document.getElementById('report-title-input')?.focus();
+}
+
+document.getElementById('report-modal-cancel')?.addEventListener('click', () => {
+  document.getElementById('report-modal-overlay').style.display = 'none';
+  pendingExportFormat = null;
+});
+document.getElementById('report-modal-confirm')?.addEventListener('click', () => {
+  document.getElementById('report-modal-overlay').style.display = 'none';
+  if (pendingExportFormat) exportReport(pendingExportFormat);
+  pendingExportFormat = null;
+});
+// Fechar com Esc
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.getElementById('report-modal-overlay').style.display = 'none';
+    pendingExportFormat = null;
+  }
+});
+
 function buildReportHtml(imgDataUrl) {
-  const date = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  const date      = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  const repTitle  = document.getElementById('report-title-input')?.value.trim()   || 'Relatório de Fluxo — COBOL Flow Studio';
+  const repProj   = document.getElementById('report-project-input')?.value.trim() || 'SistemaExemploCOBOL';
+  const repDept   = document.getElementById('report-dept-input')?.value.trim()    || '';
+  const repAuthor = document.getElementById('report-author-input')?.value.trim()  || '';
+  const repSub    = document.getElementById('report-subtitle-input')?.value.trim() || '';
   const nodes = Array.from(document.querySelectorAll('.flow-node, .decision-node'));
 
   let tableRows = '';
@@ -896,8 +927,10 @@ function buildReportHtml(imgDataUrl) {
 </style>
 </head>
 <body>
-  <h1>Relatório de Fluxo — COBOL Flow Studio</h1>
-  <p class="subtitle">Projeto: SistemaExemploCOBOL &nbsp;|&nbsp; Gerado em: ${date}</p>
+  <h1>${escHtml(repTitle)}</h1>
+  <p class="subtitle">
+    Projeto: ${escHtml(repProj)}${repDept ? ' &nbsp;|&nbsp; Departamento: ' + escHtml(repDept) : ''}${repAuthor ? ' &nbsp;|&nbsp; Responsável: ' + escHtml(repAuthor) : ''} &nbsp;|&nbsp; Gerado em: ${date}${repSub ? ' &nbsp;|&nbsp; ' + escHtml(repSub) : ''}
+  </p>
 
   <h2>Diagrama do Fluxo</h2>
   ${imgTag}
@@ -948,6 +981,10 @@ async function captureCanvas() {
 
 async function exportReport(format) {
   document.getElementById('exportMenu').style.display = 'none';
+  const repTitle  = document.getElementById('report-title-input')?.value.trim()   || 'Relatório de Fluxo — COBOL Flow Studio';
+  const repProj   = document.getElementById('report-project-input')?.value.trim() || 'SistemaExemploCOBOL';
+  const repDept   = document.getElementById('report-dept-input')?.value.trim()    || '';
+  const repAuthor = document.getElementById('report-author-input')?.value.trim()  || '';
   showToast('Gerando relatório...');
   const imgDataUrl = await captureCanvas();
 
@@ -963,9 +1000,10 @@ async function exportReport(format) {
     doc.rect(0, 0, pageW, 28, 'F');
     doc.setTextColor(255,255,255);
     doc.setFontSize(16); doc.setFont('helvetica','bold');
-    doc.text('Relatório de Fluxo — COBOL Flow Studio', margin, 18);
+    doc.text(repTitle, margin, 18);
     doc.setFontSize(9); doc.setFont('helvetica','normal');
-    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, margin, 25);
+    const pdfSubLine = [`Projeto: ${repProj}`, repDept ? `Departamento: ${repDept}` : '', repAuthor ? `Responsável: ${repAuthor}` : '', `Gerado em: ${new Date().toLocaleDateString('pt-BR')}`].filter(Boolean).join('   |   ');
+    doc.text(pdfSubLine, margin, 25);
 
     // Imagem do canvas
     doc.setTextColor(30,58,138);

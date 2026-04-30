@@ -38,7 +38,7 @@
     <button class="icon-btn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     </button>
-    <button class="btn-primary">
+    <button class="btn-primary" onclick="openReportModal('pdf')">
       Gerar Relatório
       <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
     </button>
@@ -282,9 +282,9 @@
             Exportar
           </button>
           <div class="export-menu" id="exportMenu" style="display:none">
-            <button onclick="exportReport('pdf')"><i class="ti ti-file-type-pdf"></i> Exportar PDF</button>
-            <button onclick="exportReport('word')"><i class="ti ti-file-type-doc"></i> Exportar Word</button>
-            <button onclick="exportReport('html')"><i class="ti ti-code"></i> Exportar HTML</button>
+            <button onclick="openReportModal('pdf')"><i class="ti ti-file-type-pdf"></i> Exportar PDF</button>
+            <button onclick="openReportModal('word')"><i class="ti ti-file-type-doc"></i> Exportar Word</button>
+            <button onclick="openReportModal('html')"><i class="ti ti-code"></i> Exportar HTML</button>
           </div>
         </div>
       </div>
@@ -344,6 +344,47 @@
     <span>Total de etapas: 0</span>
     <span>Última alteração: 16/04/2026 14:30</span>
     <span>Usuário: joao.silva</span>
+  </div>
+</div>
+
+<!-- MODAL CONFIGURAÇÃO DO RELATÓRIO -->
+<div id="report-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:28px 28px 20px;width:460px;max-width:94vw;box-shadow:0 16px 48px rgba(0,0,0,0.18);">
+    <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Configurar Relatório
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Título do Relatório</label>
+      <input id="report-title-input" type="text" value="Relatório de Fluxo — COBOL Flow Studio"
+        style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:14px;outline:none;box-sizing:border-box;">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Projeto</label>
+        <input id="report-project-input" type="text" value="SistemaExemploCOBOL"
+          style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Departamento</label>
+        <input id="report-dept-input" type="text" placeholder="Ex: Financeiro"
+          style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;">
+      </div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Responsável / Nome</label>
+      <input id="report-author-input" type="text" placeholder="Ex: João Silva"
+        style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;">
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Subtítulo / Descrição (opcional)</label>
+      <input id="report-subtitle-input" type="text" placeholder="Ex: Versão 1.0"
+        style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button id="report-modal-cancel" style="padding:8px 18px;background:#f3f4f6;color:#374151;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">Cancelar</button>
+      <button id="report-modal-confirm" style="padding:8px 22px;background:#2563eb;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">Gerar Relatório</button>
+    </div>
   </div>
 </div>
 
