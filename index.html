@@ -355,6 +355,20 @@
       Configurar Relatório
     </div>
     <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Logo da Empresa (opcional)</label>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div id="logo-upload-area" onclick="document.getElementById('report-logo-input').click()" style="width:100px;height:52px;border:2px dashed #d1d5db;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:#f9fafb;flex-shrink:0;">
+          <img id="logo-preview" style="display:none;max-width:96px;max-height:48px;object-fit:contain;">
+          <span id="logo-upload-hint" style="font-size:10px;color:#9ca3af;text-align:center;line-height:1.3;padding:4px;">Clique para<br>adicionar logo</span>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;color:#6b7280;margin-bottom:6px;">PNG, JPG ou SVG. Aparecerá no cabeçalho do relatório.</div>
+          <button id="logo-remove-btn" onclick="removeReportLogo()" style="display:none;padding:4px 10px;background:#fee2e2;color:#dc2626;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;">✕ Remover logo</button>
+        </div>
+      </div>
+      <input id="report-logo-input" type="file" accept="image/*" style="display:none">
+    </div>
+    <div style="margin-bottom:14px;">
       <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Título do Relatório</label>
       <input id="report-title-input" type="text" value="Relatório de Fluxo — COBOL Flow Studio"
         style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:14px;outline:none;box-sizing:border-box;">

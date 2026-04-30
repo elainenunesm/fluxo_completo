@@ -830,6 +830,37 @@ updateFooterCount();
 
 // ---------- EXPORTAR RELATÓRIO ----------
 let pendingExportFormat = null;
+let reportLogoDataUrl   = null;
+
+// Upload de logo
+document.getElementById('report-logo-input')?.addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    reportLogoDataUrl = e.target.result;
+    const preview = document.getElementById('logo-preview');
+    const hint    = document.getElementById('logo-upload-hint');
+    const removeBtn = document.getElementById('logo-remove-btn');
+    preview.src = reportLogoDataUrl;
+    preview.style.display = 'block';
+    hint.style.display    = 'none';
+    removeBtn.style.display = 'inline-block';
+  };
+  reader.readAsDataURL(file);
+});
+
+function removeReportLogo() {
+  reportLogoDataUrl = null;
+  const preview   = document.getElementById('logo-preview');
+  const hint      = document.getElementById('logo-upload-hint');
+  const removeBtn = document.getElementById('logo-remove-btn');
+  const input     = document.getElementById('report-logo-input');
+  preview.src = ''; preview.style.display = 'none';
+  hint.style.display = 'inline';
+  removeBtn.style.display = 'none';
+  if (input) input.value = '';
+}
 
 document.getElementById('exportBtn')?.addEventListener('click', (e) => {
   e.stopPropagation();
@@ -927,10 +958,15 @@ function buildReportHtml(imgDataUrl) {
 </style>
 </head>
 <body>
-  <h1>${escHtml(repTitle)}</h1>
-  <p class="subtitle">
-    Projeto: ${escHtml(repProj)}${repDept ? ' &nbsp;|&nbsp; Departamento: ' + escHtml(repDept) : ''}${repAuthor ? ' &nbsp;|&nbsp; Responsável: ' + escHtml(repAuthor) : ''} &nbsp;|&nbsp; Gerado em: ${date}${repSub ? ' &nbsp;|&nbsp; ' + escHtml(repSub) : ''}
-  </p>
+  <div style="display:flex;align-items:center;gap:18px;margin-bottom:4px;">
+    ${reportLogoDataUrl ? `<img src="${reportLogoDataUrl}" style="height:56px;max-width:180px;object-fit:contain;flex-shrink:0;">` : ''}
+    <div>
+      <h1 style="margin:0 0 4px;">${escHtml(repTitle)}</h1>
+      <p class="subtitle" style="margin:0;">
+        Projeto: ${escHtml(repProj)}${repDept ? ' &nbsp;|&nbsp; Departamento: ' + escHtml(repDept) : ''}${repAuthor ? ' &nbsp;|&nbsp; Responsável: ' + escHtml(repAuthor) : ''} &nbsp;|&nbsp; Gerado em: ${date}${repSub ? ' &nbsp;|&nbsp; ' + escHtml(repSub) : ''}
+      </p>
+    </div>
+  </div>
 
   <h2>Diagrama do Fluxo</h2>
   ${imgTag}
@@ -1004,6 +1040,16 @@ async function exportReport(format) {
     doc.setFontSize(9); doc.setFont('helvetica','normal');
     const pdfSubLine = [`Projeto: ${repProj}`, repDept ? `Departamento: ${repDept}` : '', repAuthor ? `Responsável: ${repAuthor}` : '', `Gerado em: ${new Date().toLocaleDateString('pt-BR')}`].filter(Boolean).join('   |   ');
     doc.text(pdfSubLine, margin, 25);
+
+    // Logo no canto direito do cabeçalho
+    if (reportLogoDataUrl) {
+      try {
+        const logoH = 18;
+        const logoProps = doc.getImageProperties(reportLogoDataUrl);
+        const logoW = (logoProps.width * logoH) / logoProps.height;
+        doc.addImage(reportLogoDataUrl, pageW - margin - logoW, 5, logoW, logoH);
+      } catch (e) { /* imagem inválida, ignora */ }
+    }
 
     // Imagem do canvas
     doc.setTextColor(30,58,138);
