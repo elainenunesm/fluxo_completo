@@ -439,17 +439,18 @@ function showProperties(wrapper) {
         style="width:100%;padding:8px;background:#3b82f6;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;">
         Salvar
       </button>
+      ${type === 'Decisão' ? `
+      <div style="margin-bottom:6px;font-size:11px;font-weight:600;color:#374151;">Conectar como:</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <button id="prop-connect-sim" style="flex:1;padding:8px;background:#16a34a;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">✓ Sim</button>
+        <button id="prop-connect-nao" style="flex:1;padding:8px;background:#dc2626;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">✗ Não</button>
+      </div>
+      <button id="prop-connect" style="width:100%;padding:8px;background:#8b5cf6;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;">Conectar sem rótulo</button>
+      ` : `
       <button id="prop-connect"
         style="width:100%;padding:8px;background:#8b5cf6;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;">
         Conectar a outro nó
-      </button>
-      ${type === 'Decisão' ? `
-      <div id="decision-label-row" style="display:flex;gap:6px;margin-bottom:8px;">
-        <button data-lbl="Sim" style="flex:1;padding:7px;background:#dcfce7;color:#15803d;border:1.5px solid #86efac;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">Sim</button>
-        <button data-lbl="Não" style="flex:1;padding:7px;background:#fee2e2;color:#b91c1c;border:1.5px solid #fca5a5;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">Não</button>
-        <button data-lbl="" style="flex:1;padding:7px;background:#f3f4f6;color:#6b7280;border:1.5px solid #d1d5db;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Sem rótulo</button>
-      </div>
-      <div id="decision-label-hint" style="font-size:11px;color:#6b7280;margin-bottom:8px;text-align:center;">Escolha o rótulo antes de conectar</div>` : ''}
+      </button>`}
       <button id="prop-delete"
         style="width:100%;padding:8px;background:#ef4444;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">
         Excluir nó
@@ -473,21 +474,18 @@ function showProperties(wrapper) {
   });
 
   document.getElementById('prop-connect').addEventListener('click', () => {
+    pendingDecisionLabel = null;
     enterConnectMode(nodeId);
   });
 
-  // Botões Sim / Não / Sem rótulo
-  document.querySelectorAll('#decision-label-row [data-lbl]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#decision-label-row [data-lbl]').forEach(b => { b.style.opacity = '0.45'; b.style.outline = ''; });
-      btn.style.opacity = '1';
-      btn.style.outline = '2px solid #3b82f6';
-      pendingDecisionLabel = btn.dataset.lbl;
-      const hint = document.getElementById('decision-label-hint');
-      if (hint) hint.textContent = pendingDecisionLabel
-        ? `Rótulo: "${pendingDecisionLabel}" — agora clique em Conectar`
-        : 'Sem rótulo — agora clique em Conectar';
-    });
+  document.getElementById('prop-connect-sim')?.addEventListener('click', () => {
+    pendingDecisionLabel = 'Sim';
+    enterConnectMode(nodeId);
+  });
+
+  document.getElementById('prop-connect-nao')?.addEventListener('click', () => {
+    pendingDecisionLabel = 'Não';
+    enterConnectMode(nodeId);
   });
 
   document.getElementById('prop-delete').addEventListener('click', () => {
