@@ -749,6 +749,12 @@ document.addEventListener('keydown', (e) => {
 let dragType = null;
 
 document.querySelectorAll('.component-item').forEach(item => {
+  // Impede que elementos filhos sejam arrastados independentemente
+  item.querySelectorAll('img, i, svg, span, *').forEach(child => {
+    child.draggable = false;
+    child.addEventListener('dragstart', e => { e.preventDefault(); e.stopPropagation(); });
+  });
+
   // Duplo clique: insere componente no centro do canvas visível
   item.addEventListener('dblclick', function () {
     const type = this.dataset.type || this.textContent.trim();
@@ -763,16 +769,11 @@ document.querySelectorAll('.component-item').forEach(item => {
   });
 
   item.addEventListener('dragstart', function (e) {
-    // Usa data-type se disponível; senão extrai só o texto direto (ignora conteúdo de SVGs)
-    if (this.dataset.type) {
-      dragType = this.dataset.type;
-    } else {
-      dragType = Array.from(this.childNodes)
-        .filter(n => n.nodeType === Node.TEXT_NODE)
-        .map(n => n.textContent.trim())
-        .filter(Boolean)
-        .join('') || this.textContent.trim();
-    }
+    if (e.target !== this) { e.preventDefault(); return; }
+    dragType = this.dataset.type || Array.from(this.childNodes)
+      .filter(n => n.nodeType === Node.TEXT_NODE)
+      .map(n => n.textContent.trim()).filter(Boolean).join('') || this.textContent.trim();
+    e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.setData('text/plain', dragType);
     this.style.opacity = '0.5';
   });
