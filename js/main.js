@@ -1071,11 +1071,13 @@ function showReloadConfirmModal() {
   document.getElementById('_reloadSave').onclick = async () => {
     overlay.remove();
     await (_fileHandle ? saveToFile() : saveAsFile());
+    _isDirty = false;
     localStorage.removeItem(STORAGE_KEY);
     location.reload();
   };
   document.getElementById('_reloadDiscard').onclick = () => {
     overlay.remove();
+    _isDirty = false;
     localStorage.removeItem(STORAGE_KEY);
     location.reload();
   };
