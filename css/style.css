@@ -1194,6 +1194,7 @@ body {
 .ci.c-orange  { background: #ffedd5; box-shadow: 0 1px 3px rgba(0,0,0,0.08); color: #ea580c; }
 .ci.c-blue    { background: #dbeafe; box-shadow: 0 1px 3px rgba(0,0,0,0.08); color: #2563eb; }
 .ci.c-purple  { background: #f3e8ff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); color: #9333ea; }
+.ci.c-slate   { background: #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.08); color: #475569; }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
