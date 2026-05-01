@@ -1149,13 +1149,12 @@ function showReloadConfirmModal() {
     overlay.remove();
     await (_fileHandle ? saveToFile() : saveAsFile());
     _isDirty = false;
-    localStorage.removeItem(STORAGE_KEY);
-    location.reload();
+    location.reload(); // localStorage mantido: dados restauram após reload
   };
   document.getElementById('_reloadDiscard').onclick = () => {
     overlay.remove();
     _isDirty = false;
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY); // descarta: canvas fica vazio
     location.reload();
   };
   document.getElementById('_reloadCancel').onclick = () => overlay.remove();
