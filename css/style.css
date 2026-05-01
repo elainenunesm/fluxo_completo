@@ -1212,6 +1212,152 @@ body {
 .ci.c-purple  { background: #f3e8ff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); color: #9333ea; }
 .ci.c-slate   { background: #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.08); color: #475569; }
 
+/* ===== CANVAS BOTTOM PANEL (Micro Fluxo) ===== */
+.canvas-bottom-panel {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid #e2e8f0;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.cbp-section {
+  padding: 12px 16px;
+  border-right: 1px solid #e2e8f0;
+}
+.cbp-section:last-child { border-right: none; }
+
+.cbp-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+/* Informações */
+.cbp-info { flex: 0 0 320px; }
+
+.cbp-info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 8px;
+  align-items: start;
+}
+.cbp-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+  padding-top: 1px;
+}
+.cbp-value {
+  font-size: 11px;
+  color: #1e293b;
+  outline: none;
+  border-radius: 3px;
+  padding: 1px 3px;
+  min-width: 60px;
+  line-height: 1.4;
+}
+.cbp-value:focus {
+  background: #f0f9ff;
+  box-shadow: 0 0 0 1px #93c5fd;
+}
+.cbp-value:empty::before {
+  content: attr(data-placeholder);
+  color: #cbd5e1;
+}
+
+/* Legenda */
+.cbp-legend { flex: 0 0 220px; }
+
+.cbp-legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cbp-legend-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #374151;
+}
+.cbp-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Mini Mapa */
+.cbp-minimap { flex: 1; min-width: 180px; }
+
+.cbp-minimap-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.cbp-minimap-svg {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  width: 100%;
+  height: 90px;
+  display: block;
+}
+.cbp-minimap-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cbp-minimap-controls button {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  background: #fff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.cbp-minimap-controls button:hover { background: #f1f5f9; }
+
+/* Barra de usuário */
+.cbp-user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 6px 16px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 11px;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+.cbp-user-name strong { color: #1e293b; }
+.cbp-env-badge {
+  padding: 3px 10px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

@@ -617,6 +617,72 @@ function redrawConnections() {
       });
     }
   });
+
+  updateMinimap();
+}
+
+// ---------- MINI MAPA ----------
+function updateMinimap() {
+  const minimapSvg = document.getElementById('minimap-svg');
+  if (!minimapSvg) return;
+
+  const canvas = document.getElementById('canvas');
+  const nodes  = canvas.querySelectorAll('.flow-node, .decision-node');
+
+  if (!nodes.length) {
+    minimapSvg.innerHTML = '';
+    return;
+  }
+
+  const MM_W = minimapSvg.clientWidth  || 160;
+  const MM_H = minimapSvg.clientHeight || 90;
+  const PAD  = 12;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  nodes.forEach(n => {
+    const x = parseFloat(n.style.left) || 0;
+    const y = parseFloat(n.style.top)  || 0;
+    const w = n.offsetWidth  || 140;
+    const h = n.offsetHeight || 60;
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x + w);
+    maxY = Math.max(maxY, y + h);
+  });
+
+  const totalW = maxX - minX + PAD * 2;
+  const totalH = maxY - minY + PAD * 2;
+  const scale  = Math.min(MM_W / totalW, MM_H / totalH);
+
+  const NODE_COLORS = {
+    'green-border':  '#bbf7d0',
+    'red-border':    '#fecaca',
+    'blue-border':   '#bfdbfe',
+    'teal-border':   '#99f6e4',
+    'yellow-border': '#fef08a',
+    'orange-border': '#fed7aa',
+    'purple-border': '#e9d5ff',
+    'indigo-border': '#c7d2fe',
+    'slate-border':  '#e2e8f0',
+  };
+
+  let rects = '';
+  nodes.forEach(n => {
+    const x = ((parseFloat(n.style.left) || 0) - minX + PAD) * scale;
+    const y = ((parseFloat(n.style.top)  || 0) - minY + PAD) * scale;
+    const w = Math.max((n.offsetWidth  || 140) * scale, 6);
+    const h = Math.max((n.offsetHeight || 60)  * scale, 4);
+    const box = n.querySelector('.node-box, .diamond');
+    let fill = '#bfdbfe';
+    if (box) {
+      const cls = Array.from(box.classList).find(c => c.endsWith('-border'));
+      if (cls) fill = NODE_COLORS[cls] || fill;
+    }
+    rects += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${fill}" stroke="#94a3b8" stroke-width="0.5"/>`;
+  });
+
+  minimapSvg.setAttribute('viewBox', `0 0 ${MM_W} ${MM_H}`);
+  minimapSvg.innerHTML = rects;
 }
 
 function getPortPoint(rect, side) {
