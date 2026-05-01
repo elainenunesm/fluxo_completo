@@ -621,6 +621,18 @@ function redrawConnections() {
   updateMinimap();
 }
 
+// ---------- PAINEL INFERIOR — RECOLHER/EXPANDIR ----------
+function toggleBottomPanel() {
+  const panel  = document.getElementById('canvas-bottom-panel');
+  const btn    = document.getElementById('cbp-toggle-btn');
+  const icon   = document.getElementById('cbp-toggle-icon');
+  const label  = document.getElementById('cbp-toggle-label');
+  const collapsed = panel.classList.toggle('collapsed');
+  btn.classList.toggle('collapsed', collapsed);
+  icon.style.transform = collapsed ? 'rotate(180deg)' : '';
+  label.textContent    = collapsed ? 'Expandir' : 'Recolher';
+}
+
 // ---------- MINI MAPA ----------
 function updateMinimap() {
   const minimapSvg = document.getElementById('minimap-svg');

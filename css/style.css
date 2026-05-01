@@ -1358,6 +1358,32 @@ body {
   font-size: 11px;
 }
 
+/* Botão de recolher painel */
+.cbp-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: auto;
+  padding: 3px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  background: #fff;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 1;
+}
+.cbp-toggle-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+
+/* Painel recolhido */
+.canvas-bottom-panel.collapsed {
+  display: none;
+}
+.cbp-toggle-btn.collapsed #cbp-toggle-icon {
+  transform: rotate(180deg);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
