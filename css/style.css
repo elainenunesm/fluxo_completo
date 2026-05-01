@@ -202,6 +202,9 @@ body {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+}
+
+.sidebar-left.animate-collapse {
   transition: width 0.22s ease, min-width 0.22s ease;
 }
 
@@ -951,8 +954,10 @@ body {
   align-items: center;
   justify-content: center;
   padding: 40px 24px;
+}
+
+.sidebar-right.animate-collapse {
   transition: width 0.22s ease, min-width 0.22s ease;
-  overflow: hidden;
 }
 
 .sidebar-right-title {
@@ -1063,6 +1068,7 @@ body {
   padding: 0;
   justify-content: flex-start;
   align-items: stretch;
+  overflow: hidden;
 }
 
 .sidebar-right.collapsed > *:not(.sidebar-right-title-bar) {

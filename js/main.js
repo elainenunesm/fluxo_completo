@@ -721,11 +721,13 @@ function resetSidebarRight() {
 
 function toggleSidebarRight() {
   const sb = document.querySelector('.sidebar-right');
+  sb.classList.add('animate-collapse');
   sb.classList.toggle('collapsed');
 }
 
 function toggleSidebarLeft() {
   const sb = document.querySelector('.sidebar-left');
+  sb.classList.add('animate-collapse');
   sb.classList.toggle('collapsed');
 }
 
@@ -840,8 +842,16 @@ function showToast(msg) {
 }
 
 // ---------- INIT ----------
+// Painel de propriedades inicia recolhido
+document.querySelector('.sidebar-right')?.classList.add('collapsed');
 registerExistingNodes();
 updateFooterCount();
+
+// Mantém recolhido também ao restaurar via bfcache
+window.addEventListener('pageshow', () => {
+  document.querySelector('.sidebar-right')?.classList.add('collapsed');
+  document.querySelector('.sidebar-right')?.classList.remove('animate-collapse');
+});
 
 // ---------- EXPORTAR RELATÓRIO ----------
 let pendingExportFormat = null;
