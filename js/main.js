@@ -737,6 +737,12 @@ function toggleSidebarLeft() {
 
 // ---------- TECLA DELETE ----------
 document.addEventListener('keydown', (e) => {
+  // Intercepta F5 / Ctrl+R / Cmd+R se houver alterações não salvas
+  if ((e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r')) && _isDirty) {
+    e.preventDefault();
+    showReloadConfirmModal();
+    return;
+  }
   if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {
     const tag = document.activeElement?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
@@ -832,6 +838,7 @@ document.querySelector('.zoom-btn[title="Ajustar à tela"]')?.addEventListener('
 
 // ---------- MENU CONFIGURAÇÃO ----------
 let _fileHandle = null; // handle do último "Salvar como"
+let _isDirty    = false; // true se houver alterações não salvas em arquivo
 
 document.getElementById('configMenuBtn')?.addEventListener('click', (e) => {
   e.stopPropagation();
@@ -911,6 +918,7 @@ async function saveAsFile() {
     } else {
       _downloadJson(data, 'fluxo-macro.json');
     }
+    _isDirty = false;
     _updateFooterSaved();
     showToast('Arquivo salvo!');
   } catch(e) {
@@ -924,6 +932,7 @@ async function saveToFile() {
     const writable = await _fileHandle.createWritable();
     await writable.write(JSON.stringify(getCanvasData(), null, 2));
     await writable.close();
+    _isDirty = false;
     _updateFooterSaved();
     showToast('Arquivo salvo!');
   } catch(e) {
@@ -934,18 +943,60 @@ async function saveToFile() {
 
 async function openFile() {
   try {
-    if (window.showOpenFilePicker) {
-      const [handle] = await window.showOpenFilePicker({
-        types: [{ description: 'Arquivo JSON', accept: { 'application/json': ['.json'] } }],
-      });
-      const file = await handle.getFile();
-      importCanvasData(JSON.parse(await file.text()));
+    if (window.showDirectoryPicker) {
+      const dirHandle = await window.showDirectoryPicker();
+      const jsonFiles = [];
+      for await (const [name, handle] of dirHandle.entries()) {
+        if (handle.kind === 'file' && name.toLowerCase().endsWith('.json')) {
+          jsonFiles.push({ name, handle });
+        }
+      }
+      if (jsonFiles.length === 0) {
+        showToast('Nenhum arquivo JSON encontrado nesta pasta');
+        return;
+      }
+      showFilePicker(jsonFiles);
     } else {
       document.getElementById('fileImportInput')?.click();
     }
   } catch(e) {
-    if (e.name !== 'AbortError') showToast('Erro ao abrir arquivo');
+    if (e.name !== 'AbortError') showToast('Erro ao abrir pasta');
   }
+}
+
+function showFilePicker(files) {
+  if (document.getElementById('_filePickerModal')) return;
+  const overlay = document.createElement('div');
+  overlay.id = '_filePickerModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  const listHtml = files.map((f, i) =>
+    `<button class="_fp-item" data-idx="${i}" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;background:none;border:none;border-radius:6px;font-size:13px;color:#374151;cursor:pointer;text-align:left;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      ${f.name}
+    </button>`
+  ).join('');
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:24px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.2);max-height:80vh;display:flex;flex-direction:column;">
+      <div style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px;">Selecionar arquivo</div>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">Escolha um arquivo JSON para abrir:</p>
+      <div style="overflow-y:auto;flex:1;">${listHtml}</div>
+      <button id="_fpCancel" style="margin-top:16px;padding:8px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Cancelar</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelectorAll('._fp-item').forEach(btn => {
+    btn.addEventListener('mouseenter', () => btn.style.background = '#f3f4f6');
+    btn.addEventListener('mouseleave', () => btn.style.background = 'none');
+    btn.addEventListener('click', async () => {
+      overlay.remove();
+      const f = files[parseInt(btn.dataset.idx)];
+      try {
+        const file = await f.handle.getFile();
+        importCanvasData(JSON.parse(await file.text()));
+      } catch(e) { showToast('Arquivo inválido'); }
+    });
+  });
+  document.getElementById('_fpCancel').onclick = () => overlay.remove();
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 }
 
 function importCanvasData(data) {
@@ -982,6 +1033,7 @@ function importCanvasData(data) {
   redrawConnections();
   updateFooterCount();
   saveCanvas();
+  _isDirty = false;
   showToast('Fluxo importado!');
 }
 
@@ -998,6 +1050,42 @@ function _updateFooterSaved() {
   const footerSave = document.querySelector('.footer-left');
   if (footerSave) footerSave.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> Arquivo salvo às ${hhmm}`;
 }
+
+// ---------- MODAL CONFIRMAÇÃO DE RECARGA ----------
+function showReloadConfirmModal() {
+  if (document.getElementById('_reloadModal')) return;
+  const overlay = document.createElement('div');
+  overlay.id = '_reloadModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:28px 32px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+      <div style="font-size:15px;font-weight:700;color:#111827;margin-bottom:8px;">Alterações não salvas</div>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:24px;">Você tem alterações que não foram salvas em arquivo. O que deseja fazer?</p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button id="_reloadSave" style="padding:10px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Salvar e recarregar</button>
+        <button id="_reloadDiscard" style="padding:10px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Recarregar sem salvar</button>
+        <button id="_reloadCancel" style="padding:10px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Cancelar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('_reloadSave').onclick = async () => {
+    overlay.remove();
+    await (_fileHandle ? saveToFile() : saveAsFile());
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  };
+  document.getElementById('_reloadDiscard').onclick = () => {
+    overlay.remove();
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  };
+  document.getElementById('_reloadCancel').onclick = () => overlay.remove();
+}
+
+// Avisa ao fechar aba / navegar para fora se houver alterações não salvas
+window.addEventListener('beforeunload', (e) => {
+  if (_isDirty) { e.preventDefault(); e.returnValue = ''; }
+});
 
 // ---------- ATUALIZAR CONTADOR DO FOOTER + hint ----------
 function updateFooterCount() {
@@ -1029,6 +1117,7 @@ const STORAGE_KEY = 'cobol-flow-macro';
 function saveCanvas() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(getCanvasData()));
+    _isDirty = true;
   } catch(e) {}
 }
 
@@ -1086,6 +1175,7 @@ function loadCanvas() {
     connections = data.connections || [];
     redrawConnections();
     updateFooterCount();
+    _isDirty = false;
   } catch(e) {}
 }
 
