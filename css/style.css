@@ -332,7 +332,7 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 7px;
-  padding: 7px 8px;
+  padding: 10px 8px;
   border-radius: 8px;
   cursor: grab;
   font-size: 11px;
@@ -341,12 +341,20 @@ body {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition: box-shadow 0.15s, border-color 0.15s, background 0.15s;
   line-height: 1.35;
   word-break: break-word;
   overflow: visible;
   white-space: normal;
   text-overflow: unset;
+  user-select: none;
+  min-height: 44px;
+}
+
+.component-item:active {
+  cursor: grabbing;
+  background: #eff6ff;
+  border-color: #93c5fd;
 }
 
 .component-item:hover {

@@ -750,6 +750,19 @@ document.addEventListener('keydown', (e) => {
 let dragType = null;
 
 document.querySelectorAll('.component-item').forEach(item => {
+  // Duplo clique: insere componente no centro do canvas visível
+  item.addEventListener('dblclick', function () {
+    const type = this.dataset.type || this.textContent.trim();
+    const scroll = document.querySelector('.canvas-scroll');
+    const scale  = zoomLevel / 100;
+    const cx = (scroll ? scroll.scrollLeft + scroll.clientWidth  / 2 : 400) / scale - 80;
+    const cy = (scroll ? scroll.scrollTop  + scroll.clientHeight / 2 : 300) / scale - 30;
+    const id = createNodeElement(type, Math.max(0, cx), Math.max(0, cy));
+    selectNode(id);
+    updateFooterCount();
+    showToast(`"${type}" adicionado`);
+  });
+
   item.addEventListener('dragstart', function (e) {
     // Usa data-type se disponível; senão extrai só o texto direto (ignora conteúdo de SVGs)
     if (this.dataset.type) {
