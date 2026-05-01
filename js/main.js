@@ -413,7 +413,9 @@ document.getElementById('propsOverlay')?.addEventListener('click', closePropsDra
 // ---------- PROPRIEDADES ----------
 function showProperties(wrapper) {
   const sidebarRight = document.querySelector('.sidebar-right');
-  const wasCollapsed = sidebarRight.classList.contains('collapsed');
+  // Sempre expande ao selecionar um componente
+  sidebarRight.classList.remove('collapsed');
+  const wasCollapsed = false;
   const title   = wrapper.dataset.title       || wrapper.querySelector('h4')?.textContent || 'Nó';
   const desc    = wrapper.dataset.description || wrapper.querySelector('.node-info p')?.textContent || '';
   const type    = wrapper.dataset.type || title;
@@ -797,6 +799,9 @@ canvasEl.addEventListener('click', (e) => {
       if (prev) prev.querySelectorAll('.node-box,.diamond').forEach(el => { el.style.outline = ''; });
       selectedNodeId = null;
       resetSidebarRight();
+      // Recolhe ao clicar fora
+      document.querySelector('.sidebar-right')?.classList.add('collapsed');
+      document.querySelector('.sidebar-right')?.classList.remove('animate-collapse');
     }
   }
 });
