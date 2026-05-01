@@ -1456,6 +1456,10 @@ body {
   .logo-text     { font-size: 15px; }
   .footer-right  { gap: 16px; }
   .project-selector { font-size: 13px; padding: 6px 10px; }
+
+  /* Painel inferior — comprime info e legenda */
+  .cbp-info   { flex: 0 0 260px; }
+  .cbp-legend { flex: 0 0 190px; }
 }
 
 /* ========== PROPS OVERLAY ========== */
@@ -1574,6 +1578,31 @@ body {
   /* Footer */
   .footer { padding: 6px 12px; }
   .footer-right { display: none; }
+
+  /* Painel inferior — empilha em coluna com scroll */
+  .canvas-bottom-panel {
+    flex-direction: column;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .cbp-section {
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    flex: unset !important;
+    width: 100%;
+  }
+  .cbp-section:last-child { border-bottom: none; }
+  .cbp-info   { flex: unset; }
+  .cbp-legend { flex: unset; }
+  .cbp-minimap { flex: unset; min-width: unset; }
+  .cbp-minimap-svg { height: 70px; }
+  .cbp-legend-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+  }
+  .cbp-info-grid { grid-template-columns: auto 1fr; }
+  .cbp-user-bar { padding: 5px 12px; }
 }
 
 /* ========== MOBILE PEQUENO (≤ 480px) ========== */
@@ -1583,4 +1612,14 @@ body {
   .btn-primary { padding: 7px 12px; font-size: 13px; }
   .export-btn { padding: 0 10px; font-size: 11px; }
   .canvas-toolbar-right { gap: 4px; }
+
+  /* Painel inferior — compacto */
+  .canvas-bottom-panel { max-height: 220px; }
+  .cbp-section { padding: 10px 12px; }
+  .cbp-title { font-size: 10px; margin-bottom: 6px; }
+  .cbp-label,
+  .cbp-value,
+  .cbp-legend-list li { font-size: 10px; }
+  .cbp-minimap-svg { height: 55px; }
+  .cbp-toggle-btn { font-size: 10px; }
 }
