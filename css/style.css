@@ -1316,7 +1316,9 @@ body {
   border-radius: 3px;
   padding: 1px 3px;
   min-width: 60px;
+  min-height: 18px;
   line-height: 1.4;
+  display: inline-block;
 }
 .cbp-value:focus {
   background: #f0f9ff;
