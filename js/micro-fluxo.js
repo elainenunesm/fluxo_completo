@@ -924,7 +924,8 @@ document.querySelector('.zoom-btn[title="Ajustar à tela"]')?.addEventListener('
 });
 
 // ---------- MENU CONFIGURAÇÃO ----------
-let _fileHandle = null;
+let _fileHandle = null; // handle do último arquivo salvo/aberto
+let _dirHandle  = null; // handle da última pasta selecionada
 let _isDirty    = false; // true se houver alterações não salvas em arquivo
 
 document.getElementById('configMenuBtn')?.addEventListener('click', (e) => {
@@ -1017,7 +1018,9 @@ async function saveAsFile() {
   const data = getCanvasData();
   try {
     if (window.showDirectoryPicker) {
-      const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      // Reutiliza a pasta já aberta; só pede nova pasta se não houver nenhuma
+      const dirHandle = _dirHandle || await window.showDirectoryPicker({ mode: 'readwrite' });
+      _dirHandle = dirHandle;
       const name = await _promptSaveName('fluxo-micro.json');
       if (!name) return;
       const filename = name.endsWith('.json') ? name : name + '.json';
@@ -1056,6 +1059,7 @@ async function openFile() {
   try {
     if (window.showDirectoryPicker) {
       const dirHandle = await window.showDirectoryPicker();
+      _dirHandle = dirHandle;
       const jsonFiles = [];
       for await (const [name, handle] of dirHandle.entries()) {
         if (handle.kind === 'file' && name.toLowerCase().endsWith('.json')) {
@@ -1103,6 +1107,7 @@ function showFilePicker(files) {
       try {
         const file = await f.handle.getFile();
         importCanvasData(JSON.parse(await file.text()));
+        _fileHandle = f.handle; // guarda handle para Salvar direto
       } catch(e) { showToast('Arquivo inválido'); }
     });
   });
