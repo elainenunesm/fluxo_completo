@@ -827,10 +827,11 @@ document.addEventListener('keydown', (e) => {
   // Intercepta F5 / Ctrl+R / Cmd+R sempre — reload deve limpar o canvas
   if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r')) {
     e.preventDefault();
-    if (_isDirty) {
+    const hasContent = document.querySelectorAll('#canvas .flow-node, #canvas .decision-node').length > 0;
+    if (hasContent) {
       showReloadConfirmModal();
     } else {
-      // Sem alterações pendentes: limpa e recarrega direto
+      _skipPagehideSave = true;
       localStorage.removeItem(STORAGE_KEY);
       location.reload();
     }
@@ -867,6 +868,7 @@ document.querySelectorAll('.component-item').forEach(item => {
     const id = createNodeElement(type, Math.max(0, cx), Math.max(0, cy));
     selectNode(id);
     updateFooterCount();
+    saveCanvas();
     showToast(`"${type}" adicionado`);
   });
 
@@ -933,6 +935,7 @@ document.querySelector('.zoom-btn[title="Ajustar à tela"]')?.addEventListener('
 let _fileHandle = null; // handle do último arquivo salvo/aberto
 let _dirHandle  = null; // handle da última pasta selecionada
 let _isDirty    = false; // true se houver alterações não salvas em arquivo
+let _skipPagehideSave = false; // true quando o reload intencional não deve preservar dados
 
 // Persiste o dirHandle no IndexedDB para sobreviver à navegação entre páginas
 function _idb() {
@@ -1227,33 +1230,25 @@ function showReloadConfirmModal() {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;';
   overlay.innerHTML = `
     <div style="background:#fff;border-radius:12px;padding:28px 32px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.2);">
-      <div style="font-size:15px;font-weight:700;color:#111827;margin-bottom:8px;">Alterações não salvas</div>
-      <p style="font-size:13px;color:#6b7280;margin-bottom:24px;">Você tem alterações que não foram salvas em arquivo. O que deseja fazer?</p>
+      <div style="font-size:15px;font-weight:700;color:#111827;margin-bottom:8px;">Atenção</div>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:24px;">Isso vai <strong>apagar todo o conteúdo</strong> do canvas (nós, conexões e dados). Deseja continuar?</p>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <button id="_reloadSave" style="padding:10px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Salvar e recarregar</button>
-        <button id="_reloadDiscard" style="padding:10px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Recarregar sem salvar</button>
+        <button id="_reloadDiscard" style="padding:10px;background:#ef4444;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Sim, limpar tudo e recarregar</button>
         <button id="_reloadCancel" style="padding:10px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Cancelar</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
-  document.getElementById('_reloadSave').onclick = async () => {
-    overlay.remove();
-    await (_fileHandle ? saveToFile() : saveAsFile());
-    _isDirty = false;
-    localStorage.removeItem(STORAGE_KEY); // salvo em arquivo; reload começa limpo
-    location.reload();
-  };
   document.getElementById('_reloadDiscard').onclick = () => {
     overlay.remove();
     _isDirty = false;
-    localStorage.removeItem(STORAGE_KEY); // descarta: canvas fica vazio
+    _skipPagehideSave = true;
+    sessionStorage.setItem('_pendingClear', '1');
+    localStorage.removeItem('cobol-flow-macro');
+    localStorage.removeItem('cobol-flow-micro');
     location.reload();
   };
   document.getElementById('_reloadCancel').onclick = () => overlay.remove();
 }
-
-// Sem beforeunload: navegar entre páginas não pede confirmação.
-// F5/Ctrl+R é tratado pelo keydown handler (showReloadConfirmModal).
 
 // ---------- ATUALIZAR CONTADOR DO FOOTER + hint ----------
 function updateFooterCount() {
@@ -1342,8 +1337,15 @@ function loadCanvas() {
 // ---------- INIT ----------
 // Painel de propriedades inicia recolhido
 document.querySelector('.sidebar-right')?.classList.add('collapsed');
-// Não limpa localStorage automaticamente aqui.
-// A limpeza ocorre apenas quando o usuário aciona F5/Ctrl+R (keydown handler) ou o modal de reload.
+// Se foi um reload com intenção de limpar (confirmado pelo usuário), apaga os dados
+if (sessionStorage.getItem('_pendingClear') === '1') {
+  const navType = (performance.getEntriesByType('navigation')[0] || {}).type;
+  if (navType === 'reload') {
+    localStorage.removeItem('cobol-flow-macro');
+    localStorage.removeItem('cobol-flow-micro');
+  }
+  sessionStorage.removeItem('_pendingClear');
+}
 loadCanvas();
 registerExistingNodes();
 updateFooterCount();
@@ -1352,6 +1354,29 @@ updateFooterCount();
 window.addEventListener('pageshow', () => {
   document.querySelector('.sidebar-right')?.classList.add('collapsed');
   document.querySelector('.sidebar-right')?.classList.remove('animate-collapse');
+});
+
+// Salva o canvas antes de navegar para outra página (não salva quando o reload é intencional)
+window.addEventListener('pagehide', () => {
+  if (!_skipPagehideSave) saveCanvas();
+});
+
+// Marca que é uma navegação de página (aba) para não disparar o beforeunload
+let _isNavigating = false;
+function navigateTo(url) {
+  _isNavigating = true;
+  window.location.href = url;
+}
+
+// Intercepta o botão de atualizar do navegador e Ctrl+Shift+R (hard reload)
+window.addEventListener('beforeunload', (e) => {
+  if (_skipPagehideSave || _isNavigating) return; // reload via modal ou navegação entre páginas
+  const hasContent = document.querySelectorAll('#canvas .flow-node, #canvas .decision-node').length > 0;
+  if (hasContent) {
+    sessionStorage.setItem('_pendingClear', '1');
+    e.preventDefault();
+    e.returnValue = '';
+  }
 });
 
 // ---------- EXPORTAR RELATÓRIO ----------
