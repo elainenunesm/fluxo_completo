@@ -928,6 +928,39 @@ let _fileHandle = null; // handle do último arquivo salvo/aberto
 let _dirHandle  = null; // handle da última pasta selecionada
 let _isDirty    = false; // true se houver alterações não salvas em arquivo
 
+// Persiste o dirHandle no IndexedDB para sobreviver à navegação entre páginas
+function _idb() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('cobol-flow-fsh', 1);
+    r.onupgradeneeded = e => e.target.result.createObjectStore('handles');
+    r.onsuccess = e => res(e.target.result);
+    r.onerror   = rej;
+  });
+}
+async function _saveDirHandle(h) {
+  try { const db = await _idb(); const tx = db.transaction('handles','readwrite'); tx.objectStore('handles').put(h,'lastDir'); tx.oncomplete = () => db.close(); } catch(e) {}
+}
+async function _loadDirHandle() {
+  try {
+    const db = await _idb();
+    return await new Promise(res => {
+      const tx = db.transaction('handles','readonly');
+      const req = tx.objectStore('handles').get('lastDir');
+      req.onsuccess = () => { db.close(); res(req.result || null); };
+      req.onerror   = () => { db.close(); res(null); };
+    });
+  } catch(e) { return null; }
+}
+async function _restoreDirHandle() {
+  if (_dirHandle) return;
+  const h = await _loadDirHandle();
+  if (!h) return;
+  try {
+    const perm = await h.queryPermission({ mode: 'readwrite' });
+    if (perm === 'granted') _dirHandle = h;
+  } catch(e) {}
+}
+
 document.getElementById('configMenuBtn')?.addEventListener('click', (e) => {
   e.stopPropagation();
   document.getElementById('configDropdown')?.classList.toggle('open');
@@ -1018,9 +1051,21 @@ async function saveAsFile() {
   const data = getCanvasData();
   try {
     if (window.showDirectoryPicker) {
-      // Reutiliza a pasta já aberta; só pede nova pasta se não houver nenhuma
-      const dirHandle = _dirHandle || await window.showDirectoryPicker({ mode: 'readwrite' });
-      _dirHandle = dirHandle;
+      // Tenta restaurar pasta do IDB antes de pedir ao usuário
+      if (!_dirHandle) await _restoreDirHandle();
+      let dirHandle = _dirHandle;
+      if (!dirHandle) {
+        dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        _dirHandle = dirHandle;
+        await _saveDirHandle(dirHandle);
+      } else {
+        const perm = await dirHandle.requestPermission({ mode: 'readwrite' });
+        if (perm !== 'granted') {
+          dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+          _dirHandle = dirHandle;
+          await _saveDirHandle(dirHandle);
+        }
+      }
       const name = await _promptSaveName('fluxo-micro.json');
       if (!name) return;
       const filename = name.endsWith('.json') ? name : name + '.json';
@@ -1060,6 +1105,7 @@ async function openFile() {
     if (window.showDirectoryPicker) {
       const dirHandle = await window.showDirectoryPicker();
       _dirHandle = dirHandle;
+      await _saveDirHandle(dirHandle);
       const jsonFiles = [];
       for await (const [name, handle] of dirHandle.entries()) {
         if (handle.kind === 'file' && name.toLowerCase().endsWith('.json')) {
@@ -1201,13 +1247,9 @@ function showReloadConfirmModal() {
 }
 
 // Avisa ao fechar aba / navegar para fora se houver alterações não salvas
-// Limpa localStorage para que o reload resulte em canvas vazio
+// Não limpa localStorage aqui para não perder dados ao navegar entre páginas
 window.addEventListener('beforeunload', (e) => {
-  if (_isDirty) {
-    localStorage.removeItem(STORAGE_KEY);
-    e.preventDefault();
-    e.returnValue = '';
-  }
+  if (_isDirty) { e.preventDefault(); e.returnValue = ''; }
 });
 
 // ---------- ATUALIZAR CONTADOR DO FOOTER + hint ----------
