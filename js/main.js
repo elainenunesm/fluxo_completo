@@ -830,14 +830,174 @@ document.querySelector('.zoom-btn[title="Ajustar à tela"]')?.addEventListener('
   document.querySelector('.canvas-scroll')?.scrollTo(0, 0);
 });
 
-// ---------- BOTÃO SALVAR ----------
-document.querySelector('.header-btn')?.addEventListener('click', () => {
-  showToast('Projeto salvo!');
+// ---------- MENU CONFIGURAÇÃO ----------
+let _fileHandle = null; // handle do último "Salvar como"
+
+document.getElementById('configMenuBtn')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('configDropdown')?.classList.toggle('open');
+});
+
+document.addEventListener('click', () => {
+  document.getElementById('configDropdown')?.classList.remove('open');
+});
+
+document.getElementById('configOpen')?.addEventListener('click', () => {
+  document.getElementById('configDropdown')?.classList.remove('open');
+  openFile();
+});
+
+document.getElementById('configSaveAs')?.addEventListener('click', () => {
+  document.getElementById('configDropdown')?.classList.remove('open');
+  saveAsFile();
+});
+
+document.getElementById('configSave')?.addEventListener('click', () => {
+  document.getElementById('configDropdown')?.classList.remove('open');
+  saveToFile();
+});
+
+// Input de fallback para abrir arquivo
+document.getElementById('fileImportInput')?.addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try { importCanvasData(JSON.parse(ev.target.result)); }
+    catch(e) { showToast('Arquivo inválido'); }
+  };
+  reader.readAsText(file);
+  this.value = '';
+});
+
+function getCanvasData() {
+  const nodes = [];
+  document.querySelectorAll('#canvas .flow-node, #canvas .decision-node').forEach(n => {
+    const badge     = n.querySelector('.node-badge');
+    const descEl    = n.querySelector('.node-info p');
+    const commentEl = n.querySelector('.node-comment-body');
+    const bubbleNum = n.querySelector('.bubble-number');
+    nodes.push({
+      id:          n.id,
+      type:        n.dataset.type   || '',
+      title:       n.dataset.title  || '',
+      description: n.dataset.description || (descEl ? descEl.textContent : ''),
+      left:        n.style.left,
+      top:         n.style.top,
+      badge:       badge ? badge.textContent.trim() : '+',
+      badgeClass:  badge ? badge.className : '',
+      comment:     commentEl ? commentEl.innerHTML : '',
+      commentOpen: n.querySelector('.node-comment-block')?.style.display !== 'none',
+      bubbleNum:   bubbleNum ? bubbleNum.textContent.trim() : null,
+      isBubble:    n.classList.contains('bubble-node'),
+      isDiamond:   n.classList.contains('decision-node'),
+    });
+  });
+  return { nodes, connections, nodeCounter };
+}
+
+async function saveAsFile() {
+  const data = getCanvasData();
+  try {
+    if (window.showSaveFilePicker) {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: 'fluxo-macro.json',
+        types: [{ description: 'Arquivo JSON', accept: { 'application/json': ['.json'] } }],
+      });
+      _fileHandle = handle;
+      const writable = await handle.createWritable();
+      await writable.write(JSON.stringify(data, null, 2));
+      await writable.close();
+    } else {
+      _downloadJson(data, 'fluxo-macro.json');
+    }
+    _updateFooterSaved();
+    showToast('Arquivo salvo!');
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('Erro ao salvar arquivo');
+  }
+}
+
+async function saveToFile() {
+  if (!_fileHandle) { await saveAsFile(); return; }
+  try {
+    const writable = await _fileHandle.createWritable();
+    await writable.write(JSON.stringify(getCanvasData(), null, 2));
+    await writable.close();
+    _updateFooterSaved();
+    showToast('Arquivo salvo!');
+  } catch(e) {
+    showToast('Erro ao salvar. Use "Salvar como".');
+    _fileHandle = null;
+  }
+}
+
+async function openFile() {
+  try {
+    if (window.showOpenFilePicker) {
+      const [handle] = await window.showOpenFilePicker({
+        types: [{ description: 'Arquivo JSON', accept: { 'application/json': ['.json'] } }],
+      });
+      const file = await handle.getFile();
+      importCanvasData(JSON.parse(await file.text()));
+    } else {
+      document.getElementById('fileImportInput')?.click();
+    }
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('Erro ao abrir arquivo');
+  }
+}
+
+function importCanvasData(data) {
+  if (!data || !data.nodes) { showToast('Arquivo inválido'); return; }
+  document.querySelectorAll('#canvas .flow-node, #canvas .decision-node').forEach(n => n.remove());
+  connections = [];
+  nodeCounter = data.nodeCounter || 100;
+  data.nodes.forEach(nd => {
+    const id = createNodeElement(nd.type, parseFloat(nd.left), parseFloat(nd.top));
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id !== nd.id) {
+      el.id = nd.id;
+      el.querySelectorAll('[data-node-id]').forEach(c => c.dataset.nodeId = nd.id);
+    }
+    el.dataset.title       = nd.title;
+    el.dataset.description = nd.description;
+    const h4 = el.querySelector('h4');
+    if (h4 && nd.title) h4.textContent = nd.title;
+    const p = el.querySelector('.node-info p');
+    if (p) p.textContent = nd.description || '';
+    const badge = el.querySelector('.node-badge');
+    if (badge && nd.badge) { badge.textContent = nd.badge; badge.className = nd.badgeClass || badge.className; }
+    const commentEl = el.querySelector('.node-comment-body');
+    if (commentEl && nd.comment) {
+      commentEl.innerHTML = nd.comment;
+      el.querySelector('.node-comment-btn')?.classList.toggle('has-value', nd.comment.trim() !== '');
+    }
+    if (nd.commentOpen) { const cb = el.querySelector('.node-comment-block'); if (cb) cb.style.display = 'flex'; }
+    const bubbleNum = el.querySelector('.bubble-number');
+    if (bubbleNum && nd.bubbleNum) bubbleNum.textContent = nd.bubbleNum;
+  });
+  connections = data.connections || [];
+  redrawConnections();
+  updateFooterCount();
+  saveCanvas();
+  showToast('Fluxo importado!');
+}
+
+function _downloadJson(data, filename) {
+  const a = document.createElement('a');
+  a.href = 'data:application/json,' + encodeURIComponent(JSON.stringify(data, null, 2));
+  a.download = filename;
+  a.click();
+}
+
+function _updateFooterSaved() {
   const now = new Date();
   const hhmm = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
   const footerSave = document.querySelector('.footer-left');
-  if (footerSave) footerSave.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> Projeto salvo às ${hhmm}`;
-});
+  if (footerSave) footerSave.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> Arquivo salvo às ${hhmm}`;
+}
 
 // ---------- ATUALIZAR CONTADOR DO FOOTER + hint ----------
 function updateFooterCount() {
@@ -868,29 +1028,7 @@ const STORAGE_KEY = 'cobol-flow-macro';
 
 function saveCanvas() {
   try {
-    const nodes = [];
-    document.querySelectorAll('#canvas .flow-node, #canvas .decision-node').forEach(n => {
-      const badge   = n.querySelector('.node-badge');
-      const descEl  = n.querySelector('.node-info p');
-      const commentEl = n.querySelector('.node-comment-body');
-      const bubbleNum = n.querySelector('.bubble-number');
-      nodes.push({
-        id:          n.id,
-        type:        n.dataset.type   || '',
-        title:       n.dataset.title  || '',
-        description: n.dataset.description || (descEl ? descEl.textContent : ''),
-        left:        n.style.left,
-        top:         n.style.top,
-        badge:       badge ? badge.textContent.trim() : '+',
-        badgeClass:  badge ? badge.className : '',
-        comment:     commentEl ? commentEl.innerHTML : '',
-        commentOpen: n.querySelector('.node-comment-block')?.style.display !== 'none',
-        bubbleNum:   bubbleNum ? bubbleNum.textContent.trim() : null,
-        isBubble:    n.classList.contains('bubble-node'),
-        isDiamond:   n.classList.contains('decision-node'),
-      });
-    });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, connections, nodeCounter }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(getCanvasData()));
   } catch(e) {}
 }
 
