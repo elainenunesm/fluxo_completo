@@ -413,13 +413,14 @@ document.getElementById('propsOverlay')?.addEventListener('click', closePropsDra
 // ---------- PROPRIEDADES ----------
 function showProperties(wrapper) {
   const sidebarRight = document.querySelector('.sidebar-right');
+  const wasCollapsed = sidebarRight.classList.contains('collapsed');
   const title   = wrapper.dataset.title       || wrapper.querySelector('h4')?.textContent || 'Nó';
   const desc    = wrapper.dataset.description || wrapper.querySelector('.node-info p')?.textContent || '';
   const type    = wrapper.dataset.type || title;
   const nodeId  = wrapper.id;
 
   sidebarRight.innerHTML = `
-    <div class="sidebar-right-title-bar">Propriedades do Componente<button class="props-close-btn" id="propsCloseMobile">✕</button></div>
+    <div class="sidebar-right-title-bar"><span class="title-text">Propriedades do Componente</span><button class="sidebar-toggle-btn" onclick="toggleSidebarRight()" title="Recolher painel"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="props-close-btn" id="propsCloseMobile">✕</button></div>
     <div style="padding: 56px 16px 16px; width: 100%;">
       <div style="margin-bottom: 12px;">
         <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Tipo</label>
@@ -498,6 +499,7 @@ function showProperties(wrapper) {
   });
 
   openPropsDrawer();
+  if (wasCollapsed) sidebarRight.classList.add('collapsed');
 }
 
 function escHtml(str) {
@@ -700,8 +702,10 @@ function deleteNode(id) {
 
 function resetSidebarRight() {
   closePropsDrawer();
-  document.querySelector('.sidebar-right').innerHTML = `
-    <div class="sidebar-right-title-bar">Propriedades do Componente</div>
+  const sb = document.querySelector('.sidebar-right');
+  const wasCollapsed = sb.classList.contains('collapsed');
+  sb.innerHTML = `
+    <div class="sidebar-right-title-bar"><span class="title-text">Propriedades do Componente</span><button class="sidebar-toggle-btn" onclick="toggleSidebarRight()" title="Recolher painel"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button></div>
     <div class="empty-state" style="margin-top:60px;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
@@ -712,6 +716,12 @@ function resetSidebarRight() {
       </svg>
       <p>Selecione um componente<br>no fluxo para editar<br>suas propriedades.</p>
     </div>`;
+  if (wasCollapsed) sb.classList.add('collapsed');
+}
+
+function toggleSidebarRight() {
+  const sb = document.querySelector('.sidebar-right');
+  sb.classList.toggle('collapsed');
 }
 
 // ---------- TECLA DELETE ----------
