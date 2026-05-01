@@ -1261,6 +1261,10 @@ function loadCanvas() {
 // ---------- INIT ----------
 // Painel de propriedades inicia recolhido
 document.querySelector('.sidebar-right')?.classList.add('collapsed');
+// Se a página foi recarregada (F5 / Ctrl+R / botão reload), limpa o canvas
+if (performance.getEntriesByType('navigation')[0]?.type === 'reload') {
+  localStorage.removeItem(STORAGE_KEY);
+}
 loadCanvas();
 registerExistingNodes();
 updateFooterCount();
