@@ -737,10 +737,16 @@ function toggleSidebarLeft() {
 
 // ---------- TECLA DELETE ----------
 document.addEventListener('keydown', (e) => {
-  // Intercepta F5 / Ctrl+R / Cmd+R se houver alterações não salvas
-  if ((e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r')) && _isDirty) {
+  // Intercepta F5 / Ctrl+R / Cmd+R sempre — reload deve limpar o canvas
+  if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r')) {
     e.preventDefault();
-    showReloadConfirmModal();
+    if (_isDirty) {
+      showReloadConfirmModal();
+    } else {
+      // Sem alterações pendentes: limpa e recarrega direto
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
     return;
   }
   if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {
@@ -1149,7 +1155,8 @@ function showReloadConfirmModal() {
     overlay.remove();
     await (_fileHandle ? saveToFile() : saveAsFile());
     _isDirty = false;
-    location.reload(); // localStorage mantido: dados restauram após reload
+    localStorage.removeItem(STORAGE_KEY); // salvo em arquivo; reload começa limpo
+    location.reload();
   };
   document.getElementById('_reloadDiscard').onclick = () => {
     overlay.remove();
@@ -1258,10 +1265,8 @@ function loadCanvas() {
 // ---------- INIT ----------
 // Painel de propriedades inicia recolhido
 document.querySelector('.sidebar-right')?.classList.add('collapsed');
-// Se a página foi recarregada (F5 / Ctrl+R / botão reload), limpa o canvas
-if (performance.getEntriesByType('navigation')[0]?.type === 'reload') {
-  localStorage.removeItem(STORAGE_KEY);
-}
+// Não limpa localStorage automaticamente aqui.
+// A limpeza ocorre apenas quando o usuário aciona F5/Ctrl+R (keydown handler) ou o modal de reload.
 loadCanvas();
 registerExistingNodes();
 updateFooterCount();
