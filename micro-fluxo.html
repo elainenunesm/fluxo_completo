@@ -298,6 +298,15 @@
     <!-- PAINEL ABAIXO DO CANVAS -->
     <div class="canvas-bottom-panel collapsed" id="canvas-bottom-panel">
 
+      <!-- Handle mobile: botão de recolher fixo no topo do painel -->
+      <div class="cbp-mobile-bar">
+        <span class="cbp-mobile-handle"></span>
+        <button class="cbp-mobile-close" onclick="toggleBottomPanel()" title="Recolher painel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+          Recolher
+        </button>
+      </div>
+
       <!-- Informações do Micro Fluxo -->
       <div class="cbp-section cbp-info">
         <div class="cbp-title">Informações do Micro Fluxo</div>
