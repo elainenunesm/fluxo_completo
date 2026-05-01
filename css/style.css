@@ -348,7 +348,15 @@ body {
   white-space: normal;
   text-overflow: unset;
   user-select: none;
+  -webkit-user-drag: element;
   min-height: 44px;
+}
+
+/* Impede que elementos filhos interceptem o drag do item pai */
+.component-item * {
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-drag: none;
 }
 
 .component-item:active {
