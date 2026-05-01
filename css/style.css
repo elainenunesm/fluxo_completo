@@ -617,6 +617,21 @@ body {
   background: #fff1f2;
 }
 
+.node-box.purple-border {
+  border-color: #d8b4fe;
+  background: #faf5ff;
+}
+
+.node-box.indigo-border {
+  border-color: #a5b4fc;
+  background: #eef2ff;
+}
+
+.node-box.slate-border {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
 .node-icon {
   width: 32px;
   height: 32px;
@@ -640,6 +655,7 @@ body {
 .node-icon.emerald { background: #d1fae5; box-shadow: 0 1px 3px rgba(0,0,0,0.08); color: #059669; }
 .node-icon.word    { background: #dbeafe; box-shadow: 0 1px 3px rgba(0,0,0,0.08); color: #2b579a; }
 .node-icon.excel   { background: #e8f5e9; box-shadow: 0 1px 3px rgba(0,0,0,0.08); color: #217346; }
+.node-icon.slate   { background: #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.08); color: #475569; }
 
 .node-icon-img {
   width: 32px;
