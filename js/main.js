@@ -724,6 +724,11 @@ function toggleSidebarRight() {
   sb.classList.toggle('collapsed');
 }
 
+function toggleSidebarLeft() {
+  const sb = document.querySelector('.sidebar-left');
+  sb.classList.toggle('collapsed');
+}
+
 // ---------- TECLA DELETE ----------
 document.addEventListener('keydown', (e) => {
   if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {
