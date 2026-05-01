@@ -27,6 +27,8 @@ document.querySelectorAll('.tab-item').forEach(tab => {
   tab.addEventListener('click', function () {
     document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
     this.classList.add('active');
+    const tabName = this.dataset.tab;
+    if (tabName) switchTab(tabName);
   });
 });
 
@@ -44,6 +46,54 @@ let connections = [];           // { id, fromId, toId, label }
 let connectingFrom = null;      // ID do nó aguardando destino para conexão
 let selectedNodeId = null;      // nó atualmente selecionado
 let connCounter = 0;
+
+// ---------- ESTADO POR ABA ----------
+let activeTab = 'macro';
+const tabState = {
+  macro: { nodesHtml: '', connections: [], nodeCounter: 100, connCounter: 0 },
+  micro: { nodesHtml: '', connections: [], nodeCounter: 200, connCounter: 0 }
+};
+
+function switchTab(tabName) {
+  if (tabName === activeTab) return;
+
+  // Salva estado da aba atual
+  const curr = tabState[activeTab];
+  const canvas = document.getElementById('canvas');
+  curr.nodesHtml = Array.from(canvas.querySelectorAll('.flow-node, .decision-node'))
+    .map(n => n.outerHTML).join('');
+  curr.connections  = connections.map(c => ({ ...c }));
+  curr.nodeCounter  = nodeCounter;
+  curr.connCounter  = connCounter;
+
+  // Limpa canvas
+  canvas.querySelectorAll('.flow-node, .decision-node').forEach(n => n.remove());
+  connections   = [];
+  selectedNodeId = null;
+  exitConnectMode();
+  redrawConnections();
+
+  // Carrega estado da nova aba
+  activeTab = tabName;
+  const next = tabState[tabName];
+  nodeCounter  = next.nodeCounter;
+  connCounter  = next.connCounter;
+  connections  = next.connections.map(c => ({ ...c }));
+
+  if (next.nodesHtml) canvas.insertAdjacentHTML('beforeend', next.nodesHtml);
+
+  registerExistingNodes();
+  redrawConnections();
+  updateFooterCount();
+  resetSidebarRight();
+  document.querySelector('.sidebar-right')?.classList.add('collapsed');
+  document.querySelector('.sidebar-right')?.classList.remove('animate-collapse');
+
+  // Atualiza título da toolbar
+  const titles = { macro: 'Macro Fluxo', micro: 'Micro Fluxo' };
+  const h2 = document.querySelector('.canvas-toolbar-left h2');
+  if (h2) h2.textContent = titles[tabName] || tabName;
+}
 
 // Botão excluir seta
 document.getElementById('arrow-delete-btn').addEventListener('click', () => {
