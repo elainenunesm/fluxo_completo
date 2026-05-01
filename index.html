@@ -104,162 +104,321 @@
       </div>
       <input type="text" class="search-input" placeholder="Buscar componente...">
 
-      <!-- Início / Fim -->
-      <div class="component-group">
-        <div class="component-group-title">Início / Fim</div>
-        <div class="component-grid">
-          <div class="component-item" draggable="true" data-type="Início">
-            <span class="ci c-green"><i class="ti ti-player-play"></i></span>
-            Início
-          </div>
-          <div class="component-item" draggable="true" data-type="Fim">
-            <span class="ci c-red"><i class="ti ti-player-stop"></i></span>
-            Fim
-          </div>
-        </div>
-      </div>
+      <!-- ===== MACRO FLUXO COMPONENTS ===== -->
+      <div id="components-macro">
 
-      <!-- Entrada -->
-      <div class="component-group">
-        <div class="component-group-title">Entrada</div>
-        <div class="component-grid">
-          <div class="component-item" draggable="true" data-type="Arquivo (Excel / CSV)">
-            <span class="ci c-img"><img src="img/excel_png.png" alt="Excel"></span>
-            Arquivo (Excel / CSV)
-          </div>
-          <div class="component-item" draggable="true" data-type="Arquivo (Texto)">
-            <span class="ci c-word"><i class="ti ti-file-text"></i></span>
-            Arquivo (Texto)
-          </div>
-          <div class="component-item" draggable="true" data-type="Mensagem (MQ Series)">
-            <span class="ci c-teal"><i class="ti ti-inbox"></i></span>
-            Mensagem (MQ Series)
-          </div>
-          <div class="component-item" draggable="true" data-type="Entrada Manual">
-            <span class="ci c-indigo"><i class="ti ti-forms"></i></span>
-            Entrada Manual
+        <!-- Início / Fim -->
+        <div class="component-group">
+          <div class="component-group-title">Início / Fim</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Início">
+              <span class="ci c-green"><i class="ti ti-player-play"></i></span>
+              Início
+            </div>
+            <div class="component-item" draggable="true" data-type="Fim">
+              <span class="ci c-red"><i class="ti ti-player-stop"></i></span>
+              Fim
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Processamento -->
-      <div class="component-group">
-        <div class="component-group-title">Processamento</div>
-        <div class="component-grid">
-          <div class="component-item" draggable="true" data-type="Programa COBOL (Batch)">
-            <span class="ci c-emerald"><i class="ti ti-terminal-2"></i></span>
-            Programa COBOL (Batch)
-          </div>
-          <div class="component-item" draggable="true" data-type="Programa COBOL (Online)">
-            <span class="ci c-emerald"><i class="ti ti-device-desktop"></i></span>
-            Programa COBOL (Online)
-          </div>
-          <div class="component-item" draggable="true" data-type="Serviço (CICS)">
-            <span class="ci c-teal"><i class="ti ti-server"></i></span>
-            Serviço (CICS)
-          </div>
-          <div class="component-item" draggable="true" data-type="Validação / Regras">
-            <span class="ci c-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
-            Validação / Regras
-          </div>
-          <div class="component-item" draggable="true" data-type="Decisão">
-            <span class="ci c-yellow"><i class="ti ti-diamond"></i></span>
-            Decisão
+        <!-- Entrada -->
+        <div class="component-group">
+          <div class="component-group-title">Entrada</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Arquivo (Excel / CSV)">
+              <span class="ci c-img"><img src="img/excel_png.png" alt="Excel"></span>
+              Arquivo (Excel / CSV)
+            </div>
+            <div class="component-item" draggable="true" data-type="Arquivo (Texto)">
+              <span class="ci c-word"><i class="ti ti-file-text"></i></span>
+              Arquivo (Texto)
+            </div>
+            <div class="component-item" draggable="true" data-type="Mensagem (MQ Series)">
+              <span class="ci c-teal"><i class="ti ti-inbox"></i></span>
+              Mensagem (MQ Series)
+            </div>
+            <div class="component-item" draggable="true" data-type="Entrada Manual">
+              <span class="ci c-indigo"><i class="ti ti-forms"></i></span>
+              Entrada Manual
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Dados -->
-      <div class="component-group">
-        <div class="component-group-title">Dados</div>
-        <div class="component-grid">
-          <div class="component-item" draggable="true" data-type="Leitura de Tabela (DB2)">
-            <span class="ci c-teal"><i class="ti ti-database"></i></span>
-            Leitura de Tabela (DB2)
-          </div>
-          <div class="component-item" draggable="true" data-type="Atualização de Tabela (DB2)">
-            <span class="ci c-teal"><i class="ti ti-database-export"></i></span>
-            Atualização de Tabela (DB2)
-          </div>
-          <div class="component-item" draggable="true" data-type="Inclusão de Tabela (DB2)">
-            <span class="ci c-teal"><i class="ti ti-database-import"></i></span>
-            Inclusão de Tabela (DB2)
-          </div>
-          <div class="component-item" draggable="true" data-type="Exclusão de Tabela (DB2)">
-            <span class="ci c-orange"><i class="ti ti-database-off"></i></span>
-            Exclusão de Tabela (DB2)
+        <!-- Processamento -->
+        <div class="component-group">
+          <div class="component-group-title">Processamento</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Programa COBOL (Batch)">
+              <span class="ci c-emerald"><i class="ti ti-terminal-2"></i></span>
+              Programa COBOL (Batch)
+            </div>
+            <div class="component-item" draggable="true" data-type="Programa COBOL (Online)">
+              <span class="ci c-emerald"><i class="ti ti-device-desktop"></i></span>
+              Programa COBOL (Online)
+            </div>
+            <div class="component-item" draggable="true" data-type="Serviço (CICS)">
+              <span class="ci c-teal"><i class="ti ti-server"></i></span>
+              Serviço (CICS)
+            </div>
+            <div class="component-item" draggable="true" data-type="Validação / Regras">
+              <span class="ci c-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+              Validação / Regras
+            </div>
+            <div class="component-item" draggable="true" data-type="Decisão">
+              <span class="ci c-yellow"><i class="ti ti-diamond"></i></span>
+              Decisão
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Saída -->
-      <div class="component-group">
-        <div class="component-group-title">Saída</div>
-        <div class="component-grid">
-          <div class="component-item" draggable="true" data-type="Relatório (Impressão)">
-            <span class="ci c-yellow"><i class="ti ti-printer"></i></span>
-            Relatório (Impressão)
-          </div>
-          <div class="component-item" draggable="true" data-type="Arquivo de Saída">
-            <span class="ci c-orange"><i class="ti ti-file-arrow-right"></i></span>
-            Arquivo de Saída
-          </div>
-          <div class="component-item" draggable="true" data-type="Mensagem (MQ Series)">
-            <span class="ci c-blue"><i class="ti ti-send"></i></span>
-            Mensagem (MQ Series)
-          </div>
-          <div class="component-item" draggable="true" data-type="Envio de E-mail">
-            <span class="ci c-blue"><i class="ti ti-mail"></i></span>
-            Envio de E-mail
+        <!-- Dados -->
+        <div class="component-group">
+          <div class="component-group-title">Dados</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Leitura de Tabela (DB2)">
+              <span class="ci c-teal"><i class="ti ti-database"></i></span>
+              Leitura de Tabela (DB2)
+            </div>
+            <div class="component-item" draggable="true" data-type="Atualização de Tabela (DB2)">
+              <span class="ci c-teal"><i class="ti ti-database-export"></i></span>
+              Atualização de Tabela (DB2)
+            </div>
+            <div class="component-item" draggable="true" data-type="Inclusão de Tabela (DB2)">
+              <span class="ci c-teal"><i class="ti ti-database-import"></i></span>
+              Inclusão de Tabela (DB2)
+            </div>
+            <div class="component-item" draggable="true" data-type="Exclusão de Tabela (DB2)">
+              <span class="ci c-orange"><i class="ti ti-database-off"></i></span>
+              Exclusão de Tabela (DB2)
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Integração -->
-      <div class="component-group">
-        <div class="component-group-title">Integração / Transmissão</div>
-        <div class="component-grid">
-          <div class="component-item" draggable="true" data-type="Transmissão a Bancos">
-            <span class="ci c-img"><img src="img/banco.png" alt="Banco"></span>
-            Transmissão a Bancos
-          </div>
-          <div class="component-item" draggable="true" data-type="Transmissão a Clientes">
-            <span class="ci c-purple"><i class="ti ti-users"></i></span>
-            Transmissão a Clientes
-          </div>
-          <div class="component-item" draggable="true" data-type="Transmissão a Corretores">
-            <span class="ci c-purple"><i class="ti ti-briefcase"></i></span>
-            Transmissão a Corretores
-          </div>
-          <div class="component-item" draggable="true" data-type="WebService / API">
-            <span class="ci c-teal"><i class="ti ti-api"></i></span>
-            WebService / API
+        <!-- Saída -->
+        <div class="component-group">
+          <div class="component-group-title">Saída</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Relatório (Impressão)">
+              <span class="ci c-yellow"><i class="ti ti-printer"></i></span>
+              Relatório (Impressão)
+            </div>
+            <div class="component-item" draggable="true" data-type="Arquivo de Saída">
+              <span class="ci c-orange"><i class="ti ti-file-arrow-right"></i></span>
+              Arquivo de Saída
+            </div>
+            <div class="component-item" draggable="true" data-type="Mensagem (MQ Series)">
+              <span class="ci c-blue"><i class="ti ti-send"></i></span>
+              Mensagem (MQ Series)
+            </div>
+            <div class="component-item" draggable="true" data-type="Envio de E-mail">
+              <span class="ci c-blue"><i class="ti ti-mail"></i></span>
+              Envio de E-mail
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Manutenção -->
-      <div class="component-group">
-        <div class="component-group-title">Manutenção / Rotinas</div>
-        <div class="component-grid">
-          <div class="component-item" draggable="true" data-type="Expurgo / Purga">
-            <span class="ci c-orange"><i class="ti ti-trash"></i></span>
-            Expurgo / Purga
-          </div>
-          <div class="component-item" draggable="true" data-type="Backup">
-            <span class="ci c-blue"><i class="ti ti-database-export"></i></span>
-            Backup
-          </div>
-          <div class="component-item" draggable="true" data-type="Compactação de Arquivo">
-            <span class="ci c-indigo"><i class="ti ti-file-zip"></i></span>
-            Compactação de Arquivo
-          </div>
-          <div class="component-item" draggable="true" data-type="Marcador">
-            <span class="ci c-green" style="border-radius:50%;"><i class="ti ti-circle-filled"></i></span>
-            Marcador
+        <!-- Integração -->
+        <div class="component-group">
+          <div class="component-group-title">Integração / Transmissão</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Transmissão a Bancos">
+              <span class="ci c-img"><img src="img/banco.png" alt="Banco"></span>
+              Transmissão a Bancos
+            </div>
+            <div class="component-item" draggable="true" data-type="Transmissão a Clientes">
+              <span class="ci c-purple"><i class="ti ti-users"></i></span>
+              Transmissão a Clientes
+            </div>
+            <div class="component-item" draggable="true" data-type="Transmissão a Corretores">
+              <span class="ci c-purple"><i class="ti ti-briefcase"></i></span>
+              Transmissão a Corretores
+            </div>
+            <div class="component-item" draggable="true" data-type="WebService / API">
+              <span class="ci c-teal"><i class="ti ti-api"></i></span>
+              WebService / API
+            </div>
           </div>
         </div>
-      </div>
+
+        <!-- Manutenção -->
+        <div class="component-group">
+          <div class="component-group-title">Manutenção / Rotinas</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Expurgo / Purga">
+              <span class="ci c-orange"><i class="ti ti-trash"></i></span>
+              Expurgo / Purga
+            </div>
+            <div class="component-item" draggable="true" data-type="Backup">
+              <span class="ci c-blue"><i class="ti ti-database-export"></i></span>
+              Backup
+            </div>
+            <div class="component-item" draggable="true" data-type="Compactação de Arquivo">
+              <span class="ci c-indigo"><i class="ti ti-file-zip"></i></span>
+              Compactação de Arquivo
+            </div>
+            <div class="component-item" draggable="true" data-type="Marcador">
+              <span class="ci c-green" style="border-radius:50%;"><i class="ti ti-circle-filled"></i></span>
+              Marcador
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /#components-macro -->
+
+      <!-- ===== MICRO FLUXO COMPONENTS ===== -->
+      <div id="components-micro" style="display:none">
+
+        <!-- Início / Fim -->
+        <div class="component-group">
+          <div class="component-group-title">Início / Fim</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Início">
+              <span class="ci c-green"><i class="ti ti-player-play"></i></span>
+              Início
+            </div>
+            <div class="component-item" draggable="true" data-type="Fim">
+              <span class="ci c-red"><i class="ti ti-player-stop"></i></span>
+              Fim
+            </div>
+          </div>
+        </div>
+
+        <!-- Origem / Entrada -->
+        <div class="component-group">
+          <div class="component-group-title">Origem / Entrada</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Arquivo (Excel / CSV)">
+              <span class="ci c-img"><img src="img/excel_png.png" alt="Excel"></span>
+              Arquivo (Excel / CSV)
+            </div>
+            <div class="component-item" draggable="true" data-type="Mensagem (MQ Series)">
+              <span class="ci c-teal"><i class="ti ti-inbox"></i></span>
+              Mensagem (MQ Series)
+            </div>
+            <div class="component-item" draggable="true" data-type="Entrada Manual">
+              <span class="ci c-indigo"><i class="ti ti-forms"></i></span>
+              Entrada Manual
+            </div>
+          </div>
+        </div>
+
+        <!-- Processamento Alta Plataforma -->
+        <div class="component-group">
+          <div class="component-group-title">Processamento (Alta Plataforma)</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Programa COBOL (Batch)">
+              <span class="ci c-emerald"><i class="ti ti-terminal-2"></i></span>
+              Programa COBOL (Batch)
+            </div>
+            <div class="component-item" draggable="true" data-type="Programa COBOL (Online)">
+              <span class="ci c-emerald"><i class="ti ti-device-desktop"></i></span>
+              Programa COBOL (Online)
+            </div>
+            <div class="component-item" draggable="true" data-type="Serviço CICS">
+              <span class="ci c-teal"><i class="ti ti-server"></i></span>
+              Serviço CICS
+            </div>
+            <div class="component-item" draggable="true" data-type="Exec SQL / DB2">
+              <span class="ci c-teal"><i class="ti ti-database-search"></i></span>
+              Exec SQL / DB2
+            </div>
+            <div class="component-item" draggable="true" data-type="Job de Exclusão / Expurgo">
+              <span class="ci c-orange"><i class="ti ti-trash"></i></span>
+              Job de Exclusão / Expurgo
+            </div>
+            <div class="component-item" draggable="true" data-type="Decisão">
+              <span class="ci c-yellow"><i class="ti ti-diamond"></i></span>
+              Decisão
+            </div>
+          </div>
+        </div>
+
+        <!-- Interface Baixa Plataforma -->
+        <div class="component-group">
+          <div class="component-group-title">Interface (Baixa Plataforma)</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Tela Web (Java / Python)">
+              <span class="ci c-blue"><i class="ti ti-browser"></i></span>
+              Tela Web (Java / Python)
+            </div>
+            <div class="component-item" draggable="true" data-type="API REST (Java / Python)">
+              <span class="ci c-blue"><i class="ti ti-api"></i></span>
+              API REST (Java / Python)
+            </div>
+            <div class="component-item" draggable="true" data-type="Chamada para Alta Plataforma">
+              <span class="ci c-indigo"><i class="ti ti-arrow-up-right-circle"></i></span>
+              Chamada para Alta Plataforma
+            </div>
+          </div>
+        </div>
+
+        <!-- Dados -->
+        <div class="component-group">
+          <div class="component-group-title">Dados</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Leitura de Tabela (DB2)">
+              <span class="ci c-teal"><i class="ti ti-database"></i></span>
+              Leitura de Tabela (DB2)
+            </div>
+            <div class="component-item" draggable="true" data-type="Atualização de Tabela (DB2)">
+              <span class="ci c-teal"><i class="ti ti-database-export"></i></span>
+              Atualização de Tabela (DB2)
+            </div>
+            <div class="component-item" draggable="true" data-type="Inclusão de Tabela (DB2)">
+              <span class="ci c-teal"><i class="ti ti-database-import"></i></span>
+              Inclusão de Tabela (DB2)
+            </div>
+            <div class="component-item" draggable="true" data-type="Exclusão de Tabela (DB2)">
+              <span class="ci c-orange"><i class="ti ti-database-off"></i></span>
+              Exclusão de Tabela (DB2)
+            </div>
+          </div>
+        </div>
+
+        <!-- Saída -->
+        <div class="component-group">
+          <div class="component-group-title">Saída</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Relatório (Impressão)">
+              <span class="ci c-yellow"><i class="ti ti-printer"></i></span>
+              Relatório (Impressão)
+            </div>
+            <div class="component-item" draggable="true" data-type="Arquivo de Saída">
+              <span class="ci c-orange"><i class="ti ti-file-arrow-right"></i></span>
+              Arquivo de Saída
+            </div>
+            <div class="component-item" draggable="true" data-type="Geração de Carta / Documento">
+              <span class="ci c-blue"><i class="ti ti-file-description"></i></span>
+              Geração de Carta / Documento
+            </div>
+          </div>
+        </div>
+
+        <!-- Integração / Transmissão -->
+        <div class="component-group">
+          <div class="component-group-title">Integração / Transmissão</div>
+          <div class="component-grid">
+            <div class="component-item" draggable="true" data-type="Transmissão a Clientes">
+              <span class="ci c-purple"><i class="ti ti-users"></i></span>
+              Transmissão a Clientes
+            </div>
+            <div class="component-item" draggable="true" data-type="Transmissão a Bancos">
+              <span class="ci c-img"><img src="img/banco.png" alt="Banco"></span>
+              Transmissão a Bancos
+            </div>
+            <div class="component-item" draggable="true" data-type="Transmissão a Corretoras">
+              <span class="ci c-purple"><i class="ti ti-briefcase"></i></span>
+              Transmissão a Corretoras
+            </div>
+            <div class="component-item" draggable="true" data-type="WebService / API">
+              <span class="ci c-teal"><i class="ti ti-api"></i></span>
+              WebService / API
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /#components-micro -->
 
     </div>
     <div class="sidebar-footer">

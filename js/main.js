@@ -35,7 +35,8 @@ document.querySelectorAll('.tab-item').forEach(tab => {
 // ---------- SEARCH FILTER ----------
 document.querySelector('.search-input').addEventListener('input', function () {
   const term = this.value.toLowerCase();
-  document.querySelectorAll('.component-item').forEach(item => {
+  const containerId = activeTab === 'micro' ? 'components-micro' : 'components-macro';
+  document.querySelectorAll(`#${containerId} .component-item`).forEach(item => {
     item.style.display = item.textContent.toLowerCase().includes(term) ? '' : 'none';
   });
 });
@@ -88,6 +89,11 @@ function switchTab(tabName) {
   resetSidebarRight();
   document.querySelector('.sidebar-right')?.classList.add('collapsed');
   document.querySelector('.sidebar-right')?.classList.remove('animate-collapse');
+
+  // Alterna container de componentes da sidebar
+  document.getElementById('components-macro').style.display = tabName === 'macro' ? '' : 'none';
+  document.getElementById('components-micro').style.display = tabName === 'micro' ? '' : 'none';
+  document.querySelector('.search-input').value = '';
 
   // Atualiza título da toolbar
   const titles = { macro: 'Macro Fluxo', micro: 'Micro Fluxo' };
