@@ -380,19 +380,26 @@
           style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;">
       </div>
       <div>
-        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Departamento</label>
-        <input id="report-dept-input" type="text" placeholder="Ex: Financeiro"
+        <label style="font-size:12px;font-weight:600;color:#374151;display:flex;justify-content:space-between;margin-bottom:4px;">Departamento <span id="dept-count" style="font-weight:400;color:#9ca3af;">0/15</span></label>
+        <input id="report-dept-input" type="text" placeholder="Ex: Financeiro" maxlength="15" oninput="document.getElementById('dept-count').textContent=this.value.length+'/15'"
           style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;">
       </div>
     </div>
-    <div style="margin-bottom:14px;">
-      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Responsável / Nome</label>
-      <input id="report-author-input" type="text" placeholder="Ex: João Silva"
-        style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:flex;justify-content:space-between;margin-bottom:4px;">Responsável / Nome <span id="author-count" style="font-weight:400;color:#9ca3af;">0/40</span></label>
+        <input id="report-author-input" type="text" placeholder="Ex: João Silva" maxlength="40" oninput="document.getElementById('author-count').textContent=this.value.length+'/40'"
+          style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:flex;justify-content:space-between;margin-bottom:4px;">E-mail <span id="email-count" style="font-weight:400;color:#9ca3af;">0/25</span></label>
+        <input id="report-email-input" type="email" placeholder="Ex: joao@empresa.com" maxlength="25" oninput="document.getElementById('email-count').textContent=this.value.length+'/25'"
+          style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;">
+      </div>
     </div>
     <div style="margin-bottom:20px;">
-      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Subtítulo / Descrição (opcional)</label>
-      <input id="report-subtitle-input" type="text" placeholder="Ex: Versão 1.0"
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px;">Versão (opcional)</label>
+      <input id="report-subtitle-input" type="text" placeholder="Ex: 1.0"  maxlength="30"
         style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box;">
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;">

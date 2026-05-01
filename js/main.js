@@ -902,6 +902,7 @@ function buildReportHtml(imgDataUrl) {
   const repProj   = document.getElementById('report-project-input')?.value.trim() || 'SistemaExemploCOBOL';
   const repDept   = document.getElementById('report-dept-input')?.value.trim()    || '';
   const repAuthor = document.getElementById('report-author-input')?.value.trim()  || '';
+  const repEmail  = document.getElementById('report-email-input')?.value.trim()   || '';
   const repSub    = document.getElementById('report-subtitle-input')?.value.trim() || '';
   const nodes = Array.from(document.querySelectorAll('.flow-node, .decision-node'));
 
@@ -963,8 +964,9 @@ function buildReportHtml(imgDataUrl) {
     <div>
       <h1 style="margin:0 0 4px;">${escHtml(repTitle)}</h1>
       <p class="subtitle" style="margin:0;">
-        Projeto: ${escHtml(repProj)}${repDept ? ' &nbsp;|&nbsp; Departamento: ' + escHtml(repDept) : ''}${repAuthor ? ' &nbsp;|&nbsp; Responsável: ' + escHtml(repAuthor) : ''} &nbsp;|&nbsp; Gerado em: ${date}${repSub ? ' &nbsp;|&nbsp; ' + escHtml(repSub) : ''}
+        Projeto: ${escHtml(repProj)}${repDept ? ' &nbsp;|&nbsp; Departamento: ' + escHtml(repDept) : ''}${repSub ? ' &nbsp;|&nbsp; Versão: ' + escHtml(repSub) : ''} &nbsp;|&nbsp; Gerado em: ${date}
       </p>
+      ${(repAuthor || repEmail) ? `<p class="subtitle" style="margin:2px 0 0;">${repAuthor ? 'Responsável: ' + escHtml(repAuthor) : ''}${repAuthor && repEmail ? ' &nbsp;|&nbsp; ' : ''}${repEmail ? 'E-mail: ' + escHtml(repEmail) : ''}</p>` : ''}
     </div>
   </div>
 
@@ -1021,7 +1023,7 @@ async function exportReport(format) {
   const repProj   = document.getElementById('report-project-input')?.value.trim() || 'SistemaExemploCOBOL';
   const repDept   = document.getElementById('report-dept-input')?.value.trim()    || '';
   const repAuthor = document.getElementById('report-author-input')?.value.trim()  || '';
-  showToast('Gerando relatório...');
+  const repEmail  = document.getElementById('report-email-input')?.value.trim()   || '';
   const imgDataUrl = await captureCanvas();
 
   if (format === 'pdf') {
@@ -1031,40 +1033,69 @@ async function exportReport(format) {
     const pageH = doc.internal.pageSize.getHeight();
     const margin = 15;
 
-    // Capa
-    doc.setFillColor(30, 58, 138);
-    doc.rect(0, 0, pageW, 28, 'F');
-    doc.setTextColor(255,255,255);
-
-    // Logo no canto direito do cabeçalho — calcula espaço antes de escrever texto
-    let logoW = 0;
+    // Logo acima da faixa azul (se houver)
+    // ── PRÉ-CALCULA dimensões da logo ──────────────────────────────────
+    let lw = 0, lh = 0;
     if (reportLogoDataUrl) {
       try {
-        const logoH = 22;
-        const logoProps = doc.getImageProperties(reportLogoDataUrl);
-        logoW = (logoProps.width * logoH) / logoProps.height;
-        doc.addImage(reportLogoDataUrl, pageW - margin - logoW, 3, logoW, logoH);
-        logoW += 6; // margem entre logo e texto
-      } catch (e) { logoW = 0; }
+        const maxH = 26, maxW = 48;
+        const lp = doc.getImageProperties(reportLogoDataUrl);
+        lh = maxH; lw = (lp.width * lh) / lp.height;
+        if (lw > maxW) { lw = maxW; lh = (lp.height * lw) / lp.width; }
+      } catch(e) { lw = 0; lh = 0; }
     }
 
-    const textMaxW = pageW - margin * 2 - logoW;
-    doc.setFontSize(16); doc.setFont('helvetica','bold');
-    const titleLines = doc.splitTextToSize(repTitle, textMaxW);
-    doc.text(titleLines[0], margin, 18);
-    doc.setFontSize(9); doc.setFont('helvetica','normal');
-    const pdfSubLine = [`Projeto: ${repProj}`, repDept ? `Departamento: ${repDept}` : '', repAuthor ? `Responsável: ${repAuthor}` : '', `Gerado em: ${new Date().toLocaleDateString('pt-BR')}`].filter(Boolean).join('   |   ');
-    const subLines = doc.splitTextToSize(pdfSubLine, textMaxW);
-    doc.text(subLines[0], margin, 25);
+    // ── PRÉ-CALCULA linhas do título ────────────────────────────────────
+    const titleStartX = (lw > 0) ? margin + lw + 10 : margin;
+    const titleMaxW   = pageW - titleStartX - margin;
+    doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+    const titleLines = doc.splitTextToSize(repTitle, titleMaxW);
+    const lineH       = 7; // mm por linha
+
+    // ── PRÉ-CALCULA 2 linhas de dados para saber a altura da barra ────
+    const repDeptShort   = repDept   ? repDept.slice(0, 15)   : '';
+    const repAuthorShort = repAuthor ? repAuthor.slice(0, 40) : '';
+    const repSub2        = document.getElementById('report-subtitle-input')?.value.trim() || '';
+    const repEmail2      = document.getElementById('report-email-input')?.value.trim()   || '';
+    const pdfLine1 = [`Projeto: ${repProj}`, repSub2 ? `Versão: ${repSub2}` : '', `Gerado em: ${new Date().toLocaleDateString('pt-BR')}`].filter(Boolean).join('   |   ');
+    const pdfLine2 = [repAuthorShort ? `Responsável: ${repAuthorShort}` : '', repDeptShort ? `Departamento: ${repDeptShort}` : '', repEmail2 ? `E-mail: ${repEmail2}` : ''].filter(Boolean).join('   |   ');
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    const dataLines = [pdfLine1, pdfLine2].filter(Boolean);
+    const dataBlockH = dataLines.length * 5;
+
+    // ── ALTURA DA BARRA AZUL ────────────────────────────────────────────
+    const contentH = Math.max(lh, titleLines.length * lineH);
+    const barH     = 5 + contentH + 4 + dataBlockH + 5;
+
+    doc.setFillColor(30, 58, 138);
+    doc.rect(0, 0, pageW, barH, 'F');
+    doc.setTextColor(255, 255, 255);
+
+    // ── LOGO à esquerda, centralizada verticalmente na zona de conteúdo ─
+    if (lw > 0) {
+      const ly = 5 + (contentH - lh) / 2;
+      try { doc.addImage(reportLogoDataUrl, margin, ly, lw, lh); } catch(e) {}
+    }
+
+    // ── TÍTULO à direita da logo ─────────────────────────────────────────
+    doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+    const titleTopY = 5 + (contentH - titleLines.length * lineH) / 2 + 5; // +5 para baseline
+    titleLines.forEach((line, i) => doc.text(line, titleStartX, titleTopY + i * lineH));
+
+    // ── 2 LINHAS DE DADOS abaixo da zona de conteúdo ────────────────────
+    const dataY = 5 + contentH + 4 + 4;
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    dataLines.forEach((line, i) => doc.text(line, margin, dataY + i * 5));
 
     // Imagem do canvas
+    const diagramStartY = barH + 8;
     doc.setTextColor(30,58,138);
     doc.setFontSize(12); doc.setFont('helvetica','bold');
-    doc.text('Diagrama do Fluxo', margin, 38);
+    doc.text('Diagrama do Fluxo', margin, diagramStartY);
     const imgProps = doc.getImageProperties(imgDataUrl);
     const imgW = pageW - margin * 2;
     const imgH = (imgProps.height * imgW) / imgProps.width;
-    let imgY = 42;
+    let imgY = diagramStartY + 4;
     if (imgY + imgH > pageH - margin) {
       doc.addPage();
       imgY = margin;
