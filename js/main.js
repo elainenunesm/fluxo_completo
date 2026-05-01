@@ -271,6 +271,13 @@ function attachNodeEvents(wrapper) {
   let isDragging = false;
   let startX, startY, origLeft, origTop;
 
+  // Duplo clique abre propriedades
+  handle.addEventListener('dblclick', (e) => {
+    e.stopPropagation();
+    selectNode(wrapper.id);
+    showProperties(wrapper);
+  });
+
   handle.addEventListener('mousedown', (e) => {
     if (e.button !== 0) return;
     e.stopPropagation();
@@ -389,7 +396,7 @@ function selectNode(id) {
       el.style.outline = '2px solid #3b82f6';
       el.style.outlineOffset = '2px';
     });
-    showProperties(curr);
+    // Propriedades só abrem no duplo clique (ver attachNodeEvents)
   }
 }
 
