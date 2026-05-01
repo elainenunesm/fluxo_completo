@@ -1245,11 +1245,8 @@ function showReloadConfirmModal() {
   document.getElementById('_reloadCancel').onclick = () => overlay.remove();
 }
 
-// Avisa ao fechar aba / navegar para fora se houver alterações não salvas
-// Não limpa localStorage aqui para não perder dados ao navegar entre páginas
-window.addEventListener('beforeunload', (e) => {
-  if (_isDirty) { e.preventDefault(); e.returnValue = ''; }
-});
+// Sem beforeunload: navegar entre páginas não pede confirmação.
+// F5/Ctrl+R é tratado pelo keydown handler (showReloadConfirmModal).
 
 // ---------- ATUALIZAR CONTADOR DO FOOTER + hint ----------
 function updateFooterCount() {
