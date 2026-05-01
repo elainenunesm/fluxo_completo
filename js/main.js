@@ -1073,22 +1073,25 @@ function showReloadConfirmModal() {
     await (_fileHandle ? saveToFile() : saveAsFile());
     _isDirty = false;
     localStorage.removeItem(STORAGE_KEY);
-    sessionStorage.setItem('_clearOnLoad', '1');
     location.reload();
   };
   document.getElementById('_reloadDiscard').onclick = () => {
     overlay.remove();
     _isDirty = false;
     localStorage.removeItem(STORAGE_KEY);
-    sessionStorage.setItem('_clearOnLoad', '1');
     location.reload();
   };
   document.getElementById('_reloadCancel').onclick = () => overlay.remove();
 }
 
 // Avisa ao fechar aba / navegar para fora se houver alterações não salvas
+// Limpa localStorage para que o reload resulte em canvas vazio
 window.addEventListener('beforeunload', (e) => {
-  if (_isDirty) { e.preventDefault(); e.returnValue = ''; }
+  if (_isDirty) {
+    localStorage.removeItem(STORAGE_KEY);
+    e.preventDefault();
+    e.returnValue = '';
+  }
 });
 
 // ---------- ATUALIZAR CONTADOR DO FOOTER + hint ----------
@@ -1186,28 +1189,12 @@ function loadCanvas() {
 // ---------- INIT ----------
 // Painel de propriedades inicia recolhido
 document.querySelector('.sidebar-right')?.classList.add('collapsed');
-
-// Se o reload foi solicitado pelo modal, descarta localStorage antes de carregar
-if (sessionStorage.getItem('_clearOnLoad')) {
-  sessionStorage.removeItem('_clearOnLoad');
-  localStorage.removeItem(STORAGE_KEY);
-} else {
-  loadCanvas();
-}
+loadCanvas();
 registerExistingNodes();
 updateFooterCount();
 
-// Mantém recolhido também ao restaurar via bfcache (ex: navegação back/forward)
-window.addEventListener('pageshow', (e) => {
-  if (e.persisted && sessionStorage.getItem('_clearOnLoad')) {
-    sessionStorage.removeItem('_clearOnLoad');
-    localStorage.removeItem(STORAGE_KEY);
-    document.querySelectorAll('#canvas .flow-node, #canvas .decision-node').forEach(n => n.remove());
-    connections = [];
-    nodeCounter = 100;
-    _isDirty = false;
-    updateFooterCount();
-  }
+// Mantém recolhido também ao restaurar via bfcache (back/forward)
+window.addEventListener('pageshow', () => {
   document.querySelector('.sidebar-right')?.classList.add('collapsed');
   document.querySelector('.sidebar-right')?.classList.remove('animate-collapse');
 });
