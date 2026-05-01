@@ -481,6 +481,7 @@ function showProperties(wrapper) {
     if (p)  p.innerHTML   = newDesc.replace(/\n/g, '<br>');
     if (dt) dt.textContent = newTitle;
     showToast('Propriedades salvas!');
+    saveCanvas();
   });
 
   document.getElementById('prop-connect').addEventListener('click', () => {
@@ -619,6 +620,7 @@ function redrawConnections() {
   });
 
   updateMinimap();
+  saveCanvas();
 }
 
 // ---------- PAINEL INFERIOR — RECOLHER/EXPANDIR ----------
@@ -883,6 +885,7 @@ canvasEl.addEventListener('drop', (e) => {
   const id = createNodeElement(type, Math.max(0, x), Math.max(0, y));
   selectNode(id);
   updateFooterCount();
+  saveCanvas();
 });
 
 // ---------- CLIQUE NO CANVAS (desselecionar) ----------
@@ -945,9 +948,90 @@ function showToast(msg) {
   t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2500);
 }
 
+// ---------- PERSISTÊNCIA (localStorage) ----------
+const STORAGE_KEY = 'cobol-flow-micro';
+
+function saveCanvas() {
+  try {
+    const nodes = [];
+    document.querySelectorAll('#canvas .flow-node, #canvas .decision-node').forEach(n => {
+      const badge     = n.querySelector('.node-badge');
+      const descEl    = n.querySelector('.node-info p');
+      const commentEl = n.querySelector('.node-comment-body');
+      const bubbleNum = n.querySelector('.bubble-number');
+      nodes.push({
+        id:          n.id,
+        type:        n.dataset.type   || '',
+        title:       n.dataset.title  || '',
+        description: n.dataset.description || (descEl ? descEl.textContent : ''),
+        left:        n.style.left,
+        top:         n.style.top,
+        badge:       badge ? badge.textContent.trim() : '+',
+        badgeClass:  badge ? badge.className : '',
+        comment:     commentEl ? commentEl.innerHTML : '',
+        commentOpen: n.querySelector('.node-comment-block')?.style.display !== 'none',
+        bubbleNum:   bubbleNum ? bubbleNum.textContent.trim() : null,
+        isBubble:    n.classList.contains('bubble-node'),
+        isDiamond:   n.classList.contains('decision-node'),
+      });
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, connections, nodeCounter }));
+  } catch(e) {}
+}
+
+function loadCanvas() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (!data || !data.nodes) return;
+
+    document.querySelectorAll('#canvas .flow-node, #canvas .decision-node').forEach(n => n.remove());
+    connections = [];
+    nodeCounter = data.nodeCounter || 100;
+
+    data.nodes.forEach(nd => {
+      const id = createNodeElement(nd.type, parseFloat(nd.left), parseFloat(nd.top));
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (id !== nd.id) {
+        el.id = nd.id;
+        el.querySelectorAll('[data-node-id]').forEach(c => c.dataset.nodeId = nd.id);
+      }
+      el.dataset.title       = nd.title;
+      el.dataset.description = nd.description;
+      const h4 = el.querySelector('h4');
+      if (h4 && nd.title) h4.textContent = nd.title;
+      const p = el.querySelector('.node-info p');
+      if (p) p.textContent = nd.description || '';
+      const badge = el.querySelector('.node-badge');
+      if (badge && nd.badge) {
+        badge.textContent = nd.badge;
+        badge.className   = nd.badgeClass || badge.className;
+      }
+      const commentEl = el.querySelector('.node-comment-body');
+      if (commentEl && nd.comment) {
+        commentEl.innerHTML = nd.comment;
+        el.querySelector('.node-comment-btn')?.classList.toggle('has-value', nd.comment.trim() !== '');
+      }
+      if (nd.commentOpen) {
+        const cb = el.querySelector('.node-comment-block');
+        if (cb) cb.style.display = 'flex';
+      }
+      const bubbleNum = el.querySelector('.bubble-number');
+      if (bubbleNum && nd.bubbleNum) bubbleNum.textContent = nd.bubbleNum;
+    });
+
+    connections = data.connections || [];
+    redrawConnections();
+    updateFooterCount();
+  } catch(e) {}
+}
+
 // ---------- INIT ----------
 // Painel de propriedades inicia recolhido
 document.querySelector('.sidebar-right')?.classList.add('collapsed');
+loadCanvas();
 registerExistingNodes();
 updateFooterCount();
 
