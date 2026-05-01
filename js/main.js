@@ -903,18 +903,43 @@ function getCanvasData() {
   return { nodes, connections, nodeCounter };
 }
 
+// Pede o nome do arquivo via modal pequeno
+function _promptSaveName(defaultName) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = `
+      <div style="background:#1e293b;border-radius:12px;padding:28px 32px;min-width:320px;box-shadow:0 8px 32px #0008;">
+        <p style="color:#f1f5f9;font-size:14px;font-weight:600;margin:0 0 14px;">Nome do arquivo</p>
+        <input id="_saveNameInput" value="${defaultName}" style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:6px;border:1px solid #334155;background:#0f172a;color:#f1f5f9;font-size:13px;outline:none;">
+        <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end;">
+          <button id="_saveNameCancel" style="padding:8px 18px;background:#334155;color:#f1f5f9;border:none;border-radius:6px;font-size:13px;cursor:pointer;">Cancelar</button>
+          <button id="_saveNameOk" style="padding:8px 18px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">Salvar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const input = document.getElementById('_saveNameInput');
+    input.focus(); input.select();
+    const confirm = () => { const v = input.value.trim(); overlay.remove(); resolve(v || defaultName); };
+    document.getElementById('_saveNameOk').onclick = confirm;
+    document.getElementById('_saveNameCancel').onclick = () => { overlay.remove(); resolve(null); };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') confirm(); if (e.key === 'Escape') { overlay.remove(); resolve(null); } });
+  });
+}
+
 async function saveAsFile() {
   const data = getCanvasData();
   try {
-    if (window.showSaveFilePicker) {
-      const handle = await window.showSaveFilePicker({
-        suggestedName: 'fluxo-macro.json',
-        types: [{ description: 'Arquivo JSON', accept: { 'application/json': ['.json'] } }],
-      });
-      _fileHandle = handle;
-      const writable = await handle.createWritable();
+    if (window.showDirectoryPicker) {
+      const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      const name = await _promptSaveName('fluxo-macro.json');
+      if (!name) return;
+      const filename = name.endsWith('.json') ? name : name + '.json';
+      const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+      const writable = await fileHandle.createWritable();
       await writable.write(JSON.stringify(data, null, 2));
       await writable.close();
+      _fileHandle = fileHandle;
     } else {
       _downloadJson(data, 'fluxo-macro.json');
     }
