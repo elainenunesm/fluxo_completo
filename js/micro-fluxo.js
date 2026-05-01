@@ -1262,19 +1262,25 @@ function loadCanvas() {
 // ---------- INIT ----------
 // Painel de propriedades inicia recolhido
 document.querySelector('.sidebar-right')?.classList.add('collapsed');
-loadCanvas();
+
+// Se o reload foi solicitado pelo modal, descarta localStorage antes de carregar
+if (sessionStorage.getItem('_clearOnLoad')) {
+  sessionStorage.removeItem('_clearOnLoad');
+  localStorage.removeItem(STORAGE_KEY);
+} else {
+  loadCanvas();
+}
 registerExistingNodes();
 updateFooterCount();
 
-// Mantém recolhido também ao restaurar via bfcache; limpa canvas se reload foi solicitado
-window.addEventListener('pageshow', () => {
-  if (sessionStorage.getItem('_clearOnLoad')) {
+// Mantém recolhido também ao restaurar via bfcache (ex: navegação back/forward)
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted && sessionStorage.getItem('_clearOnLoad')) {
     sessionStorage.removeItem('_clearOnLoad');
     localStorage.removeItem(STORAGE_KEY);
     document.querySelectorAll('#canvas .flow-node, #canvas .decision-node').forEach(n => n.remove());
-    document.querySelectorAll('#canvas .connection-line, #canvas svg').forEach(n => n.remove());
     connections = [];
-    nodeCounter = 0;
+    nodeCounter = 100;
     _isDirty = false;
     updateFooterCount();
   }
