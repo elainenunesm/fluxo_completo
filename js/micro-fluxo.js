@@ -629,10 +629,12 @@ function toggleBottomPanel() {
   const btn    = document.getElementById('cbp-toggle-btn');
   const icon   = document.getElementById('cbp-toggle-icon');
   const label  = document.getElementById('cbp-toggle-label');
+  const fab    = document.getElementById('cbp-fab');
   const collapsed = panel.classList.toggle('collapsed');
   btn.classList.toggle('collapsed', collapsed);
   icon.style.transform = collapsed ? 'rotate(180deg)' : '';
   label.textContent    = collapsed ? 'Expandir' : 'Recolher';
+  if (fab) fab.classList.toggle('hidden', !collapsed);
 }
 
 // ---------- MINI MAPA ----------
