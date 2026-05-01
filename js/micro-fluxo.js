@@ -1157,12 +1157,14 @@ function showReloadConfirmModal() {
     await (_fileHandle ? saveToFile() : saveAsFile());
     _isDirty = false;
     localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.setItem('_clearOnLoad', '1');
     location.reload();
   };
   document.getElementById('_reloadDiscard').onclick = () => {
     overlay.remove();
     _isDirty = false;
     localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.setItem('_clearOnLoad', '1');
     location.reload();
   };
   document.getElementById('_reloadCancel').onclick = () => overlay.remove();
@@ -1264,8 +1266,18 @@ loadCanvas();
 registerExistingNodes();
 updateFooterCount();
 
-// Mantém recolhido também ao restaurar via bfcache
+// Mantém recolhido também ao restaurar via bfcache; limpa canvas se reload foi solicitado
 window.addEventListener('pageshow', () => {
+  if (sessionStorage.getItem('_clearOnLoad')) {
+    sessionStorage.removeItem('_clearOnLoad');
+    localStorage.removeItem(STORAGE_KEY);
+    document.querySelectorAll('#canvas .flow-node, #canvas .decision-node').forEach(n => n.remove());
+    document.querySelectorAll('#canvas .connection-line, #canvas svg').forEach(n => n.remove());
+    connections = [];
+    nodeCounter = 0;
+    _isDirty = false;
+    updateFooterCount();
+  }
   document.querySelector('.sidebar-right')?.classList.add('collapsed');
   document.querySelector('.sidebar-right')?.classList.remove('animate-collapse');
 });
