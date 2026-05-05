@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COBOL Flow Studio — Regras de Negócio</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/regras-negocio.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <button class="hamburger-btn" id="rnSidebarToggle" title="Categorias">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="logo-badge">CB</div>
+    <span class="logo-text">COBOL Flow Studio</span>
+    <div class="project-selector">
+      Projeto: SistemaExemploCOBOL
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="config-menu-wrapper" id="configMenuWrapper">
+      <button class="header-btn" id="configMenuBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Configuração
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="config-dropdown" id="configDropdown">
+        <button class="config-dropdown-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          Abrir
+        </button>
+        <button class="config-dropdown-item" id="configSave">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Salvar
+        </button>
+      </div>
+    </div>
+    <button class="icon-btn" title="Desfazer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 100-6.68"/></svg>
+    </button>
+    <button class="icon-btn" title="Refazer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 110-6.68"/></svg>
+    </button>
+    <button class="icon-btn" title="Ajuda">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </button>
+    <button class="btn-primary" id="btnGerarRelatorio">
+      Gerar Relatório
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-bar">
+  <div class="tab-item" onclick="navigateTo('index.html')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Macro Fluxo
+  </div>
+  <div class="tab-item" onclick="navigateTo('micro-fluxo.html')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m8.66-14l-5.2 3m-6.92 4l-5.2 3M22.66 17l-5.2-3M7.34 10l-5.2-3"/></svg>
+    Micro Fluxo
+  </div>
+  <div class="tab-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+    Regras de Negócio
+  </div>
+  <div class="tab-item" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+    Dados
+  </div>
+  <div class="tab-item" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+    Impactos
+  </div>
+  <div class="tab-item" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    Tela Java
+  </div>
+  <div class="tab-item" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Arquivos
+  </div>
+  <div class="tab-item" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    Batch COBOL
+  </div>
+  <div class="tab-item" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Agendamentos
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="rn-layout">
+
+  <!-- Overlay do sidebar mobile -->
+  <div class="rn-sidebar-overlay" id="rnSidebarOverlay"></div>
+
+  <!-- SIDEBAR ESQUERDA: Categorias -->
+  <div class="rn-sidebar" id="rnSidebar">
+    <div class="rn-sidebar-header">
+      <span>Cadastro e Categorias</span>
+      <div class="rn-sidebar-header-actions">
+        <button class="rn-sidebar-close-btn" id="rnSidebarClose" title="Fechar"><i class="ti ti-x"></i></button>
+        <button class="rn-tree-collapse-btn" title="Expandir tudo" onclick="expandirTudo()"><i class="ti ti-chevrons-down"></i></button>
+        <button class="rn-tree-collapse-btn" title="Recolher tudo" onclick="recolherTudo()"><i class="ti ti-chevrons-up"></i></button>
+      </div>
+    </div>
+
+    <div class="rn-search-box">
+      <i class="ti ti-search rn-search-icon"></i>
+      <input type="text" id="rnSearchCat" placeholder="Buscar categoria..." oninput="filtrarCategorias(this.value)">
+    </div>
+
+    <div class="rn-tree" id="rnTree">
+      <!-- Renderizado via JS -->
+    </div>
+
+    <div class="rn-sidebar-footer">
+      <button class="rn-btn-nova-cat" id="btnNovaCategoria">
+        <i class="ti ti-plus"></i>
+        Nova Categoria
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="rn-main">
+
+    <!-- SUB-TABS -->
+    <div class="rn-subtabs">
+      <div class="rn-subtabs-left">
+        <button class="rn-subtab active" data-tab="categorias" onclick="mudarSubTab('categorias')">Categorias</button>
+        <button class="rn-subtab" data-tab="regras" onclick="mudarSubTab('regras')">Regras</button>
+      </div>
+      <div class="rn-subtabs-right">
+        <div class="rn-dropdown-wrapper" id="importarWrapper">
+          <button class="rn-btn-secondary" onclick="toggleDropdown('importarWrapper')">
+            <i class="ti ti-upload"></i> Importar
+            <i class="ti ti-chevron-down"></i>
+          </button>
+          <div class="rn-dropdown" id="importarDropdown">
+            <button class="rn-dropdown-item" onclick="importarJSON()"><i class="ti ti-file-code"></i> Importar JSON (categorias + regras)</button>
+            <button class="rn-dropdown-item" onclick="importarCSV()"><i class="ti ti-file-text"></i> Importar CSV (apenas regras)</button>
+          </div>
+        </div>
+        <div class="rn-dropdown-wrapper" id="exportarWrapper">
+          <button class="rn-btn-secondary" onclick="toggleDropdown('exportarWrapper')">
+            <i class="ti ti-download"></i> Exportar
+            <i class="ti ti-chevron-down"></i>
+          </button>
+          <div class="rn-dropdown" id="exportarDropdown">
+            <button class="rn-dropdown-item" onclick="exportarTudo()"><i class="ti ti-database-export"></i> Backup completo (JSON)</button>
+            <div class="rn-dropdown-divider"></div>
+            <button class="rn-dropdown-item" onclick="exportarExcel()"><i class="ti ti-file-spreadsheet"></i> Excel (.xls)</button>
+            <button class="rn-dropdown-item" onclick="exportarCSV()"><i class="ti ti-file-text"></i> CSV</button>
+            <button class="rn-dropdown-item" onclick="exportarJSON()"><i class="ti ti-file-code"></i> JSON (filtrado)</button>
+            <button class="rn-dropdown-item" onclick="exportarPDF()"><i class="ti ti-file-type-pdf"></i> PDF</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAINEL: LISTA DE REGRAS -->
+    <div class="rn-content-area">
+
+      <!-- LISTA -->
+      <div class="rn-list-panel">
+        <div class="rn-list-header">
+          <div>
+            <div class="rn-section-title">Visão por Categoria</div>
+            <div class="rn-section-subtitle">Selecione uma categoria para visualizar as regras</div>
+          </div>
+        </div>
+
+        <div class="rn-list-toolbar" id="rnListToolbar" style="display:none">
+          <div class="rn-breadcrumb" id="rnBreadcrumb"></div>
+          <div class="rn-toolbar-actions">
+            <button class="rn-btn-nova-regra" onclick="abrirModalNovaRegra()">
+              <i class="ti ti-plus"></i> Nova Regra
+            </button>
+          </div>
+        </div>
+
+        <div class="rn-table-wrap" id="rnTableWrap">
+          <!-- Renderizado via JS -->
+        </div>
+
+        <div class="rn-pagination" id="rnPagination" style="display:none">
+          <span id="rnPagInfo">Mostrando 1–8 de 8 regras</span>
+          <div class="rn-pag-btns">
+            <button class="rn-pag-btn" disabled>
+              <i class="ti ti-chevron-left"></i>
+            </button>
+            <button class="rn-pag-btn rn-pag-btn-active">1</button>
+            <button class="rn-pag-btn">2</button>
+            <button class="rn-pag-btn">3</button>
+            <button class="rn-pag-btn">
+              <i class="ti ti-chevron-right"></i>
+            </button>
+            <select class="rn-pag-select">
+              <option>10 por página</option>
+              <option>20 por página</option>
+              <option>50 por página</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETALHE DA REGRA -->
+      <div class="rn-detail-panel" id="rnDetailPanel">
+        <button class="rn-detail-back-btn" id="rnDetailBackBtn" onclick="fecharDetalhesMobile()">
+          <i class="ti ti-arrow-left"></i> Voltar
+        </button>
+        <div class="rn-detail-empty" id="rnDetailEmpty">
+          <i class="ti ti-file-description rn-detail-empty-icon"></i>
+          <p>Selecione uma regra<br>para ver os detalhes</p>
+        </div>
+        <div class="rn-detail-content" id="rnDetailContent" style="display:none">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-left">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+    Projeto salvo às <span id="footerHora">--:--</span>
+  </div>
+  <div class="footer-right">
+    <span>Total de regras: <span id="footerTotalRegras">0</span></span>
+    <span>Usuário: paruline</span>
+    <span>Ambiente: Homologação</span>
+    <span>Última alteração: <span id="footerUltAlt">--</span></span>
+  </div>
+</div>
+
+<!-- MODAL NOVA REGRA -->
+<div class="rn-modal-overlay" id="modalNovaRegraOverlay" style="display:none">
+  <div class="rn-modal" id="modalNovaRegra">
+    <div class="rn-modal-header">
+      <span>Nova Regra de Negócio</span>
+      <button class="rn-modal-close" onclick="fecharModalNovaRegra()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rn-modal-tabs">
+      <button class="rn-modal-tab active" id="abaNovaGeral"    onclick="mudarAbaModal('nova','geral')">Geral</button>
+      <button class="rn-modal-tab"        id="abaNovaCondicao" onclick="mudarAbaModal('nova','condicao')">Condição</button>
+      <button class="rn-modal-tab"        id="abaNovaAcao"     onclick="mudarAbaModal('nova','acao')">Ação</button>
+      <button class="rn-modal-tab"        id="abaNovaObs"      onclick="mudarAbaModal('nova','observacoes')">Observações</button>
+    </div>
+    <div class="rn-modal-body">
+      <!-- PAINEL GERAL -->
+      <div class="rn-modal-tab-panel" id="panelNovaGeral">
+        <div class="rn-form-row">
+          <div class="rn-form-group">
+            <label>ID da Regra</label>
+            <input type="text" id="novaRegraId" placeholder="Ex: RN050" maxlength="10">
+          </div>
+          <div class="rn-form-group" style="flex:2">
+            <label>Nome da Regra</label>
+            <input type="text" id="novaRegraNome" placeholder="Ex: Validação de Endereço">
+          </div>
+        </div>
+        <div class="rn-form-row">
+          <div class="rn-form-group">
+            <label>Tipo</label>
+            <select id="novaRegraTipo">
+              <option>Validação</option>
+              <option>Elegibilidade</option>
+              <option>Dependentes</option>
+              <option>Cancelamentos</option>
+              <option>Contratos</option>
+              <option>Negociações</option>
+            </select>
+          </div>
+          <div class="rn-form-group">
+            <label>Categoria</label>
+            <select id="novaRegraCategoria">
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+        </div>
+        <div class="rn-form-row">
+          <div class="rn-form-group" style="flex:2">
+            <label>Aplicação (Painel)</label>
+            <select id="novaRegraAplicacao">
+              <optgroup label="Validação">
+                <option>1 - Alerta Telas</option>
+                <option>2 - Válida Dados</option>
+                <option>3 - Recusa Total</option>
+                <option>4 - Bloqueio Parcial</option>
+                <option>5 - Data Abserv</option>
+                <option>6 - Validação Crítica</option>
+              </optgroup>
+              <optgroup label="Notificação">
+                <option>7 - Notificação Usuário</option>
+                <option>8 - Notificação Sistema</option>
+                <option>9 - Alerta Supervisor</option>
+              </optgroup>
+              <optgroup label="Processamento">
+                <option>10 - Cálculo Automático</option>
+                <option>11 - Redirecionamento</option>
+                <option>12 - Aprovação Manual</option>
+                <option>13 - Processamento Batch</option>
+                <option>14 - Integração Sistema</option>
+              </optgroup>
+              <optgroup label="Auditoria & Log">
+                <option>15 - Auditoria</option>
+                <option>16 - Relatório</option>
+                <option>E11 - Exceção de Log</option>
+                <option>E12 - Exceção Crítica</option>
+                <option>E13 - Exceção de Negócio</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="rn-form-group">
+            <label>Status</label>
+            <select id="novaRegraStatus">
+              <option>Ativa</option>
+              <option>Concluído</option>
+              <option>Alerta</option>
+              <option>Inativa</option>
+              <option>Observação</option>
+            </select>
+          </div>
+        </div>
+        <div class="rn-form-group">
+          <label>Descrição</label>
+          <textarea id="novaRegraDesc" rows="3" placeholder="Descreva a regra de negócio..."></textarea>
+        </div>
+      </div>
+      <!-- PAINEL CONDIÇÃO -->
+      <div class="rn-modal-tab-panel" id="panelNovaCondicao" style="display:none">
+        <div class="rn-form-group">
+          <label>Condição</label>
+          <textarea id="novaRegraCondicao" rows="8" placeholder="Descreva as condições da regra..."></textarea>
+        </div>
+      </div>
+      <!-- PAINEL AÇÃO -->
+      <div class="rn-modal-tab-panel" id="panelNovaAcao" style="display:none">
+        <div class="rn-form-group">
+          <label>Ação</label>
+          <textarea id="novaRegraAcao" rows="8" placeholder="Descreva as ações a serem executadas..."></textarea>
+        </div>
+      </div>
+      <!-- PAINEL OBSERVAÇÕES -->
+      <div class="rn-modal-tab-panel" id="panelNovaObs" style="display:none">
+        <div class="rn-form-group">
+          <label>Observações</label>
+          <textarea id="novaRegraObs" rows="8" placeholder="Adicione observações sobre esta regra..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="rn-modal-footer">
+      <button class="rn-btn-cancel" onclick="fecharModalNovaRegra()">Cancelar</button>
+      <button class="rn-btn-confirmar" onclick="salvarNovaRegra()">Criar Regra</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR REGRA -->
+<div class="rn-modal-overlay" id="modalEditarRegraOverlay" style="display:none">
+  <div class="rn-modal" id="modalEditarRegra">
+    <div class="rn-modal-header">
+      <span>Editar Regra de Negócio</span>
+      <button class="rn-modal-close" onclick="fecharModalEditarRegra()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rn-modal-tabs">
+      <button class="rn-modal-tab active" id="abaEditGeral"    onclick="mudarAbaModal('edit','geral')">Geral</button>
+      <button class="rn-modal-tab"        id="abaEditCondicao" onclick="mudarAbaModal('edit','condicao')">Condição</button>
+      <button class="rn-modal-tab"        id="abaEditAcao"     onclick="mudarAbaModal('edit','acao')">Ação</button>
+      <button class="rn-modal-tab"        id="abaEditObs"      onclick="mudarAbaModal('edit','observacoes')">Observações</button>
+    </div>
+    <div class="rn-modal-body">
+      <input type="hidden" id="editRegraOriginalId">
+      <!-- PAINEL GERAL -->
+      <div class="rn-modal-tab-panel" id="panelEditGeral">
+        <div class="rn-form-row">
+          <div class="rn-form-group">
+            <label>ID da Regra</label>
+            <input type="text" id="editRegraId" maxlength="10">
+          </div>
+          <div class="rn-form-group" style="flex:2">
+            <label>Nome da Regra</label>
+            <input type="text" id="editRegraNome">
+          </div>
+        </div>
+        <div class="rn-form-row">
+          <div class="rn-form-group">
+            <label>Tipo</label>
+            <select id="editRegraTipo">
+              <option>Validação</option>
+              <option>Elegibilidade</option>
+              <option>Dependentes</option>
+              <option>Cancelamentos</option>
+              <option>Contratos</option>
+              <option>Negociações</option>
+            </select>
+          </div>
+          <div class="rn-form-group">
+            <label>Categoria</label>
+            <select id="editRegraCategoria">
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+        </div>
+        <div class="rn-form-row">
+          <div class="rn-form-group" style="flex:2">
+            <label>Aplicação (Painel)</label>
+            <select id="editRegraAplicacao">
+              <optgroup label="Validação">
+                <option>1 - Alerta Telas</option>
+                <option>2 - Válida Dados</option>
+                <option>3 - Recusa Total</option>
+                <option>4 - Bloqueio Parcial</option>
+                <option>5 - Data Abserv</option>
+                <option>6 - Validação Crítica</option>
+              </optgroup>
+              <optgroup label="Notificação">
+                <option>7 - Notificação Usuário</option>
+                <option>8 - Notificação Sistema</option>
+                <option>9 - Alerta Supervisor</option>
+              </optgroup>
+              <optgroup label="Processamento">
+                <option>10 - Cálculo Automático</option>
+                <option>11 - Redirecionamento</option>
+                <option>12 - Aprovação Manual</option>
+                <option>13 - Processamento Batch</option>
+                <option>14 - Integração Sistema</option>
+              </optgroup>
+              <optgroup label="Auditoria & Log">
+                <option>15 - Auditoria</option>
+                <option>16 - Relatório</option>
+                <option>E11 - Exceção de Log</option>
+                <option>E12 - Exceção Crítica</option>
+                <option>E13 - Exceção de Negócio</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="rn-form-group">
+            <label>Status</label>
+            <select id="editRegraStatus">
+              <option>Ativa</option>
+              <option>Concluído</option>
+              <option>Alerta</option>
+              <option>Inativa</option>
+              <option>Observação</option>
+            </select>
+          </div>
+        </div>
+        <div class="rn-form-group">
+          <label>Descrição</label>
+          <textarea id="editRegraDesc" rows="3"></textarea>
+        </div>
+      </div>
+      <!-- PAINEL CONDIÇÃO -->
+      <div class="rn-modal-tab-panel" id="panelEditCondicao" style="display:none">
+        <div class="rn-form-group">
+          <label>Condição</label>
+          <textarea id="editRegraCondicao" rows="8" placeholder="Descreva as condições da regra..."></textarea>
+        </div>
+      </div>
+      <!-- PAINEL AÇÃO -->
+      <div class="rn-modal-tab-panel" id="panelEditAcao" style="display:none">
+        <div class="rn-form-group">
+          <label>Ação</label>
+          <textarea id="editRegraAcao" rows="8" placeholder="Descreva as ações a serem executadas..."></textarea>
+        </div>
+      </div>
+      <!-- PAINEL OBSERVAÇÕES -->
+      <div class="rn-modal-tab-panel" id="panelEditObs" style="display:none">
+        <div class="rn-form-group">
+          <label>Observações</label>
+          <textarea id="editRegraObs" rows="8" placeholder="Adicione observações sobre esta regra..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="rn-modal-footer">
+      <button class="rn-btn-cancel" onclick="fecharModalEditarRegra()">Cancelar</button>
+      <button class="rn-btn-confirmar" onclick="confirmarEdicaoRegra()">Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EXCLUIR GRUPO (categoria pai) -->
+<div class="rn-modal-overlay" id="modalExcluirGrupoOverlay" style="display:none">
+  <div class="rn-modal rn-modal-sm">
+    <div class="rn-modal-header">
+      <span>Excluir Categoria</span>
+      <button class="rn-modal-close" onclick="fecharModalExcluirGrupo()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rn-modal-body">
+      <p style="color:#374151;font-size:14px;line-height:1.6;">
+        Tem certeza que deseja excluir a categoria <strong id="excluirGrupoNome"></strong> e todas as suas subcategorias?
+      </p>
+      <p id="excluirGrupoAviso" style="margin-top:10px;color:#dc2626;font-size:12.5px;font-weight:600;"></p>
+    </div>
+    <div class="rn-modal-footer">
+      <button class="rn-btn-cancel" onclick="fecharModalExcluirGrupo()">Cancelar</button>
+      <button class="rn-btn-excluir" onclick="confirmarExcluirGrupo()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EXCLUIR FILHO (subcategoria) -->
+<div class="rn-modal-overlay" id="modalExcluirFilhoOverlay" style="display:none">
+  <div class="rn-modal rn-modal-sm">
+    <div class="rn-modal-header">
+      <span>Excluir Subcategoria</span>
+      <button class="rn-modal-close" onclick="fecharModalExcluirFilho()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rn-modal-body">
+      <p style="color:#374151;font-size:14px;line-height:1.6;">
+        Tem certeza que deseja excluir a subcategoria <strong id="excluirFilhoNome"></strong>?
+      </p>
+      <p id="excluirFilhoAviso" style="margin-top:10px;color:#dc2626;font-size:12.5px;font-weight:600;"></p>
+    </div>
+    <div class="rn-modal-footer">
+      <button class="rn-btn-cancel" onclick="fecharModalExcluirFilho()">Cancelar</button>
+      <button class="rn-btn-excluir" onclick="confirmarExcluirFilho()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR CATEGORIA -->
+<div class="rn-modal-overlay" id="modalEditarCatOverlay" style="display:none">
+  <div class="rn-modal" style="width:480px">
+    <div class="rn-modal-header">
+      <span>Editar Categoria</span>
+      <button class="rn-modal-close" onclick="fecharModalEditarCategoria()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rn-modal-body">
+      <div class="rn-form-group">
+        <label>Nome da Categoria</label>
+        <input type="text" id="editarCatNome" placeholder="Ex: Riscos Operacionais">
+      </div>
+      <div class="rn-form-group">
+        <label>Descrição</label>
+        <input type="text" id="editarCatDesc" placeholder="Ex: Regras relacionadas a riscos operacionais">
+      </div>
+      <div class="rn-form-group">
+        <label>Cor</label>
+        <div class="rn-color-picker" id="editarCatCorPicker">
+          <div class="rn-color-swatch" data-cor="verde"    style="background:#10b981" onclick="selecionarCorEditarCat(this)"></div>
+          <div class="rn-color-swatch" data-cor="azul"     style="background:#3b82f6" onclick="selecionarCorEditarCat(this)"></div>
+          <div class="rn-color-swatch" data-cor="roxo"     style="background:#8b5cf6" onclick="selecionarCorEditarCat(this)"></div>
+          <div class="rn-color-swatch" data-cor="laranja"  style="background:#f59e0b" onclick="selecionarCorEditarCat(this)"></div>
+          <div class="rn-color-swatch" data-cor="vermelho" style="background:#ef4444" onclick="selecionarCorEditarCat(this)"></div>
+          <div class="rn-color-swatch" data-cor="rosa"     style="background:#ec4899" onclick="selecionarCorEditarCat(this)"></div>
+          <div class="rn-color-swatch" data-cor="ciano"    style="background:#06b6d4" onclick="selecionarCorEditarCat(this)"></div>
+          <div class="rn-color-swatch" data-cor="indigo"   style="background:#6366f1" onclick="selecionarCorEditarCat(this)"></div>
+        </div>
+        <input type="hidden" id="editarCatCor" value="azul">
+      </div>
+      <div class="rn-form-group">
+        <label>Ícone</label>
+        <div class="rn-icon-picker" id="editarCatIconePicker"></div>
+        <input type="hidden" id="editarCatIcone" value="ti-folder">
+      </div>
+    </div>
+    <div class="rn-modal-footer">
+      <button class="rn-btn-cancel" onclick="fecharModalEditarCategoria()">Cancelar</button>
+      <button class="rn-btn-confirmar" onclick="salvarEditarCategoria()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR SUBCATEGORIA -->
+<div class="rn-modal-overlay" id="modalEditarSubCatOverlay" style="display:none">
+  <div class="rn-modal" style="width:480px">
+    <div class="rn-modal-header">
+      <span>Editar Subcategoria</span>
+      <button class="rn-modal-close" onclick="fecharModalEditarSubcategoria()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rn-modal-body">
+      <div style="font-size:12px;color:#6b7280;margin-bottom:12px;">Categoria pai: <strong id="editarSubCatGrupoNome"></strong></div>
+      <div class="rn-form-group">
+        <label>Nome da Subcategoria</label>
+        <input type="text" id="editarSubCatNome" placeholder="Ex: Pequenas Empresas">
+      </div>
+      <div class="rn-form-group">
+        <label>Ícone</label>
+        <div class="rn-icon-picker" id="editarSubCatIconePicker"></div>
+        <input type="hidden" id="editarSubCatIcone" value="ti-folder">
+      </div>
+    </div>
+    <div class="rn-modal-footer">
+      <button class="rn-btn-cancel" onclick="fecharModalEditarSubcategoria()">Cancelar</button>
+      <button class="rn-btn-confirmar" onclick="salvarEditarSubcategoria()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVA SUBCATEGORIA -->
+<div class="rn-modal-overlay" id="modalNovaSubCatOverlay" style="display:none">
+  <div class="rn-modal" style="width:480px">
+    <div class="rn-modal-header">
+      <span>Nova Subcategoria</span>
+      <button class="rn-modal-close" onclick="fecharModalNovaSubcategoria()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rn-modal-body">
+      <div style="font-size:12px;color:#6b7280;margin-bottom:12px;">Categoria pai: <strong id="novaSubCatGrupoNome"></strong></div>
+      <div class="rn-form-group">
+        <label>Nome da Subcategoria</label>
+        <input type="text" id="novaSubCatNome" placeholder="Ex: Pequenas Empresas">
+      </div>
+      <div class="rn-form-group">
+        <label>Ícone</label>
+        <div class="rn-icon-picker" id="novaSubCatIconePicker">
+          <!-- Preenchido via JS -->
+        </div>
+        <input type="hidden" id="novaSubCatIcone" value="ti-folder">
+      </div>
+    </div>
+    <div class="rn-modal-footer">
+      <button class="rn-btn-cancel" onclick="fecharModalNovaSubcategoria()">Cancelar</button>
+      <button class="rn-btn-confirmar" onclick="salvarNovaSubcategoria()">Criar Subcategoria</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVA CATEGORIA -->
+<div class="rn-modal-overlay" id="modalNovaCatOverlay" style="display:none">
+  <div class="rn-modal" id="modalNovaCat" style="width:480px">
+    <div class="rn-modal-header">
+      <span>Nova Categoria</span>
+      <button class="rn-modal-close" onclick="fecharModalNovaCategoria()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rn-modal-body">
+      <div class="rn-form-row">
+        <div class="rn-form-group" style="flex:2">
+          <label>Nome da Categoria</label>
+          <input type="text" id="novaCatNome" placeholder="Ex: Riscos Operacionais">
+        </div>
+      </div>
+      <div class="rn-form-group">
+        <label>Descrição</label>
+        <input type="text" id="novaCatDesc" placeholder="Ex: Regras relacionadas a riscos operacionais">
+      </div>
+      <div class="rn-form-group">
+        <label>Cor</label>
+        <div class="rn-color-picker" id="novaCatCorPicker">
+          <div class="rn-color-swatch selected" data-cor="verde"    style="background:#10b981" onclick="selecionarCorCat(this)"></div>
+          <div class="rn-color-swatch"          data-cor="azul"     style="background:#3b82f6" onclick="selecionarCorCat(this)"></div>
+          <div class="rn-color-swatch"          data-cor="roxo"     style="background:#8b5cf6" onclick="selecionarCorCat(this)"></div>
+          <div class="rn-color-swatch"          data-cor="laranja"  style="background:#f59e0b" onclick="selecionarCorCat(this)"></div>
+          <div class="rn-color-swatch"          data-cor="vermelho" style="background:#ef4444" onclick="selecionarCorCat(this)"></div>
+          <div class="rn-color-swatch"          data-cor="rosa"     style="background:#ec4899" onclick="selecionarCorCat(this)"></div>
+          <div class="rn-color-swatch"          data-cor="ciano"    style="background:#06b6d4" onclick="selecionarCorCat(this)"></div>
+          <div class="rn-color-swatch"          data-cor="indigo"   style="background:#6366f1" onclick="selecionarCorCat(this)"></div>
+        </div>
+        <input type="hidden" id="novaCatCor" value="verde">
+      </div>
+      <div class="rn-form-group">
+        <label>Ícone</label>
+        <div class="rn-icon-picker" id="novaCatIconePicker">
+          <!-- Preenchido via JS -->
+        </div>
+        <input type="hidden" id="novaCatIcone" value="ti-folder">
+      </div>
+    </div>
+    <div class="rn-modal-footer">
+      <button class="rn-btn-cancel" onclick="fecharModalNovaCategoria()">Cancelar</button>
+      <button class="rn-btn-confirmar" onclick="salvarNovaCategoria()">Criar Categoria</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR EXCLUSÃO -->
+<div class="rn-modal-overlay" id="modalExcluirOverlay" style="display:none">
+  <div class="rn-modal rn-modal-sm">
+    <div class="rn-modal-header">
+      <span>Excluir Regra</span>
+      <button class="rn-modal-close" onclick="fecharModalExcluir()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rn-modal-body">
+      <p style="color:#374151;font-size:14px;line-height:1.6;">
+        Tem certeza que deseja excluir a regra <strong id="excluirRegraId"></strong>?<br>
+        Esta ação não poderá ser desfeita.
+      </p>
+    </div>
+    <div class="rn-modal-footer">
+      <button class="rn-btn-cancel" onclick="fecharModalExcluir()">Cancelar</button>
+      <button class="rn-btn-excluir" onclick="confirmarExclusaoRegra()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Inputs ocultos para importação de arquivo -->
+<input type="file" id="inputImportarJSON" accept=".json" style="display:none" onchange="_onImportarJSONChange(this)">
+<input type="file" id="inputImportarCSV"  accept=".csv"  style="display:none" onchange="_onImportarCSVChange(this)">
+
+<script src="js/regras-negocio.js"></script>
+</body>
+</html>
